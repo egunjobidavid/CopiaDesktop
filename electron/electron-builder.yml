@@ -7,6 +7,7 @@ directories:
   buildResources: build
 
 files:
+  - ../dist/renderer/**/*
   - dist/**/*
   - package.json
 

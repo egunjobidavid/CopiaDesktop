@@ -1,0 +1,22 @@
+{
+  "name": "copiaos-desktop",
+  "version": "1.0.0",
+  "description": "CopiaOS — Desktop Application",
+  "main": "dist/main/main.js",
+  "author": "CopiaOS",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux",
+    "dev": "wait-on http://localhost:5173 && electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.3.1",
+    "electron-builder": "^24.13.3",
+    "electron-updater": "^6.2.1",
+    "typescript": "^5.5.4",
+    "wait-on": "^7.2.0"
+  }
+}
