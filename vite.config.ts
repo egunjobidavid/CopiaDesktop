@@ -5,7 +5,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   root: '.',
-  base: './',
+  base: process.env.VERCEL ? '/' : './',
   build: {
     outDir: 'dist/renderer',
     emptyOutDir: true,
