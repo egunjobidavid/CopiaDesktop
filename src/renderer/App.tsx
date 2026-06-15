@@ -1,0 +1,68 @@
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { startSync, stopSync } from './workers/sync.manager';
+import { useAuthStore } from './store/auth.store';
+import { Layout } from './components/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
+import { Pos } from './pages/pos/Pos';
+import { Invoices } from './pages/Invoices';
+import { ProductList } from './pages/products/ProductList';
+import { ProductDetail } from './pages/products/ProductDetail';
+import { StockView } from './pages/inventory/StockView';
+import { StockMovement } from './pages/inventory/StockMovement';
+import { POList } from './pages/procurement/POList';
+import { POForm } from './pages/procurement/POForm';
+import { PODetail } from './pages/procurement/PODetail';
+import { Reports } from './pages/reports/Reports';
+import { SalesReport } from './pages/reports/SalesReport';
+import { InventoryReport } from './pages/reports/InventoryReport';
+import { FinancialReport } from './pages/reports/FinancialReport';
+
+export function App() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      startSync(300000);
+      return () => stopSync();
+    }
+  }, [isAuthenticated]);
+
+  return (
+    <BrowserRouter>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: { background: '#363636', color: '#fff' },
+        }}
+      />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/pos" element={<Pos />} />
+            <Route path="/invoices" element={<Invoices />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/inventory" element={<StockView />} />
+            <Route path="/inventory/movements" element={<StockMovement />} />
+            <Route path="/procurement" element={<POList />} />
+            <Route path="/procurement/new" element={<POForm />} />
+            <Route path="/procurement/:id" element={<PODetail />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/reports/sales" element={<SalesReport />} />
+            <Route path="/reports/inventory" element={<InventoryReport />} />
+            <Route path="/reports/financial" element={<FinancialReport />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Route>
+        </Route>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}

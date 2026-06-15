@@ -1,0 +1,40 @@
+appId: com.copiaos.desktop
+productName: CopiaOS
+copyright: Copyright © 2026 CopiaOS
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - package.json
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: CopiaOS-Setup-${version}.${ext}
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  deleteAppDataOnUninstall: false
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  artifactName: CopiaOS-${version}-${arch}.${ext}
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+  artifactName: CopiaOS-${version}.${ext}
+
+publish:
+  provider: github
+  owner: copiaos
+  repo: copiaos-desktop

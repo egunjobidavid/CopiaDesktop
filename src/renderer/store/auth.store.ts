@@ -1,0 +1,93 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { login as apiLogin, refreshAccessToken } from '../api/auth';
+
+interface User {
+  id: string;
+  email: string;
+  fullName: string;
+  role: string;
+}
+
+interface AuthState {
+  accessToken: string | null;
+  refreshToken: string | null;
+  user: User | null;
+  tenantId: string | null;
+  isAuthenticated: boolean;
+  isInitialized: boolean;
+
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  refreshAccessToken: () => Promise<string>;
+  setInitialized: () => void;
+  setUser: (user: User) => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      accessToken: null,
+      refreshToken: null,
+      user: null,
+      tenantId: null,
+      isAuthenticated: false,
+      isInitialized: false,
+
+      login: async (email: string, password: string) => {
+        const response = await apiLogin({ email, password });
+        set({
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          user: {
+            id: response.user.id,
+            email: response.user.email,
+            fullName: response.user.fullName,
+            role: 'admin',
+          },
+          tenantId: response.tenantId,
+          isAuthenticated: true,
+          isInitialized: true,
+        });
+      },
+
+      logout: () => {
+        set({
+          accessToken: null,
+          refreshToken: null,
+          user: null,
+          tenantId: null,
+          isAuthenticated: false,
+          isInitialized: true,
+        });
+      },
+
+      refreshAccessToken: async () => {
+        const state = get();
+        if (!state.refreshToken) {
+          throw new Error('No refresh token available');
+        }
+        const newAccessToken = await refreshAccessToken(
+          state.refreshToken,
+        );
+        set({ accessToken: newAccessToken });
+        return newAccessToken;
+      },
+
+      setInitialized: () => set({ isInitialized: true }),
+      setUser: (user) => set({ user }),
+    }),
+    {
+      name: 'copiaos-auth',
+      partialize: (state) => ({
+        refreshToken: state.refreshToken,
+        tenantId: state.tenantId,
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
+      onRehydrateStorage: () => () => {
+        useAuthStore.getState().setInitialized();
+      },
+    },
+  ),
+);
