@@ -4,10 +4,10 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  root: 'src/renderer',
+  root: '.',
   base: './',
   build: {
-    outDir: '../../dist/renderer',
+    outDir: 'dist/renderer',
     emptyOutDir: true,
   },
   resolve: {
