@@ -9,6 +9,8 @@ export default defineConfig({
   build: {
     outDir: 'dist/renderer',
     emptyOutDir: true,
+    cssCodeSplit: false,
+    target: 'es2020',
   },
   resolve: {
     alias: {
