@@ -32,10 +32,9 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       tenantId: null,
       isAuthenticated: false,
-      isInitialized: false,
+      isInitialized: true,
 
       login: async (email: string, password: string) => {
-        console.log('[AuthStore] login called');
         const response = await apiLogin({ email, password });
         set({
           accessToken: response.accessToken,
@@ -50,11 +49,9 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           isInitialized: true,
         });
-        console.log('[AuthStore] login complete');
       },
 
       logout: () => {
-        console.log('[AuthStore] logout called');
         set({
           accessToken: null,
           refreshToken: null,
@@ -77,12 +74,7 @@ export const useAuthStore = create<AuthState>()(
         return newAccessToken;
       },
 
-      setInitialized: () => {
-        console.log('[AuthStore] setInitialized called');
-        set({ isInitialized: true });
-        console.log('[AuthStore] isInitialized is now true');
-        console.log('[AuthStore] state:', JSON.stringify(get()));
-      },
+      setInitialized: () => set({ isInitialized: true }),
       setUser: (user) => set({ user }),
     }),
     {
@@ -93,13 +85,6 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => {
-        console.log('[AuthStore] onRehydrateStorage outer called');
-        return () => {
-          console.log('[AuthStore] onRehydrateStorage inner (post-hydration) called');
-          useAuthStore.getState().setInitialized();
-        };
-      },
     },
   ),
 );

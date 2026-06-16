@@ -15,12 +15,9 @@ export function Login() {
 
   // Redirect if already logged in
   if (isAuthenticated) {
-    console.log('[Login] authenticated, redirecting to dashboard');
     navigate('/dashboard', { replace: true });
     return null;
   }
-
-  console.log('[Login] rendering login form');
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
