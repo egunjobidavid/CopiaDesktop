@@ -24,19 +24,19 @@ export interface UserProfile {
 }
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
-  const { data } = await api.post<LoginResponse>('/identity/login', credentials);
+  const { data } = await api.post<LoginResponse>('/auth/login', credentials);
   return data;
 }
 
 export async function refreshToken(token: string): Promise<{ accessToken: string }> {
-  const { data } = await api.post<{ accessToken: string }>('/identity/refresh', {
+  const { data } = await api.post<{ accessToken: string }>('/auth/refresh', {
     refreshToken: token,
   });
   return data;
 }
 
 export async function getProfile(): Promise<UserProfile> {
-  const { data } = await api.get<UserProfile>('/identity/profile');
+  const { data } = await api.get<UserProfile>('/auth/me');
   return data;
 }
 
