@@ -3,7 +3,18 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'remove-crossorigin',
+      transformIndexHtml: {
+        enforce: 'post',
+        transform(html: string) {
+          return html.replace(/\s+crossorigin(="[^"]*")?/g, '');
+        },
+      },
+    },
+  ],
   root: '.',
   base: process.env.VERCEL ? '/' : './',
   build: {
