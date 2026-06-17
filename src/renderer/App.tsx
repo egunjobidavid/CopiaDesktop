@@ -20,6 +20,12 @@ import { Reports } from './pages/reports/Reports';
 import { SalesReport } from './pages/reports/SalesReport';
 import { InventoryReport } from './pages/reports/InventoryReport';
 import { FinancialReport } from './pages/reports/FinancialReport';
+import { CustomerList } from './pages/customers/CustomerList';
+import { SalesOrders } from './pages/sales/SalesOrders';
+import { VendorList } from './pages/vendors/VendorList';
+import { Production } from './pages/production/Production';
+import { Expenses } from './pages/expenses/Expenses';
+import { Settings } from './pages/settings/Settings';
 
 export function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -58,6 +64,12 @@ export function App() {
             <Route path="/reports/sales" element={<SalesReport />} />
             <Route path="/reports/inventory" element={<InventoryReport />} />
             <Route path="/reports/financial" element={<FinancialReport />} />
+            <Route path="/customers" element={<CustomerList />} />
+            <Route path="/sales" element={<SalesOrders />} />
+            <Route path="/vendors" element={<VendorList />} />
+            <Route path="/production" element={<Production />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Route>
