@@ -43,16 +43,25 @@ export function RegisterForm({ onBack }: Props) {
 
   useEffect(() => {
     if (inviteToken) {
+      const timeout = setTimeout(() => {
+        setValidating(false);
+        toast.error('Validation timed out — fill in your details and try');
+      }, 10000);
+
       api.get(`/invites/validate?token=${inviteToken}`).then(({ data }) => {
+        clearTimeout(timeout);
         setInviteValid(true);
         setInviteTenantId(data.tenantId);
         setInviteOrgName(data.orgName || 'an organization');
         if (data.email) setForm((f) => ({ ...f, email: data.email }));
         setValidating(false);
       }).catch(() => {
-        toast.error('Invalid or expired invitation link');
+        clearTimeout(timeout);
         setValidating(false);
+        toast.error('Invalid or expired invitation link');
       });
+
+      return () => clearTimeout(timeout);
     }
   }, [inviteToken]);
 
