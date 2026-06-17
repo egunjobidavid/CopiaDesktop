@@ -16,7 +16,7 @@ export function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  if (isAuthenticated) {
+  if (isAuthenticated && mode === 'login') {
     navigate('/dashboard', { replace: true });
     return null;
   }
