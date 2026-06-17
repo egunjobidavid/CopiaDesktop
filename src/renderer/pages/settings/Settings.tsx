@@ -23,6 +23,14 @@ interface Invite {
   created_by_name: string;
 }
 
+interface OrphanUser {
+  id: string;
+  email: string;
+  full_name: string;
+  status: string;
+  created_at: string;
+}
+
 export function Settings() {
   const user = useAuthStore((s) => s.user);
   const tenantId = useAuthStore((s) => s.tenantId);
@@ -35,6 +43,9 @@ export function Settings() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('member');
   const [sending, setSending] = useState(false);
+  const [lastInviteLink, setLastInviteLink] = useState('');
+  const [orphanUsers, setOrphanUsers] = useState<OrphanUser[]>([]);
+  const [loadingOrphans, setLoadingOrphans] = useState(false);
 
   const loadOrg = () => {
     if (!tenantId) return;
@@ -46,6 +57,7 @@ export function Settings() {
     }).catch(() => {});
     loadMembers();
     loadInvites();
+    loadOrphans();
   };
 
   const loadMembers = () => {
@@ -61,16 +73,39 @@ export function Settings() {
     }).catch(() => {});
   };
 
+  const loadOrphans = () => {
+    setLoadingOrphans(true);
+    api.get('/tenants/orphan-users').then(({ data }) => {
+      setOrphanUsers(Array.isArray(data) ? data : []);
+    }).catch(() => {}).finally(() => setLoadingOrphans(false));
+  };
+
+  const addOrphan = async (email: string) => {
+    try {
+      await api.post('/tenants/members', { tenantId, email, role: 'member' });
+      toast.success(`${email} added to your organization`);
+      loadMembers();
+      loadOrphans();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to add user');
+    }
+  };
+
   useEffect(loadOrg, [tenantId]);
 
   const sendInvite = async () => {
     if (!inviteEmail.trim()) { toast.error('Email is required'); return; }
     setSending(true);
     try {
-      await api.post('/invites', { tenantId, email: inviteEmail.trim(), role: inviteRole });
-      toast.success(`Invitation sent to ${inviteEmail}`);
-      setShowInviteForm(false);
-      setInviteEmail('');
+      const { data } = await api.post('/invites', { tenantId, email: inviteEmail.trim(), role: inviteRole });
+      if (data.inviteLink) {
+        setLastInviteLink(data.inviteLink);
+        toast.success('Email delivery unavailable — share the invite link manually');
+      } else {
+        toast.success(`Invitation sent to ${inviteEmail}`);
+        setShowInviteForm(false);
+        setInviteEmail('');
+      }
       loadInvites();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to send invite');
@@ -232,6 +267,58 @@ export function Settings() {
           </>
         )}
       </div>
+
+      {/* Orphan Users — registered without tenant */}
+      {user?.role === 'admin' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                <Users className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Unassigned Users</h2>
+                <p className="text-xs text-gray-500">Users who registered without an organization</p>
+              </div>
+            </div>
+            <button onClick={loadOrphans} className="btn-secondary text-sm flex items-center gap-2">
+              <Loader2 className={`w-4 h-4 ${loadingOrphans ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
+          {loadingOrphans ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            </div>
+          ) : orphanUsers.length === 0 ? (
+            <div className="px-6 py-8 text-center text-gray-400 text-sm">
+              No unassigned users
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200">
+              {orphanUsers.map((u) => (
+                <div key={u.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center">
+                      <span className="text-sm font-semibold text-orange-600">
+                        {(u.full_name || u.email)[0].toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{u.full_name || 'Unknown'}</p>
+                      <p className="text-xs text-gray-500">{u.email}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => addOrphan(u.email)}
+                    className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1">
+                    <Plus className="w-3 h-3" /> Add to Org
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Invite Form Modal */}
       {showInviteForm && (
