@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
+import api from '../api/client';
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -41,6 +42,19 @@ export function Sidebar() {
   const location = useLocation();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
+  const tenantId = useAuthStore((s) => s.tenantId);
+  const [orgName, setOrgName] = useState('');
+
+  useEffect(() => {
+    if (tenantId) {
+      api.get('/auth/me').then(({ data }) => {
+        if (data?.tenants?.length > 0) {
+          const t = data.tenants.find((t: any) => t.id === tenantId);
+          if (t) setOrgName(t.name);
+        }
+      }).catch(() => {});
+    }
+  }, [tenantId]);
 
   const handleLogout = useCallback(() => {
     logout();
@@ -63,6 +77,11 @@ export function Sidebar() {
           {user?.fullName || 'User'}
         </p>
         <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
+        {orgName && (
+          <p className="text-xs text-purple-600 font-medium truncate mt-1">
+            {orgName}
+          </p>
+        )}
       </div>
 
       {/* Navigation */}
