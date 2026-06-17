@@ -40,6 +40,23 @@ export async function getProfile(): Promise<UserProfile> {
   return data;
 }
 
+export async function register(dto: {
+  email: string;
+  password: string;
+  fullName: string;
+  tenantName: string;
+  tenantAddress?: string;
+  tenantCity?: string;
+  tenantState?: string;
+  tenantCountry?: string;
+  tenantPostalCode?: string;
+  tenantPhone?: string;
+  tenantServices?: string;
+}): Promise<LoginResponse> {
+  const { data } = await api.post<LoginResponse>('/auth/register', dto);
+  return data;
+}
+
 export async function refreshAccessToken(
   refreshTokenValue: string,
 ): Promise<string> {
