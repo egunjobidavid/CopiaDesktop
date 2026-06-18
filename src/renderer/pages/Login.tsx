@@ -51,11 +51,17 @@ export function Login() {
     if (!email) { toast.error('Enter your email'); return; }
     setIsLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email });
+      const { data } = await api.post('/auth/forgot-password', { email }, { timeout: 10000 });
       setResetSent(true);
-      toast.success('If that email exists, a reset link has been sent');
+      if (data.resetToken) {
+        setResetToken(data.resetToken);
+        toast.success('Reset token generated — enter your new password below');
+      } else {
+        toast.success('If that email exists, a reset link has been sent');
+      }
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to send reset email');
+      setResetSent(true);
+      toast.success('Enter the reset token from the admin to continue');
     } finally {
       setIsLoading(false);
     }
@@ -146,13 +152,21 @@ export function Login() {
 
           {mode === 'forgot' && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-500">Enter your email and we'll send a reset link.</p>
+              <p className="text-sm text-gray-500">Enter your email to reset your password.</p>
               <input type="email" placeholder="you@company.com" className={inputClass}
                 value={email} onChange={(e) => setEmail(e.target.value)} />
+              {!resetSent && (
+                <button onClick={handleForgot} disabled={isLoading}
+                  className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50">
+                  {isLoading ? 'Generating...' : 'Generate Reset Token'}
+                </button>
+              )}
               {resetSent && (
                 <div className="space-y-2">
-                  <p className="text-xs text-gray-500">Check your email for the reset link, or paste the reset token below:</p>
-                  <input type="text" placeholder="Reset token from email" className={inputClass}
+                  <p className="text-xs text-gray-500">
+                    {resetToken ? 'Reset token auto-filled. Set your new password:' : 'Enter the reset token below:'}
+                  </p>
+                  <input type="text" placeholder="Reset token" className={inputClass}
                     value={resetToken} onChange={(e) => setResetToken(e.target.value)} />
                   <input type="password" placeholder="New password (min 6 chars)" className={inputClass}
                     value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
@@ -162,13 +176,7 @@ export function Login() {
                   </button>
                 </div>
               )}
-              {!resetSent && (
-                <button onClick={handleForgot} disabled={isLoading}
-                  className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50">
-                  {isLoading ? 'Sending...' : 'Send Reset Link'}
-                </button>
-              )}
-              <button onClick={() => setMode('login')}
+              <button onClick={() => { setMode('login'); setResetSent(false); setResetToken(''); }}
                 className="w-full text-center text-sm text-blue-600 hover:text-blue-700">
                 Back to Sign In
               </button>
