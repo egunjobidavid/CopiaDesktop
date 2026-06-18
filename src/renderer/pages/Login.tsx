@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { RegisterForm } from './RegisterForm';
+import api from '../api/client';
 import toast from 'react-hot-toast';
 
 export function Login() {
@@ -10,11 +11,14 @@ export function Login() {
   const login = useAuthStore((s) => s.login);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  const [mode, setMode] = useState<'login' | 'register'>(searchParams.get('token') ? 'register' : 'login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(searchParams.get('token') ? 'register' : 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetSent, setResetSent] = useState(false);
 
   if (isAuthenticated && mode === 'login') {
     navigate('/dashboard', { replace: true });
@@ -28,7 +32,6 @@ export function Login() {
         toast.error('Please enter email and password');
         return;
       }
-
       setIsLoading(true);
       try {
         await login(email, password);
@@ -44,6 +47,40 @@ export function Login() {
     [email, password, login, navigate],
   );
 
+  const handleForgot = async () => {
+    if (!email) { toast.error('Enter your email'); return; }
+    setIsLoading(true);
+    try {
+      await api.post('/auth/forgot-password', { email });
+      setResetSent(true);
+      toast.success('If that email exists, a reset link has been sent');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to send reset email');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!resetToken || !newPassword) { toast.error('Fill all fields'); return; }
+    if (newPassword.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    setIsLoading(true);
+    try {
+      await api.post('/auth/reset-password', { token: resetToken, newPassword });
+      toast.success('Password reset successfully. Sign in with your new password.');
+      setMode('login');
+      setResetToken('');
+      setNewPassword('');
+      setResetSent(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to reset password');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const inputClass = "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors";
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-md">
@@ -55,68 +92,90 @@ export function Login() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900">CopiaOS</h1>
             <p className="text-sm text-gray-500 mt-1">
-              {mode === 'login' ? 'Sign in to your account' : 'Register your organization'}
+              {mode === 'login' ? 'Sign in to your account' : mode === 'forgot' ? 'Reset your password' : mode === 'reset' ? 'Enter new password' : 'Register your organization'}
             </p>
           </div>
 
-          {/* Tabs */}
-          <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
-            <button onClick={() => setMode('login')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === 'login' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}>
-              Sign In
-            </button>
-            <button onClick={() => setMode('register')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === 'register' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}>
-              Register
-            </button>
-          </div>
-
-          {mode === 'login' ? (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <input
-                  id="email" type="email" value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                  autoComplete="email" autoFocus
-                />
+          {mode === 'login' && (
+            <>
+              {/* Tabs */}
+              <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
+                <button onClick={() => setMode('login')}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    mode === 'login' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}>
+                  Sign In
+                </button>
+                <button onClick={() => setMode('register')}
+                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
+                    mode === 'register' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}>
+                  Register
+                </button>
               </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password" type={showPassword ? 'text' : 'password'} value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors pr-10"
-                    autoComplete="current-password"
-                  />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm">
-                    {showPassword ? 'Hide' : 'Show'}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                  <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com" className={inputClass} autoComplete="email" autoFocus />
+                </div>
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                  <div className="relative">
+                    <input id="password" type={showPassword ? 'text' : 'password'} value={password}
+                      onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password"
+                      className={`${inputClass} pr-10`} autoComplete="current-password" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm">
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+                <button type="submit" disabled={isLoading}
+                  className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {isLoading ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Signing in...</> : 'Sign In'}
+                </button>
+                <button type="button" onClick={() => { setMode('forgot'); setResetSent(false); }}
+                  className="w-full text-center text-sm text-blue-600 hover:text-blue-700 mt-2">
+                  Forgot password?
+                </button>
+              </form>
+            </>
+          )}
+
+          {mode === 'forgot' && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">Enter your email and we'll send a reset link.</p>
+              <input type="email" placeholder="you@company.com" className={inputClass}
+                value={email} onChange={(e) => setEmail(e.target.value)} />
+              {resetSent && (
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-500">Check your email for the reset link, or paste the reset token below:</p>
+                  <input type="text" placeholder="Reset token from email" className={inputClass}
+                    value={resetToken} onChange={(e) => setResetToken(e.target.value)} />
+                  <input type="password" placeholder="New password (min 6 chars)" className={inputClass}
+                    value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                  <button onClick={handleReset} disabled={isLoading}
+                    className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50">
+                    {isLoading ? 'Resetting...' : 'Reset Password'}
                   </button>
                 </div>
-              </div>
-
-              <button type="submit" disabled={isLoading}
-                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                {isLoading ? (
-                  <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Signing in...</>
-                ) : 'Sign In'}
+              )}
+              {!resetSent && (
+                <button onClick={handleForgot} disabled={isLoading}
+                  className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50">
+                  {isLoading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+              )}
+              <button onClick={() => setMode('login')}
+                className="w-full text-center text-sm text-blue-600 hover:text-blue-700">
+                Back to Sign In
               </button>
-            </form>
-          ) : (
+            </div>
+          )}
+
+          {mode === 'register' && (
             <RegisterForm onBack={() => setMode('login')} />
           )}
 

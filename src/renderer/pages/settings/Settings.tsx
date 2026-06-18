@@ -46,6 +46,11 @@ export function Settings() {
   const [lastInviteLink, setLastInviteLink] = useState('');
   const [orphanUsers, setOrphanUsers] = useState<OrphanUser[]>([]);
   const [loadingOrphans, setLoadingOrphans] = useState(false);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [newUser, setNewUser] = useState({ email: '', password: '', fullName: '', role: 'member' });
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [changingPw, setChangingPw] = useState(false);
 
   const loadOrg = () => {
     if (!tenantId) return;
@@ -88,6 +93,38 @@ export function Settings() {
       loadOrphans();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to add user');
+    }
+  };
+
+  const createUser = async () => {
+    if (!newUser.email || !newUser.password || !newUser.fullName) { toast.error('All fields required'); return; }
+    setCreatingUser(true);
+    try {
+      await api.post('/auth/admin/create-user', newUser, { headers: { 'x-tenant-id': tenantId } });
+      toast.success(`User ${newUser.email} created`);
+      setShowCreateUser(false);
+      setNewUser({ email: '', password: '', fullName: '', role: 'member' });
+      loadMembers();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to create user');
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
+  const changePassword = async () => {
+    if (!pwForm.currentPassword || !pwForm.newPassword) { toast.error('Fill all fields'); return; }
+    if (pwForm.newPassword !== pwForm.confirmPassword) { toast.error('Passwords do not match'); return; }
+    if (pwForm.newPassword.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    setChangingPw(true);
+    try {
+      await api.post('/auth/change-password', { currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword });
+      toast.success('Password changed');
+      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to change password');
+    } finally {
+      setChangingPw(false);
     }
   };
 
@@ -160,6 +197,22 @@ export function Settings() {
             <div>
               <label className="text-xs text-gray-500 uppercase tracking-wide font-medium">Role</label>
               <p className="text-gray-900 font-medium capitalize mt-0.5">{user?.role || '-'}</p>
+            </div>
+            <hr className="border-gray-200" />
+            <div>
+              <label className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-2 block">Change Password</label>
+              <div className="space-y-2">
+                <input type="password" placeholder="Current password" className="input w-full text-sm"
+                  value={pwForm.currentPassword} onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })} />
+                <input type="password" placeholder="New password (min 6 chars)" className="input w-full text-sm"
+                  value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })} />
+                <input type="password" placeholder="Confirm new password" className="input w-full text-sm"
+                  value={pwForm.confirmPassword} onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })} />
+                <button onClick={changePassword} disabled={changingPw}
+                  className="btn-primary text-xs px-3 py-1.5 w-full flex items-center justify-center gap-1 disabled:opacity-50">
+                  {changingPw ? <><Loader2 className="w-3 h-3 animate-spin" /> Changing...</> : 'Update Password'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -315,6 +368,48 @@ export function Settings() {
                   </button>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Create User — admin directly creates user accounts */}
+      {user?.role === 'admin' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <User className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">Create User</h2>
+                <p className="text-xs text-gray-500">Directly create user accounts in your organization</p>
+              </div>
+            </div>
+            <button onClick={() => setShowCreateUser(!showCreateUser)}
+              className="btn-primary text-sm flex items-center gap-2">
+              <Plus className="w-4 h-4" /> {showCreateUser ? 'Cancel' : 'New User'}
+            </button>
+          </div>
+          {showCreateUser && (
+            <div className="px-6 py-4 space-y-3">
+              <input type="text" placeholder="Full name *" className="input w-full text-sm"
+                value={newUser.fullName} onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })} />
+              <input type="email" placeholder="Email *" className="input w-full text-sm"
+                value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
+              <input type="password" placeholder="Temporary password * (min 6 chars)" className="input w-full text-sm"
+                value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} />
+              <select className="input w-full text-sm" value={newUser.role}
+                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}>
+                <option value="member">Member</option>
+                <option value="admin">Admin</option>
+                <option value="viewer">Viewer</option>
+              </select>
+              <p className="text-xs text-amber-600">The user will use this password to log in. Share it securely.</p>
+              <button onClick={createUser} disabled={creatingUser}
+                className="btn-primary text-sm w-full flex items-center justify-center gap-2 disabled:opacity-50">
+                {creatingUser ? <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</> : 'Create User Account'}
+              </button>
             </div>
           )}
         </div>
