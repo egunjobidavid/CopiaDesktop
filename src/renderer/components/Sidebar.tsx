@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
+import { useFeature } from '../hooks/useFeature';
 import api from '../api/client';
 import {
   LayoutDashboard,
@@ -16,26 +17,53 @@ import {
   Wallet,
   BarChart3,
   Settings,
+  LifeBuoy,
   LogOut,
+  CheckSquare,
+  CreditCard,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
 
-const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/pos', label: 'Point of Sale', icon: ShoppingCart },
-  { path: '/products', label: 'Products', icon: Package },
-  { path: '/inventory', label: 'Inventory', icon: Warehouse },
-  { path: '/customers', label: 'Customers', icon: Users },
-  { path: '/sales', label: 'Sales Orders', icon: FileText },
-  { path: '/invoices', label: 'Invoices', icon: Receipt },
-  { path: '/vendors', label: 'Vendors', icon: ShoppingBag },
-  { path: '/procurement', label: 'Procurement', icon: ClipboardList },
-  { path: '/production', label: 'Production', icon: Factory },
-  { path: '/expenses', label: 'Expenses', icon: Wallet },
-  { path: '/reports', label: 'Reports', icon: BarChart3 },
-  { path: '/settings', label: 'Settings', icon: Settings },
+type NavItem = {
+  path: string;
+  label: string;
+  icon: any;
+  minRole: string;
+  feature?: string;
+};
+
+const navItems: NavItem[] = [
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, minRole: 'Staff' },
+  { path: '/pos', label: 'Point of Sale', icon: ShoppingCart, minRole: 'Sales Rep' },
+  { path: '/products', label: 'Products', icon: Package, minRole: 'Staff' },
+  { path: '/inventory', label: 'Inventory', icon: Warehouse, minRole: 'Staff' },
+  { path: '/customers', label: 'Customers', icon: Users, minRole: 'Sales Rep' },
+  { path: '/sales', label: 'Sales Orders', icon: FileText, minRole: 'Sales Rep' },
+  { path: '/invoices', label: 'Invoices', icon: Receipt, minRole: 'Accountant' },
+  { path: '/vendors', label: 'Vendors', icon: ShoppingBag, minRole: 'Accountant' },
+  { path: '/procurement', label: 'Procurement', icon: ClipboardList, minRole: 'Manager' },
+  { path: '/production', label: 'Production', icon: Factory, minRole: 'Manager', feature: 'production' },
+  { path: '/expenses', label: 'Expenses', icon: Wallet, minRole: 'Accountant' },
+  { path: '/approvals', label: 'Approvals', icon: CheckSquare, minRole: 'Accountant', feature: 'approvals' },
+  { path: '/reports', label: 'Reports', icon: BarChart3, minRole: 'Accountant' },
+  { path: '/settings', label: 'Settings', icon: Settings, minRole: 'Director' },
+  { path: '/settings/billing', label: 'Billing', icon: CreditCard, minRole: 'Director' },
+  { path: '/settings/support', label: 'Support', icon: LifeBuoy, minRole: 'Staff' },
 ];
+
+const ROLE_HIERARCHY: Record<string, number> = {
+  MD: 100,
+  Director: 80,
+  Manager: 60,
+  Accountant: 40,
+  'Sales Rep': 30,
+  Staff: 10,
+};
+
+function hasMinRole(userRole: string, minRole: string): boolean {
+  return (ROLE_HIERARCHY[userRole] ?? 0) >= (ROLE_HIERARCHY[minRole] ?? 0);
+}
 
 export function Sidebar() {
   const navigate = useNavigate();
@@ -43,7 +71,10 @@ export function Sidebar() {
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
   const tenantId = useAuthStore((s) => s.tenantId);
+  const { hasFeature } = useFeature();
   const [orgName, setOrgName] = useState('');
+
+  const userRole = user?.role ?? 'Staff';
 
   useEffect(() => {
     if (tenantId) {
@@ -61,6 +92,10 @@ export function Sidebar() {
     navigate('/login');
   }, [logout, navigate]);
 
+  const visibleItems = navItems.filter(
+    (item) => hasMinRole(userRole, item.minRole) && (!item.feature || hasFeature(item.feature)),
+  );
+
   return (
     <aside className="flex flex-col w-64 bg-white border-r border-gray-200">
       {/* Logo */}
@@ -77,16 +112,17 @@ export function Sidebar() {
           {user?.fullName || 'User'}
         </p>
         <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
+        {user?.role && (
+          <p className="text-xs text-blue-600 font-medium truncate mt-1">{user.role}</p>
+        )}
         {orgName && (
-          <p className="text-xs text-purple-600 font-medium truncate mt-1">
-            {orgName}
-          </p>
+          <p className="text-xs text-purple-600 font-medium truncate">{orgName}</p>
         )}
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
           return (

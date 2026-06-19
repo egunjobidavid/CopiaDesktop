@@ -46,9 +46,28 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue = [];
 };
 
+let offlineQueue: Array<() => void> = [];
+
+window.addEventListener('online', () => {
+  const queue = [...offlineQueue];
+  offlineQueue = [];
+  queue.forEach((fn) => fn());
+});
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   async (error) => {
+    if (!navigator.onLine) {
+      return new Promise((resolve) => {
+        offlineQueue.push(() => resolve(api(error.config)));
+      });
+    }
+
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {

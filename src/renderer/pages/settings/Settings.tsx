@@ -1,8 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, User, Shield, Building2, Copy, CheckCircle2, Mail, Plus, X, Loader2, Users, Clock, CheckCircle, Ban } from 'lucide-react';
+import { Settings as SettingsIcon, User, Shield, Building2, Copy, CheckCircle2, Mail, Plus, X, Loader2, Users, Clock, CheckCircle, Ban, Trash2, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import api from '../../api/client';
 import toast from 'react-hot-toast';
+
+const ROLES = ['MD', 'Director', 'Manager', 'Accountant', 'Sales Rep', 'Staff'] as const;
+
+const ROLE_HIERARCHY: Record<string, number> = {
+  MD: 100,
+  Director: 80,
+  Manager: 60,
+  Accountant: 40,
+  'Sales Rep': 30,
+  Staff: 10,
+};
+
+function hasMinRole(userRole: string, minRole: string): boolean {
+  return (ROLE_HIERARCHY[userRole] ?? 0) >= (ROLE_HIERARCHY[minRole] ?? 0);
+}
 
 interface Member {
   id: string;
@@ -41,16 +56,19 @@ export function Settings() {
   const [loadingMembers, setLoadingMembers] = useState(true);
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('member');
+  const [inviteRole, setInviteRole] = useState('Staff');
   const [sending, setSending] = useState(false);
   const [lastInviteLink, setLastInviteLink] = useState('');
   const [orphanUsers, setOrphanUsers] = useState<OrphanUser[]>([]);
   const [loadingOrphans, setLoadingOrphans] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
-  const [newUser, setNewUser] = useState({ email: '', password: '', fullName: '', role: 'member' });
+  const [newUser, setNewUser] = useState({ email: '', password: '', fullName: '', role: 'Staff' });
   const [creatingUser, setCreatingUser] = useState(false);
-  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  const [changingPw, setChangingPw] = useState(false);
+  const [changingRole, setChangingRole] = useState<string | null>(null);
+
+  const userRole = user?.role ?? 'Staff';
+
+  const canManage = hasMinRole(userRole, 'Director');
 
   const loadOrg = () => {
     if (!tenantId) return;
@@ -87,7 +105,7 @@ export function Settings() {
 
   const addOrphan = async (email: string) => {
     try {
-      await api.post('/tenants/members', { tenantId, email, role: 'member' });
+      await api.post('/tenants/members', { tenantId, email, role: 'Staff' });
       toast.success(`${email} added to your organization`);
       loadMembers();
       loadOrphans();
@@ -103,28 +121,12 @@ export function Settings() {
       await api.post('/auth/admin/create-user', newUser, { headers: { 'x-tenant-id': tenantId } });
       toast.success(`User ${newUser.email} created`);
       setShowCreateUser(false);
-      setNewUser({ email: '', password: '', fullName: '', role: 'member' });
+      setNewUser({ email: '', password: '', fullName: '', role: 'Staff' });
       loadMembers();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to create user');
     } finally {
       setCreatingUser(false);
-    }
-  };
-
-  const changePassword = async () => {
-    if (!pwForm.currentPassword || !pwForm.newPassword) { toast.error('Fill all fields'); return; }
-    if (pwForm.newPassword !== pwForm.confirmPassword) { toast.error('Passwords do not match'); return; }
-    if (pwForm.newPassword.length < 6) { toast.error('Password must be at least 6 characters'); return; }
-    setChangingPw(true);
-    try {
-      await api.post('/auth/change-password', { currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword });
-      toast.success('Password changed');
-      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to change password');
-    } finally {
-      setChangingPw(false);
     }
   };
 
@@ -148,6 +150,30 @@ export function Settings() {
       toast.error(err?.response?.data?.message || 'Failed to send invite');
     } finally {
       setSending(false);
+    }
+  };
+
+  const changeMemberRole = async (memberId: string, newRole: string) => {
+    setChangingRole(memberId);
+    try {
+      await api.patch(`/tenants/members/${memberId}/role`, { tenantId, role: newRole });
+      toast.success('Role updated');
+      loadMembers();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to change role');
+    } finally {
+      setChangingRole(null);
+    }
+  };
+
+  const removeMember = async (memberId: string, memberName: string) => {
+    if (!confirm(`Remove ${memberName} from your organization?`)) return;
+    try {
+      await api.delete(`/tenants/members/${memberId}?tenantId=${tenantId}`);
+      toast.success(`${memberName} removed from organization`);
+      loadMembers();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to remove member');
     }
   };
 
@@ -198,22 +224,7 @@ export function Settings() {
               <label className="text-xs text-gray-500 uppercase tracking-wide font-medium">Role</label>
               <p className="text-gray-900 font-medium capitalize mt-0.5">{user?.role || '-'}</p>
             </div>
-            <hr className="border-gray-200" />
-            <div>
-              <label className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-2 block">Change Password</label>
-              <div className="space-y-2">
-                <input type="password" placeholder="Current password" className="input w-full text-sm"
-                  value={pwForm.currentPassword} onChange={(e) => setPwForm({ ...pwForm, currentPassword: e.target.value })} />
-                <input type="password" placeholder="New password (min 6 chars)" className="input w-full text-sm"
-                  value={pwForm.newPassword} onChange={(e) => setPwForm({ ...pwForm, newPassword: e.target.value })} />
-                <input type="password" placeholder="Confirm new password" className="input w-full text-sm"
-                  value={pwForm.confirmPassword} onChange={(e) => setPwForm({ ...pwForm, confirmPassword: e.target.value })} />
-                <button onClick={changePassword} disabled={changingPw}
-                  className="btn-primary text-xs px-3 py-1.5 w-full flex items-center justify-center gap-1 disabled:opacity-50">
-                  {changingPw ? <><Loader2 className="w-3 h-3 animate-spin" /> Changing...</> : 'Update Password'}
-                </button>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -256,9 +267,11 @@ export function Settings() {
               <p className="text-xs text-gray-500">{members.length} member{members.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
-          <button onClick={() => setShowInviteForm(true)} className="btn-primary flex items-center gap-2 text-sm">
-            <Plus className="w-4 h-4" /> Invite User
-          </button>
+          {canManage && (
+            <button onClick={() => setShowInviteForm(true)} className="btn-primary flex items-center gap-2 text-sm">
+              <Plus className="w-4 h-4" /> Invite User
+            </button>
+          )}
         </div>
 
         {/* Members list */}
@@ -281,12 +294,33 @@ export function Settings() {
                     <p className="text-xs text-gray-500">{m.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize
-                    bg-blue-100 text-blue-700">{m.role}</span>
+                <div className="flex items-center gap-2">
+                  {canManage && m.id !== user?.id ? (
+                    <select
+                      className="text-xs border border-gray-200 rounded-md px-2 py-1 bg-white"
+                      value={m.role}
+                      onChange={(e) => changeMemberRole(m.id, e.target.value)}
+                      disabled={changingRole === m.id}
+                    >
+                      {ROLES.map((r) => (
+                        <option key={r} value={r}>{r}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize bg-blue-100 text-blue-700">{m.role}</span>
+                  )}
                   <span className="text-xs text-gray-400">
                     Joined {new Date(m.joined_at).toLocaleDateString('en-GB')}
                   </span>
+                  {canManage && m.id !== user?.id && (
+                    <button
+                      onClick={() => removeMember(m.id, m.full_name || m.email)}
+                      className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
+                      title="Remove from organization"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -311,9 +345,12 @@ export function Settings() {
                       </p>
                     </div>
                   </div>
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
-                    <Clock className="w-3 h-3" /> Pending
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700">
+                      <Clock className="w-3 h-3" /> Pending
+                    </span>
+                    <span className="text-xs text-gray-500">{inv.role}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -322,7 +359,7 @@ export function Settings() {
       </div>
 
       {/* Orphan Users — registered without tenant */}
-      {user?.role === 'admin' && (
+      {canManage && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -373,8 +410,8 @@ export function Settings() {
         </div>
       )}
 
-      {/* Create User — admin directly creates user accounts */}
-      {user?.role === 'admin' && (
+      {/* Create User — Director+ directly creates user accounts */}
+      {canManage && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -401,9 +438,9 @@ export function Settings() {
                 value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} />
               <select className="input w-full text-sm" value={newUser.role}
                 onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}>
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-                <option value="viewer">Viewer</option>
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
               </select>
               <p className="text-xs text-amber-600">The user will use this password to log in. Share it securely.</p>
               <button onClick={createUser} disabled={creatingUser}
@@ -432,9 +469,9 @@ export function Settings() {
               <input type="email" placeholder="Email address" className="input w-full" value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)} />
               <select className="input w-full" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-                <option value="viewer">Viewer</option>
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
               </select>
             </div>
             <div className="flex gap-3 mt-6 justify-end">

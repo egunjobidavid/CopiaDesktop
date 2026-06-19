@@ -53,11 +53,11 @@ export function Login() {
     try {
       const { data } = await api.post('/auth/forgot-password', { email }, { timeout: 10000 });
       setResetSent(true);
-      if (data.resetToken) {
-        setResetToken(data.resetToken);
-        toast.success('Reset token generated — enter your new password below');
+      if (data.emailSent) {
+        toast.success('Check your email for the password reset link');
       } else {
-        toast.success('If that email exists, a reset link has been sent');
+        setResetToken(data.resetToken);
+        toast.success('Email unavailable — enter your new password below using the token');
       }
     } catch (err: any) {
       setResetSent(true);
@@ -161,10 +161,15 @@ export function Login() {
                   {isLoading ? 'Generating...' : 'Generate Reset Token'}
                 </button>
               )}
-              {resetSent && (
+              {resetSent && !resetToken && (
+                <p className="text-sm text-green-600 text-center py-4">
+                  Check your email for the password reset link.
+                </p>
+              )}
+              {resetSent && resetToken && (
                 <div className="space-y-2">
                   <p className="text-xs text-gray-500">
-                    {resetToken ? 'Reset token auto-filled. Set your new password:' : 'Enter the reset token below:'}
+                    Enter the token and set your new password:
                   </p>
                   <input type="text" placeholder="Reset token" className={inputClass}
                     value={resetToken} onChange={(e) => setResetToken(e.target.value)} />

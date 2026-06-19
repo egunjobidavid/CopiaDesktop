@@ -26,6 +26,9 @@ import { VendorList } from './pages/vendors/VendorList';
 import { Production } from './pages/production/Production';
 import { Expenses } from './pages/expenses/Expenses';
 import { Settings } from './pages/settings/Settings';
+import { Support } from './pages/settings/Support';
+import { Billing } from './pages/settings/Billing';
+import { Approvals } from './pages/approvals/Approvals';
 
 export function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -52,25 +55,42 @@ export function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/pos" element={<Pos />} />
-            <Route path="/invoices" element={<Invoices />} />
             <Route path="/products" element={<ProductList />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/inventory" element={<StockView />} />
             <Route path="/inventory/movements" element={<StockMovement />} />
-            <Route path="/procurement" element={<POList />} />
-            <Route path="/procurement/new" element={<POForm />} />
-            <Route path="/procurement/:id" element={<PODetail />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/reports/sales" element={<SalesReport />} />
-            <Route path="/reports/inventory" element={<InventoryReport />} />
-            <Route path="/reports/financial" element={<FinancialReport />} />
-            <Route path="/customers" element={<CustomerList />} />
-            <Route path="/sales" element={<SalesOrders />} />
-            <Route path="/vendors" element={<VendorList />} />
-            <Route path="/production" element={<Production />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route element={<ProtectedRoute minRole="Sales Rep" />}>
+              <Route path="/pos" element={<Pos />} />
+              <Route path="/customers" element={<CustomerList />} />
+              <Route path="/sales" element={<SalesOrders />} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Accountant" />}>
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/vendors" element={<VendorList />} />
+              <Route path="/expenses" element={<Expenses />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/reports/sales" element={<SalesReport />} />
+              <Route path="/reports/inventory" element={<InventoryReport />} />
+              <Route path="/reports/financial" element={<FinancialReport />} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Manager" />}>
+              <Route path="/procurement" element={<POList />} />
+              <Route path="/procurement/new" element={<POForm />} />
+              <Route path="/procurement/:id" element={<PODetail />} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
+              <Route path="/production" element={<Production />} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Director" />}>
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/settings/billing" element={<Billing />} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Staff" />}>
+              <Route path="/settings/support" element={<Support />} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Accountant" feature="approvals" />}>
+              <Route path="/approvals" element={<Approvals />} />
+            </Route>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
         </Route>

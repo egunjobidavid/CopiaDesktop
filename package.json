@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build:electron": "cd electron && npm run build"
   },
   "dependencies": {

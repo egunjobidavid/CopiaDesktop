@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthState>()(
             id: response.user.id,
             email: response.user.email,
             fullName: response.user.fullName,
-            role: response.user.role || 'admin',
+            role: response.user.role || 'Staff',
           },
           tenantId: response.tenantId,
           isAuthenticated: true,
