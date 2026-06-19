@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { useFeature } from '../hooks/useFeature';
+import { canAccessModule } from '../hooks/usePermission';
 import api from '../api/client';
 import {
   LayoutDashboard,
@@ -21,8 +22,10 @@ import {
   LogOut,
   CheckSquare,
   CreditCard,
-  ChevronLeft,
-  ChevronRight,
+  Shield,
+  Building2,
+  MapPin,
+  UserCog,
 } from 'lucide-react';
 
 type NavItem = {
@@ -30,6 +33,7 @@ type NavItem = {
   label: string;
   icon: any;
   minRole: string;
+  module?: string;
   feature?: string;
 };
 
@@ -48,6 +52,10 @@ const navItems: NavItem[] = [
   { path: '/approvals', label: 'Approvals', icon: CheckSquare, minRole: 'Accountant', feature: 'approvals' },
   { path: '/reports', label: 'Reports', icon: BarChart3, minRole: 'Accountant' },
   { path: '/settings', label: 'Settings', icon: Settings, minRole: 'Director' },
+  { path: '/settings/roles', label: 'Roles', icon: Shield, minRole: 'Staff', module: 'hr' },
+  { path: '/settings/departments', label: 'Departments', icon: Building2, minRole: 'Staff', module: 'hr' },
+  { path: '/settings/locations', label: 'Locations', icon: MapPin, minRole: 'Staff', module: 'hr' },
+  { path: '/settings/staff', label: 'Staff', icon: UserCog, minRole: 'Staff', module: 'hr' },
   { path: '/settings/billing', label: 'Billing', icon: CreditCard, minRole: 'Director' },
   { path: '/settings/support', label: 'Support', icon: LifeBuoy, minRole: 'Staff' },
 ];
@@ -96,7 +104,7 @@ export function Sidebar() {
   }, [logout, navigate]);
 
   const visibleItems = navItems.filter(
-    (item) => hasMinRole(userRole, item.minRole) && (!item.feature || hasFeature(item.feature)),
+    (item) => hasMinRole(userRole, item.minRole) && (!item.module || canAccessModule(item.module)) && (!item.feature || hasFeature(item.feature)),
   );
 
   return (

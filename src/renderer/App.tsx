@@ -28,6 +28,11 @@ import { Expenses } from './pages/expenses/Expenses';
 import { Settings } from './pages/settings/Settings';
 import { Support } from './pages/settings/Support';
 import { Billing } from './pages/settings/Billing';
+import { Roles } from './pages/settings/Roles';
+import { RoleDetail } from './pages/settings/RoleDetail';
+import { Departments } from './pages/settings/Departments';
+import { Staff } from './pages/settings/Staff';
+import { Locations } from './pages/settings/Locations';
 import { Approvals } from './pages/approvals/Approvals';
 
 export function App() {
@@ -84,6 +89,13 @@ export function App() {
             <Route element={<ProtectedRoute minRole="Director" />}>
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/billing" element={<Billing />} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Staff" module="hr" />}>
+              <Route path="/settings/roles" element={<Roles />} />
+              <Route path="/settings/roles/:id" element={<RoleDetail />} />
+              <Route path="/settings/departments" element={<Departments />} />
+              <Route path="/settings/staff" element={<Staff />} />
+              <Route path="/settings/locations" element={<Locations />} />
             </Route>
             <Route element={<ProtectedRoute minRole="Staff" />}>
               <Route path="/settings/support" element={<Support />} />

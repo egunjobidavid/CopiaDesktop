@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { login as apiLogin, refreshAccessToken } from '../api/auth';
+import api from '../api/client';
 
 interface User {
   id: string;
@@ -14,6 +15,7 @@ interface AuthState {
   refreshToken: string | null;
   user: User | null;
   tenantId: string | null;
+  permissions: string[];
   isAuthenticated: boolean;
   isInitialized: boolean;
 
@@ -22,6 +24,7 @@ interface AuthState {
   refreshAccessToken: () => Promise<string>;
   setInitialized: () => void;
   setUser: (user: User) => void;
+  setPermissions: (perms: string[]) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -31,6 +34,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       tenantId: null,
+      permissions: [],
       isAuthenticated: false,
       isInitialized: true,
 
@@ -39,6 +43,7 @@ export const useAuthStore = create<AuthState>()(
         const rawRole = response.user.role || 'Staff';
         const roleMap: Record<string, string> = { admin: 'MD', member: 'Staff' };
         const role = roleMap[rawRole] || rawRole;
+        const tenantId = response.tenantId;
         set({
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
@@ -48,11 +53,23 @@ export const useAuthStore = create<AuthState>()(
             fullName: response.user.fullName,
             role,
           },
-          tenantId: response.tenantId,
+          tenantId,
           isAuthenticated: true,
           isInitialized: true,
         });
+        // Load permissions from /auth/me
+        try {
+          const { data } = await api.get('/auth/me');
+          if (data?.tenants) {
+            const current = data.tenants.find((t: any) => t.id === tenantId);
+            if (current?.permissions) {
+              set({ permissions: current.permissions });
+            }
+          }
+        } catch (_) {}
       },
+
+      setPermissions: (perms: string[]) => { set({ permissions: perms }); },
 
       logout: () => {
         set({
@@ -89,6 +106,7 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         tenantId: state.tenantId,
         user: state.user,
+        permissions: state.permissions,
         isAuthenticated: state.isAuthenticated,
       }),
     },

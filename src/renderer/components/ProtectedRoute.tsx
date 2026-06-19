@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { checkFeature } from '../hooks/useFeature';
+import { canAccessModule } from '../hooks/usePermission';
 
 const ROLE_HIERARCHY: Record<string, number> = {
   MD: 100,
@@ -20,10 +21,11 @@ function hasMinRole(userRole: string, minRole: string): boolean {
 
 interface ProtectedRouteProps {
   minRole?: string;
+  module?: string;
   feature?: string;
 }
 
-export function ProtectedRoute({ minRole, feature }: ProtectedRouteProps) {
+export function ProtectedRoute({ minRole, module: mod, feature }: ProtectedRouteProps) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const user = useAuthStore((s) => s.user);
@@ -41,6 +43,10 @@ export function ProtectedRoute({ minRole, feature }: ProtectedRouteProps) {
   }
 
   if (minRole && !hasMinRole(user?.role ?? 'Staff', minRole)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (mod && !canAccessModule(mod)) {
     return <Navigate to="/dashboard" replace />;
   }
 
