@@ -8,11 +8,14 @@ const ROLES = ['MD', 'Director', 'Manager', 'Accountant', 'Sales Rep', 'Staff'] 
 
 const ROLE_HIERARCHY: Record<string, number> = {
   MD: 100,
+  admin: 100,
   Director: 80,
   Manager: 60,
   Accountant: 40,
   'Sales Rep': 30,
+  member: 30,
   Staff: 10,
+  viewer: 5,
 };
 
 function hasMinRole(userRole: string, minRole: string): boolean {

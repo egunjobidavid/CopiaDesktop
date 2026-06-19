@@ -36,6 +36,9 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         const response = await apiLogin({ email, password });
+        const rawRole = response.user.role || 'Staff';
+        const roleMap: Record<string, string> = { admin: 'MD', member: 'Staff' };
+        const role = roleMap[rawRole] || rawRole;
         set({
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
@@ -43,7 +46,7 @@ export const useAuthStore = create<AuthState>()(
             id: response.user.id,
             email: response.user.email,
             fullName: response.user.fullName,
-            role: response.user.role || 'Staff',
+            role,
           },
           tenantId: response.tenantId,
           isAuthenticated: true,
@@ -75,7 +78,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setInitialized: () => set({ isInitialized: true }),
-      setUser: (user) => set({ user }),
+      setUser: (user) => {
+        const roleMap: Record<string, string> = { admin: 'MD', member: 'Staff' };
+        set({ user: { ...user, role: roleMap[user.role] || user.role } });
+      },
     }),
     {
       name: 'copiaos-auth',
