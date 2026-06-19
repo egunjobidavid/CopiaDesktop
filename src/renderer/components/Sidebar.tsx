@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
   { path: '/settings', label: 'Settings', icon: Settings, minRole: 'Director' },
   { path: '/settings/roles', label: 'Roles', icon: Shield, minRole: 'Staff', module: 'hr' },
   { path: '/settings/departments', label: 'Departments', icon: Building2, minRole: 'Staff', module: 'hr' },
-  { path: '/settings/locations', label: 'Locations', icon: MapPin, minRole: 'Staff', module: 'hr' },
+  { path: '/settings/locations', label: 'Locations', icon: MapPin, minRole: 'Staff', module: 'hr', feature: 'locations' },
   { path: '/settings/staff', label: 'Staff', icon: UserCog, minRole: 'Staff', module: 'hr' },
   { path: '/settings/billing', label: 'Billing', icon: CreditCard, minRole: 'Director' },
   { path: '/settings/support', label: 'Support', icon: LifeBuoy, minRole: 'Staff' },
