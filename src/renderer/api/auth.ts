@@ -12,6 +12,7 @@ interface LoginResponse {
     id: string;
     email: string;
     fullName: string;
+    role: string;
   };
   tenantId: string;
 }

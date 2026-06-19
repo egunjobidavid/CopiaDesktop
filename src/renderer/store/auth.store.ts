@@ -103,6 +103,7 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'copiaos-auth',
       partialize: (state) => ({
+        accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         tenantId: state.tenantId,
         user: state.user,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { register } from '../api/auth';
+import { useAuthStore } from '../store/auth.store';
 import api from '../api/client';
 import toast from 'react-hot-toast';
 import { Building2, User, MapPin, Briefcase, ArrowRight, ArrowLeft, Check, ChevronDown, Mail } from 'lucide-react';
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export function RegisterForm({ onBack }: Props) {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('token');
   const [inviteValid, setInviteValid] = useState(false);
@@ -89,9 +91,35 @@ export function RegisterForm({ onBack }: Props) {
       const payload: any = inviteToken
         ? { email: form.email, password: form.password, fullName: form.fullName, token: inviteToken, tenantId: inviteTenantId }
         : { ...form, tenantServices: form.tenantServices || (selectedServices.length > 0 ? selectedServices.join(', ') : undefined) };
-      await register(payload);
+      const response = await register(payload);
       toast.success(inviteToken ? 'Welcome to your organization!' : 'Organization created!');
-      onBack();
+      const roleMap: Record<string, string> = { admin: 'MD', member: 'Staff' };
+      const rawRole = response.user?.role || 'MD';
+      const role = roleMap[rawRole] || rawRole;
+      const tenantId = response.tenantId;
+      useAuthStore.setState({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+        user: response.user ? {
+          id: response.user.id,
+          email: response.user.email,
+          fullName: response.user.fullName,
+          role,
+        } : null,
+        tenantId,
+        isAuthenticated: true,
+        isInitialized: true,
+      });
+      try {
+        const { data } = await api.get('/auth/me');
+        if (data?.tenants) {
+          const current = data.tenants.find((t: any) => t.id === tenantId);
+          if (current?.permissions) {
+            useAuthStore.setState({ permissions: current.permissions });
+          }
+        }
+      } catch (_) {}
+      navigate('/dashboard', { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Registration failed';
       toast.error(msg);

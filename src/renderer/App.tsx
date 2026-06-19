@@ -86,7 +86,7 @@ export function App() {
             <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
               <Route path="/production" element={<Production />} />
             </Route>
-            <Route element={<ProtectedRoute minRole="Director" />}>
+            <Route element={<ProtectedRoute minRole="Manager" />}>
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/billing" element={<Billing />} />
             </Route>

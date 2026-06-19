@@ -4,11 +4,11 @@ import { useAuthStore } from '../../store/auth.store';
 import api from '../../api/client';
 import toast from 'react-hot-toast';
 
-const ROLES = ['MD', 'Director', 'Manager', 'Accountant', 'Sales Rep', 'Staff'] as const;
+const ROLES = ['MD', 'admin', 'Director', 'Manager', 'Accountant', 'Sales Rep', 'Staff'] as const;
 
 const ROLE_HIERARCHY: Record<string, number> = {
   MD: 100,
-  admin: 100,
+  admin: 60,
   Director: 80,
   Manager: 60,
   Accountant: 40,

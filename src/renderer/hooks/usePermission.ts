@@ -6,11 +6,11 @@ const MODULE_DEFAULT_ROLE: Record<string, string> = {
   vendors: 'Accountant', procurement: 'Manager', production: 'Manager',
   expenses: 'Accountant', accounting: 'Accountant', analytics: 'Accountant',
   reports: 'Accountant', approvals: 'Accountant', support: 'Staff',
-  hr: 'Director', fixed_assets: 'Director', multi_currency: 'Director',
+  hr: 'admin', fixed_assets: 'Director', multi_currency: 'Director',
 };
 
 const ROLE_HIERARCHY: Record<string, number> = {
-  MD: 100, admin: 100, Director: 80, Manager: 60,
+  MD: 100, admin: 60, Director: 80, Manager: 60,
   Accountant: 40, 'Sales Rep': 30, member: 30, Staff: 10, viewer: 5,
 };
 

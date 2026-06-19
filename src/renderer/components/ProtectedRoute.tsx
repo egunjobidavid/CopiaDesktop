@@ -5,7 +5,7 @@ import { canAccessModule } from '../hooks/usePermission';
 
 const ROLE_HIERARCHY: Record<string, number> = {
   MD: 100,
-  admin: 100,
+  admin: 60,
   Director: 80,
   Manager: 60,
   Accountant: 40,

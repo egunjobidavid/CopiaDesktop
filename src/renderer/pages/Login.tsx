@@ -11,12 +11,16 @@ export function Login() {
   const login = useAuthStore((s) => s.login);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(searchParams.get('token') ? 'register' : 'login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(() => {
+    if (searchParams.get('token')) return 'register';
+    if (searchParams.get('reset')) return 'reset';
+    return 'login';
+  });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [resetToken, setResetToken] = useState('');
+  const [resetToken, setResetToken] = useState(searchParams.get('reset') || '');
   const [newPassword, setNewPassword] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
@@ -51,17 +55,12 @@ export function Login() {
     if (!email) { toast.error('Enter your email'); return; }
     setIsLoading(true);
     try {
-      const { data } = await api.post('/auth/forgot-password', { email }, { timeout: 10000 });
+      await api.post('/auth/forgot-password', { email }, { timeout: 10000 });
       setResetSent(true);
-      if (data.emailSent) {
-        toast.success('Check your email for the password reset link');
-      } else {
-        setResetToken(data.resetToken);
-        toast.success('Email unavailable — enter your new password below using the token');
-      }
+      toast.success('Check your email for the password reset link');
     } catch (err: any) {
       setResetSent(true);
-      toast.success('Enter the reset token from the admin to continue');
+      toast.success('Check your email for the reset link');
     } finally {
       setIsLoading(false);
     }

@@ -51,18 +51,18 @@ const navItems: NavItem[] = [
   { path: '/expenses', label: 'Expenses', icon: Wallet, minRole: 'Accountant' },
   { path: '/approvals', label: 'Approvals', icon: CheckSquare, minRole: 'Accountant', feature: 'approvals' },
   { path: '/reports', label: 'Reports', icon: BarChart3, minRole: 'Accountant' },
-  { path: '/settings', label: 'Settings', icon: Settings, minRole: 'Director' },
+  { path: '/settings', label: 'Settings', icon: Settings, minRole: 'Manager' },
   { path: '/settings/roles', label: 'Roles', icon: Shield, minRole: 'Staff', module: 'hr' },
   { path: '/settings/departments', label: 'Departments', icon: Building2, minRole: 'Staff', module: 'hr' },
   { path: '/settings/locations', label: 'Locations', icon: MapPin, minRole: 'Staff', module: 'hr', feature: 'locations' },
   { path: '/settings/staff', label: 'Staff', icon: UserCog, minRole: 'Staff', module: 'hr' },
-  { path: '/settings/billing', label: 'Billing', icon: CreditCard, minRole: 'Director' },
+  { path: '/settings/billing', label: 'Billing', icon: CreditCard, minRole: 'Manager' },
   { path: '/settings/support', label: 'Support', icon: LifeBuoy, minRole: 'Staff' },
 ];
 
 const ROLE_HIERARCHY: Record<string, number> = {
   MD: 100,
-  admin: 100,
+  admin: 60,
   Director: 80,
   Manager: 60,
   Accountant: 40,
