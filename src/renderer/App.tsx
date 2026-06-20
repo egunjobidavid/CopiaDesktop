@@ -35,6 +35,7 @@ import { Staff } from './pages/settings/Staff';
 import { Locations } from './pages/settings/Locations';
 import { StaffAudit } from './pages/settings/StaffAudit';
 import { Approvals } from './pages/approvals/Approvals';
+import { Help } from './pages/Help';
 
 export function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -101,6 +102,7 @@ export function App() {
             </Route>
             <Route element={<ProtectedRoute minRole="Staff" />}>
               <Route path="/settings/support" element={<Support />} />
+              <Route path="/help" element={<Help />} />
             </Route>
             <Route element={<ProtectedRoute minRole="Accountant" feature="approvals" />}>
               <Route path="/approvals" element={<Approvals />} />

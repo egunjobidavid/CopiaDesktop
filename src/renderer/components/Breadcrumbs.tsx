@@ -27,6 +27,7 @@ const routeLabels: Record<string, string> = {
   financial: 'Financial',
   salesReport: 'Sales Report',
   inventoryReport: 'Inventory Report',
+  help: 'Help',
 };
 
 export function Breadcrumbs() {

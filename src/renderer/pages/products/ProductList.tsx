@@ -6,6 +6,7 @@ import { Plus, Search, Package, Loader2, Edit2, Trash2, Upload } from 'lucide-re
 import toast from 'react-hot-toast';
 import api from '../../api/client';
 import { CsvImport } from '../../components/CsvImport';
+import { Breadcrumbs } from '../../components/Breadcrumbs';
 
 export function ProductList() {
   const navigate = useNavigate();
@@ -44,14 +45,20 @@ export function ProductList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <button onClick={handleCreate} className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Product
-        </button>
-        <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
-          <Upload className="w-4 h-4" /> Import CSV
-        </button>
+      <Breadcrumbs />
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Products</h1>
+          <p className="page-subtitle">Manage your product catalog</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleCreate} className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Product
+          </button>
+          <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
+            <Upload className="w-4 h-4" /> Import CSV
+          </button>
+        </div>
       </div>
 
       {/* Search */}

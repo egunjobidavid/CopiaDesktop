@@ -29,6 +29,7 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardCheck,
+  HelpCircle,
 } from 'lucide-react';
 
 type NavItem = {
@@ -95,6 +96,12 @@ const navSections: NavSection[] = [
       { path: '/settings/audit', label: 'Staff Audit', icon: ClipboardCheck, minRole: 'Staff', module: 'hr' },
       { path: '/settings/billing', label: 'Billing', icon: CreditCard, minRole: 'Manager' },
       { path: '/settings/support', label: 'Support', icon: LifeBuoy, minRole: 'Staff' },
+    ],
+  },
+  {
+    label: '',
+    items: [
+      { path: '/help', label: 'Help & Getting Started', icon: HelpCircle, minRole: 'Staff' },
     ],
   },
 ];

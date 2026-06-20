@@ -3,6 +3,7 @@ import { Plus, Search, ShoppingBag, Loader2, Mail, Phone, Upload } from 'lucide-
 import toast from 'react-hot-toast';
 import api from '../../api/client';
 import { CsvImport } from '../../components/CsvImport';
+import { Breadcrumbs } from '../../components/Breadcrumbs';
 
 interface Vendor {
   id: string;
@@ -46,14 +47,20 @@ export function VendorList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Vendors</h1>
-        <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Vendor
-        </button>
-        <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
-          <Upload className="w-4 h-4" /> Import CSV
-        </button>
+      <Breadcrumbs />
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Vendors</h1>
+          <p className="page-subtitle">Manage your suppliers and purchase contacts</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Vendor
+          </button>
+          <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
+            <Upload className="w-4 h-4" /> Import CSV
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-2">
