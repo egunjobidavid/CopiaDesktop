@@ -68,7 +68,12 @@ const navSections: NavSection[] = [
     items: [
       { path: '/vendors', label: 'Vendors', icon: ShoppingBag, minRole: 'Accountant' },
       { path: '/procurement', label: 'Purchase Orders', icon: ClipboardList, minRole: 'Manager' },
-      { path: '/production', label: 'Production', icon: Factory, minRole: 'Manager', feature: 'production' },
+    ],
+  },
+  {
+    label: 'Production',
+    items: [
+      { path: '/production', label: 'Production', icon: Factory, minRole: 'Manager' },
     ],
   },
   {
