@@ -15,7 +15,8 @@ export function Staff() {
   const [departments, setDepartments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [employeeCode, setEmployeeCode] = useState('');
   const [departmentId, setDepartmentId] = useState('');
@@ -31,12 +32,12 @@ export function Staff() {
 
   useEffect(() => { load(); }, []);
 
-  const resetForm = () => { setUserId(''); setJobTitle(''); setEmployeeCode(''); setDepartmentId(''); setShowCreate(false); };
+  const resetForm = () => { setEmail(''); setFullName(''); setJobTitle(''); setEmployeeCode(''); setDepartmentId(''); setShowCreate(false); };
 
   const handleCreate = async () => {
-    if (!userId.trim() || !jobTitle.trim()) { toast.error('User ID and Job Title are required'); return; }
+    if (!email.trim() || !jobTitle.trim()) { toast.error('Email and Job Title are required'); return; }
     try {
-      await staffApi.create({ userId: userId.trim(), jobTitle: jobTitle.trim(), employeeCode: employeeCode.trim() || undefined, departmentId: departmentId || undefined });
+      await staffApi.create({ email: email.trim(), fullName: fullName.trim() || undefined, jobTitle: jobTitle.trim(), employeeCode: employeeCode.trim() || undefined, departmentId: departmentId || undefined });
       toast.success('Staff created');
       resetForm();
       load();
@@ -64,15 +65,17 @@ export function Staff() {
         <div className="bg-white border rounded-xl p-5 mb-6">
           <h3 className="font-semibold mb-3">New Staff Member</h3>
           <div className="space-y-3">
-            <input value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="User UUID" className="w-full px-3 py-2 border rounded-lg text-sm" />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email *" className="w-full px-3 py-2 border rounded-lg text-sm" type="email" />
+            <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full Name" className="w-full px-3 py-2 border rounded-lg text-sm" />
             <div className="flex gap-3">
-              <input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Job Title" className="flex-1 px-3 py-2 border rounded-lg text-sm" />
+              <input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Job Title *" className="flex-1 px-3 py-2 border rounded-lg text-sm" />
               <input value={employeeCode} onChange={(e) => setEmployeeCode(e.target.value)} placeholder="Employee Code (optional)" className="flex-1 px-3 py-2 border rounded-lg text-sm" />
             </div>
             <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm">
               <option value="">No department</option>
               {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
             </select>
+            <p className="text-xs text-gray-400">If the email is not yet registered, a new user account will be created with password &quot;changeme123&quot;.</p>
             <div className="flex gap-2">
               <button onClick={handleCreate} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Create</button>
               <button onClick={resetForm} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm">Cancel</button>
@@ -90,7 +93,7 @@ export function Staff() {
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center"><Users className="w-4 h-4 text-green-600" /></div>
                 <div>
-                  <span className="font-medium text-gray-900">{s.fullName || s.email || s.userId}</span>
+                  <span className="font-medium text-gray-900">{s.fullName || s.email}</span>
                   <p className="text-xs text-gray-500">{s.jobTitle}{s.departmentName ? ` · ${s.departmentName}` : ''}{s.employeeCode ? ` · ${s.employeeCode}` : ''}</p>
                 </div>
               </div>
