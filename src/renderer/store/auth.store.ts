@@ -15,6 +15,7 @@ interface AuthState {
   refreshToken: string | null;
   user: User | null;
   tenantId: string | null;
+  plan: string;
   permissions: string[];
   locationId: string | null;
   locationName: string | null;
@@ -26,6 +27,7 @@ interface AuthState {
   refreshAccessToken: () => Promise<string>;
   setInitialized: () => void;
   setUser: (user: User) => void;
+  setPlan: (plan: string) => void;
   setPermissions: (perms: string[]) => void;
   setLocation: (id: string | null, name: string | null) => void;
 }
@@ -37,6 +39,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
       user: null,
       tenantId: null,
+      plan: 'free',
       permissions: [],
       locationId: null,
       locationName: null,
@@ -70,6 +73,9 @@ export const useAuthStore = create<AuthState>()(
             if (current?.permissions) {
               set({ permissions: current.permissions });
             }
+            if (current?.plan) {
+              set({ plan: current.plan });
+            }
           }
         } catch (_) {}
         // Auto-select default location
@@ -89,6 +95,8 @@ export const useAuthStore = create<AuthState>()(
 
       setPermissions: (perms: string[]) => { set({ permissions: perms }); },
 
+      setPlan: (plan: string) => { set({ plan }); },
+
       setLocation: (id: string | null, name: string | null) => { set({ locationId: id, locationName: name }); },
 
       logout: () => {
@@ -97,6 +105,7 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: null,
           user: null,
           tenantId: null,
+          plan: 'free',
           permissions: [],
           locationId: null,
           locationName: null,
@@ -130,6 +139,7 @@ export const useAuthStore = create<AuthState>()(
         refreshToken: state.refreshToken,
         tenantId: state.tenantId,
         user: state.user,
+        plan: state.plan,
         permissions: state.permissions,
         locationId: state.locationId,
         locationName: state.locationName,
