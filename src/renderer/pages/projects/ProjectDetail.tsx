@@ -13,7 +13,7 @@ interface Project {
 
 interface Task {
   id: string; title: string; status: string; priority: string; assigneeId: string;
-  dueDate: string; estimatedHours: string; actualHours: string;
+  startDate: string; dueDate: string; estimatedHours: string; actualHours: string;
   labels?: { name: string; color: string }[];
 }
 

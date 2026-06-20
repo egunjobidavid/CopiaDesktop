@@ -111,9 +111,7 @@ export function Login() {
                   Sign In
                 </button>
                 <button onClick={() => setMode('register')}
-                  className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                    mode === 'register' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                  }`}>
+                  className="flex-1 py-2 text-sm font-medium rounded-md transition-colors text-gray-500 hover:text-gray-700">
                   Register
                 </button>
               </div>

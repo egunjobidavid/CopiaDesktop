@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, AlertTriangle, ArrowRight, X } from 'lucide-react';
-import api from '../../api/client';
+import { Clock, AlertTriangle, ArrowRight, X, Lock, CheckCircle } from 'lucide-react';
+import api from '../api/client';
 
 interface TrialStatus {
   production?: { status: string; isTrial: boolean; daysLeft: number };
@@ -16,15 +16,15 @@ export function TrialBanner() {
 
   useEffect(() => {
     api.get('/billing/trial-status')
-      .then((res) => setStatuses(res.data))
+      .then((res: any) => setStatuses(res.data))
       .catch(() => {});
   }, []);
 
   if (dismissed || !statuses) return null;
 
-  const trials = Object.entries(statuses).filter(([_, s]) => s?.isTrial);
-  const activeTrials = trials.filter(([_, s]) => s?.status === 'active');
-  const endedTrials = trials.filter(([_, s]) => s?.status === 'ended');
+  const trials = Object.entries(statuses).filter(([_, s]) => (s as any)?.isTrial);
+  const activeTrials = trials.filter(([_, s]) => (s as any)?.status === 'active');
+  const endedTrials = trials.filter(([_, s]) => (s as any)?.status === 'ended');
 
   if (activeTrials.length === 0 && endedTrials.length === 0) return null;
 
@@ -42,13 +42,12 @@ export function TrialBanner() {
 
   return (
     <div className="space-y-2 mb-4">
-      {/* Active trial warnings */}
       {activeTrials.map(([module, status]) => (
         <div key={module} className="flex items-center gap-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
           <Clock className="w-4 h-4 text-amber-600 flex-shrink-0" />
           <div className="flex-1 text-sm">
             <span className="font-medium text-amber-800">{MODULE_NAMES[module]} trial:</span>
-            <span className="text-amber-700 ml-1">{status.daysLeft} days remaining</span>
+            <span className="text-amber-700 ml-1">{(status as any).daysLeft} days remaining</span>
           </div>
           <button onClick={() => navigate('/settings/billing')} className="text-xs font-medium text-amber-800 hover:text-amber-900 flex items-center gap-1">
             Upgrade now <ArrowRight className="w-3 h-3" />
@@ -59,7 +58,6 @@ export function TrialBanner() {
         </div>
       ))}
 
-      {/* Ended trial alerts */}
       {endedTrials.map(([module, status]) => (
         <div key={module} className="flex items-center gap-3 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg">
           <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
@@ -82,7 +80,7 @@ export function TrialBanner() {
 export function FeatureGateModal({ module, onClose }: { module: string; onClose: () => void }) {
   const navigate = useNavigate();
 
-  const MODULE_INFO: Record<string, { name: string; requiredPlan: string; requiredPlanName: string; features: string[] }> = {
+  const MODULE_INFO: Record<string, { name: string; requiredPlan: string; requiredPlanName: string; price: string; features: string[] }> = {
     production: {
       name: 'Production',
       requiredPlan: 'growth',
@@ -113,7 +111,7 @@ export function FeatureGateModal({ module, onClose }: { module: string; onClose:
     },
   };
 
-  const info = MODULE_INFO[module] || { name: module, requiredPlan: 'growth', requiredPlanName: 'Growth', price: '₦7,500/mo', features: [] };
+  const info = MODULE_INFO[module] || { name: module, requiredPlan: 'growth', requiredPlanName: 'Growth', price: '₦7,500/mo', features: [] as string[] };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
