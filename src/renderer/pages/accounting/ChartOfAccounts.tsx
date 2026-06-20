@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { api } from '../../services/api';
+import api from '../../api/client';
 import { PageHeader } from '../../components/PageHeader';
-import { ConfirmDialog } from '../../components/ConfirmDialog';
 import toast from 'react-hot-toast';
 
 interface Account {
