@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
-function ThrowingComponent() {
+function ThrowingComponent(): React.ReactElement {
   throw new Error('Test error');
 }
 
