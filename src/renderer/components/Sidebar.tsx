@@ -31,6 +31,11 @@ import {
   HelpCircle,
   FileSignature,
   Banknote,
+  Landmark,
+  BookOpen,
+  Scale,
+  Percent,
+  Building,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -85,6 +90,11 @@ const navSections: NavSection[] = [
     label: 'Finance',
     items: [
       { path: '/expenses', label: 'Expenses', icon: Wallet, minRole: 'Accountant' },
+      { path: '/accounting/chart-of-accounts', label: 'Chart of Accounts', icon: Landmark, minRole: 'Accountant' },
+      { path: '/accounting/general-ledger', label: 'General Ledger', icon: BookOpen, minRole: 'Accountant' },
+      { path: '/accounting/trial-balance', label: 'Trial Balance', icon: Scale, minRole: 'Accountant' },
+      { path: '/accounting/tax-config', label: 'Tax Config', icon: Percent, minRole: 'Accountant' },
+      { path: '/accounting/bank-reconciliation', label: 'Bank Reconciliation', icon: Building, minRole: 'Accountant' },
       { path: '/approvals', label: 'Approvals', icon: CheckSquare, minRole: 'Accountant', feature: 'approvals' },
       { path: '/reports', label: 'Reports', icon: BarChart3, minRole: 'Accountant' },
     ],

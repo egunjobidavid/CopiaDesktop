@@ -39,6 +39,11 @@ const Staff = lazy(() => import('./pages/settings/Staff').then((m) => ({ default
 const Locations = lazy(() => import('./pages/settings/Locations').then((m) => ({ default: m.Locations })));
 const StaffAudit = lazy(() => import('./pages/settings/StaffAudit').then((m) => ({ default: m.StaffAudit })));
 const Approvals = lazy(() => import('./pages/approvals/Approvals').then((m) => ({ default: m.Approvals })));
+const ChartOfAccounts = lazy(() => import('./pages/accounting/ChartOfAccounts').then((m) => ({ default: m.ChartOfAccounts })));
+const GeneralLedger = lazy(() => import('./pages/accounting/GeneralLedger').then((m) => ({ default: m.GeneralLedger })));
+const TrialBalance = lazy(() => import('./pages/accounting/TrialBalance').then((m) => ({ default: m.TrialBalance })));
+const TaxConfig = lazy(() => import('./pages/accounting/TaxConfig').then((m) => ({ default: m.TaxConfig })));
+const BankReconciliation = lazy(() => import('./pages/accounting/BankReconciliation').then((m) => ({ default: m.BankReconciliation })));
 const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
 const OnboardingWizard = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.OnboardingWizard })));
 
@@ -103,6 +108,11 @@ export function App() {
               <Route path="/reports/sales" element={<LazyPage><SalesReport /></LazyPage>} />
               <Route path="/reports/inventory" element={<LazyPage><InventoryReport /></LazyPage>} />
               <Route path="/reports/financial" element={<LazyPage><FinancialReport /></LazyPage>} />
+              <Route path="/accounting/chart-of-accounts" element={<LazyPage><ChartOfAccounts /></LazyPage>} />
+              <Route path="/accounting/general-ledger" element={<LazyPage><GeneralLedger /></LazyPage>} />
+              <Route path="/accounting/trial-balance" element={<LazyPage><TrialBalance /></LazyPage>} />
+              <Route path="/accounting/tax-config" element={<LazyPage><TaxConfig /></LazyPage>} />
+              <Route path="/accounting/bank-reconciliation" element={<LazyPage><BankReconciliation /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" />}>
               <Route path="/procurement" element={<LazyPage><POList /></LazyPage>} />
