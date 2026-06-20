@@ -24,6 +24,7 @@ import {
   LifeBuoy,
   CheckSquare,
   ArrowRight,
+  FolderKanban,
 } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 
@@ -454,6 +455,104 @@ const sections: Section[] = [
       },
     ],
   },
+  {
+    id: 'projects',
+    title: 'Project Management',
+    icon: FolderKanban,
+    color: 'bg-indigo-100 text-indigo-700',
+    articles: [
+      {
+        title: 'Creating Your First Project',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Projects</strong> in the sidebar to manage your projects:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>Click "New Project" to create a project</li>
+              <li>Enter a name, description, priority, and due date</li>
+              <li>Choose a color to identify the project visually</li>
+              <li>Click "Create Project" to save</li>
+            </ol>
+            <p>Projects are available on all plans including Free.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Managing Tasks with Kanban Board',
+        content: (
+          <div className="space-y-2">
+            <p>Open a project to see the <strong>Kanban Board</strong> view:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>To Do:</strong> Tasks waiting to be started</li>
+              <li><strong>In Progress:</strong> Tasks currently being worked on</li>
+              <li><strong>In Review:</strong> Tasks awaiting review or approval</li>
+              <li><strong>Done:</strong> Completed tasks</li>
+            </ul>
+            <p><strong>Drag and drop</strong> tasks between columns to update their status. You can also use the <strong>List</strong> view for a table-based layout.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Task Details & Features',
+        content: (
+          <div className="space-y-2">
+            <p>Click on any task to open the <strong>Task Detail</strong> panel:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Description:</strong> Add detailed notes about the task</li>
+              <li><strong>Subtasks:</strong> Break tasks into smaller actionable items with checkboxes</li>
+              <li><strong>Priority:</strong> Set Low, Medium, High, or Urgent priority</li>
+              <li><strong>Due Date:</strong> Set deadlines (overdue tasks are highlighted in red)</li>
+              <li><strong>Time Tracking:</strong> Track estimated vs actual hours spent</li>
+              <li><strong>Labels:</strong> Add color-coded labels for categorization</li>
+              <li><strong>Comments:</strong> Discuss tasks with your team in the comments section</li>
+              <li><strong>Activity Log:</strong> See the complete history of changes</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Using Milestones',
+        content: (
+          <div className="space-y-2">
+            <p>Milestones help you track major project goals:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>Open a project and go to the <strong>Milestones</strong> tab</li>
+              <li>Click "Add Milestone" and set a name and due date</li>
+              <li>Assign tasks to milestones when creating or editing them</li>
+              <li>Track progress as tasks within milestones are completed</li>
+            </ol>
+          </div>
+        ),
+      },
+      {
+        title: 'Timeline / Gantt View',
+        content: (
+          <div className="space-y-2">
+            <p>The <strong>Timeline</strong> tab shows tasks as horizontal bars:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Tasks with due dates are displayed on a timeline</li>
+              <li>Bar length represents the estimated duration</li>
+              <li>Quickly identify overlapping tasks and schedule conflicts</li>
+              <li>Click on any bar to open task details</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Team Collaboration',
+        content: (
+          <div className="space-y-2">
+            <p>Collaborate with your team on projects:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Project Members:</strong> Add team members to projects with Lead, Member, or Viewer roles</li>
+              <li><strong>Assignees:</strong> Assign tasks to specific team members</li>
+              <li><strong>Comments:</strong> Discuss tasks in real-time with threaded comments</li>
+              <li><strong>Activity Feed:</strong> Stay updated on all project changes</li>
+            </ul>
+          </div>
+        ),
+      },
+    ],
+  },
 ];
 
 export function Help() {
@@ -483,6 +582,7 @@ export function Help() {
           { label: 'Add Product', path: '/products', icon: Package, color: 'bg-blue-50 text-blue-700 hover:bg-blue-100' },
           { label: 'Manage Stock', path: '/inventory', icon: Warehouse, color: 'bg-purple-50 text-purple-700 hover:bg-purple-100' },
           { label: 'View Reports', path: '/reports', icon: BarChart3, color: 'bg-amber-50 text-amber-700 hover:bg-amber-100' },
+          { label: 'Projects', path: '/projects', icon: FolderKanban, color: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' },
         ].map((item) => {
           const Icon = item.icon;
           return (

@@ -44,6 +44,8 @@ const GeneralLedger = lazy(() => import('./pages/accounting/GeneralLedger').then
 const TrialBalance = lazy(() => import('./pages/accounting/TrialBalance').then((m) => ({ default: m.TrialBalance })));
 const TaxConfig = lazy(() => import('./pages/accounting/TaxConfig').then((m) => ({ default: m.TaxConfig })));
 const BankReconciliation = lazy(() => import('./pages/accounting/BankReconciliation').then((m) => ({ default: m.BankReconciliation })));
+const Projects = lazy(() => import('./pages/projects/Projects').then((m) => ({ default: m.Projects })));
+const ProjectDetail = lazy(() => import('./pages/projects/ProjectDetail').then((m) => ({ default: m.ProjectDetail })));
 const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
 const OnboardingWizard = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.OnboardingWizard })));
 
@@ -119,6 +121,10 @@ export function App() {
               <Route path="/procurement/new" element={<LazyPage><POForm /></LazyPage>} />
               <Route path="/procurement/:id" element={<LazyPage><PODetail /></LazyPage>} />
               <Route path="/procurement/payments" element={<LazyPage><VendorBillPayment /></LazyPage>} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Staff" />}>
+              <Route path="/projects" element={<LazyPage><Projects /></LazyPage>} />
+              <Route path="/projects/:id" element={<LazyPage><ProjectDetail /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
               <Route path="/production" element={<LazyPage><Production /></LazyPage>} />

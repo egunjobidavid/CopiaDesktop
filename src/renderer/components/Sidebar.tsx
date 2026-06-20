@@ -36,6 +36,7 @@ import {
   Scale,
   Percent,
   Building,
+  FolderKanban,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -84,6 +85,12 @@ const navSections: NavSection[] = [
     label: 'Production',
     items: [
       { path: '/production', label: 'Production', icon: Factory, minRole: 'Manager' },
+    ],
+  },
+  {
+    label: 'Projects',
+    items: [
+      { path: '/projects', label: 'Project Management', icon: FolderKanban, minRole: 'Staff' },
     ],
   },
   {
