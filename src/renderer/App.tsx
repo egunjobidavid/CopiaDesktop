@@ -33,6 +33,7 @@ import { RoleDetail } from './pages/settings/RoleDetail';
 import { Departments } from './pages/settings/Departments';
 import { Staff } from './pages/settings/Staff';
 import { Locations } from './pages/settings/Locations';
+import { StaffAudit } from './pages/settings/StaffAudit';
 import { Approvals } from './pages/approvals/Approvals';
 
 export function App() {
@@ -96,6 +97,7 @@ export function App() {
               <Route path="/settings/departments" element={<Departments />} />
               <Route path="/settings/staff" element={<Staff />} />
               <Route path="/settings/locations" element={<Locations />} />
+              <Route path="/settings/audit" element={<StaffAudit />} />
             </Route>
             <Route element={<ProtectedRoute minRole="Staff" />}>
               <Route path="/settings/support" element={<Support />} />

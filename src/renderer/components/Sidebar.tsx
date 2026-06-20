@@ -27,6 +27,7 @@ import {
   MapPin,
   UserCog,
   ChevronDown,
+  ClipboardCheck,
 } from 'lucide-react';
 
 type NavItem = {
@@ -57,6 +58,7 @@ const navItems: NavItem[] = [
   { path: '/settings/departments', label: 'Departments', icon: Building2, minRole: 'Staff', module: 'hr' },
   { path: '/settings/locations', label: 'Locations', icon: MapPin, minRole: 'Staff', module: 'hr', feature: 'locations' },
   { path: '/settings/staff', label: 'Staff', icon: UserCog, minRole: 'Staff', module: 'hr' },
+  { path: '/settings/audit', label: 'Staff Audit', icon: ClipboardCheck, minRole: 'Staff', module: 'hr' },
   { path: '/settings/billing', label: 'Billing', icon: CreditCard, minRole: 'Manager' },
   { path: '/settings/support', label: 'Support', icon: LifeBuoy, minRole: 'Staff' },
 ];
