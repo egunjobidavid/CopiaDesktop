@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { useFeature } from '../hooks/useFeature';
 import { canAccessModule } from '../hooks/usePermission';
-import api from '../api/client';
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -31,6 +30,7 @@ import {
   ClipboardCheck,
   HelpCircle,
 } from 'lucide-react';
+import logo from '../assets/logo.svg';
 
 type NavItem = {
   path: string;
@@ -147,21 +147,19 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="flex flex-col w-60 bg-gray-900 text-gray-300">
+    <aside className="flex flex-col w-60 bg-white border-r border-gray-200">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-800">
-        <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">R</span>
-        </div>
-        <span className="font-semibold text-lg text-white">CopiaOS</span>
+      <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+        <img src={logo} alt="CopiaOS" className="w-8 h-8 rounded-lg" />
+        <span className="font-bold text-lg text-gray-900 tracking-tight">CopiaOS</span>
       </div>
 
       {/* User info */}
-      <div className="px-5 py-3 border-b border-gray-800">
-        <p className="text-sm font-medium text-white truncate">
+      <div className="px-5 py-3 border-b border-gray-100">
+        <p className="text-sm font-semibold text-gray-900 truncate">
           {user?.fullName || 'User'}
         </p>
-        <p className="text-xs text-gray-400 truncate">{user?.role || 'Staff'}</p>
+        <p className="text-xs text-gray-500 truncate">{user?.role || 'Staff'}</p>
       </div>
 
       {/* Navigation */}
@@ -184,7 +182,7 @@ export function Sidebar() {
               {section.label && (
                 <button
                   onClick={() => toggleSection(section.label)}
-                  className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-400 transition-colors"
+                  className="w-full flex items-center justify-between px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <span>{section.label}</span>
                   {isCollapsed ? (
@@ -207,13 +205,13 @@ export function Sidebar() {
                       <button
                         key={item.path}
                         onClick={() => navigate(item.path)}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                           isActive
-                            ? 'bg-primary-600 text-white'
-                            : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                            ? 'bg-primary-50 text-primary-700 shadow-sm'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         } ${isSubItem ? 'pl-9' : ''}`}
                       >
-                        <Icon className="w-4 h-4 flex-shrink-0" />
+                        <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-primary-600' : 'text-gray-400'}`} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -226,10 +224,10 @@ export function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="px-3 py-3 border-t border-gray-800">
+      <div className="px-3 py-3 border-t border-gray-100">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-400 hover:bg-red-900/20 hover:text-red-400 transition-colors"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
           <LogOut className="w-4 h-4" />
           <span>Logout</span>

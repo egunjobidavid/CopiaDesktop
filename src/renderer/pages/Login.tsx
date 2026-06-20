@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/auth.store';
 import { RegisterForm } from './RegisterForm';
 import api from '../api/client';
 import toast from 'react-hot-toast';
+import logo from '../assets/logo.svg';
 
 export function Login() {
   const navigate = useNavigate();
@@ -92,9 +93,7 @@ export function Login() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-16 h-16 bg-primary-600 rounded-xl flex items-center justify-center mb-4">
-              <span className="text-white font-bold text-2xl">C</span>
-            </div>
+            <img src={logo} alt="CopiaOS" className="w-16 h-16 rounded-xl mb-4" />
             <h1 className="text-2xl font-bold text-gray-900">CopiaOS</h1>
             <p className="text-sm text-gray-500 mt-1">
               {mode === 'login' ? 'Sign in to your account' : mode === 'forgot' ? 'Reset your password' : mode === 'reset' ? 'Enter new password' : 'Register your organization'}
