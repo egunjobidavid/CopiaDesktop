@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { SearchModal } from './SearchModal';
+import { TrialBanner } from './TrialBanner';
 import { useOffline } from '../hooks/useOffline';
 
 export function Layout() {
@@ -32,6 +33,7 @@ export function Layout() {
             </div>
           )}
           <div className="p-6">
+            <TrialBanner />
             <Outlet />
           </div>
         </main>
