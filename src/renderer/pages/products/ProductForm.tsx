@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useProducts, Product } from '../../hooks/useProducts';
 import { X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -12,30 +13,25 @@ interface ProductFormProps {
 export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
   const { createProduct, updateProduct } = useProducts();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    sku: product?.sku || '',
-    name: product?.name || '',
-    description: product?.description || '',
-    unitPrice: product?.unitPrice || '',
-    productType: product?.productType || 'finished_good',
-    uom: product?.uom || 'pcs',
-    isActive: product?.isActive ?? true,
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      sku: product?.sku || '',
+      name: product?.name || '',
+      description: product?.description || '',
+      unitPrice: product?.unitPrice || '',
+      productType: product?.productType || 'finished_good',
+      uom: product?.uom || 'pcs',
+      isActive: product?.isActive ?? true,
+    },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!form.sku.trim() || !form.name.trim() || !form.unitPrice) {
-      toast.error('SKU, Name, and Price are required');
-      return;
-    }
-
+  const onSubmit = async (formData: any) => {
     setIsSubmitting(true);
     try {
       if (product) {
-        await updateProduct(product.id, form);
+        await updateProduct(product.id, formData);
       } else {
-        await createProduct(form);
+        await createProduct(formData);
       }
       onSaved();
     } catch (err: any) {
@@ -43,10 +39,6 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const updateField = (field: string, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -61,26 +53,21 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="label">SKU *</label>
               <input
                 type="text"
-                value={form.sku}
-                onChange={(e) => updateField('sku', e.target.value)}
+                {...register('sku', { required: 'SKU is required' })}
                 className="input"
                 placeholder="e.g. PRD-001"
-                required
               />
+              {errors.sku && <p className="text-red-500 text-xs mt-1">{errors.sku.message}</p>}
             </div>
             <div>
               <label className="label">Unit of Measure</label>
-              <select
-                value={form.uom}
-                onChange={(e) => updateField('uom', e.target.value)}
-                className="input"
-              >
+              <select {...register('uom')} className="input">
                 <option value="pcs">Pieces (pcs)</option>
                 <option value="kg">Kilograms (kg)</option>
                 <option value="g">Grams (g)</option>
@@ -97,19 +84,17 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
             <label className="label">Product Name *</label>
             <input
               type="text"
-              value={form.name}
-              onChange={(e) => updateField('name', e.target.value)}
+              {...register('name', { required: 'Product name is required' })}
               className="input"
               placeholder="Enter product name"
-              required
             />
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
             <label className="label">Description</label>
             <textarea
-              value={form.description}
-              onChange={(e) => updateField('description', e.target.value)}
+              {...register('description')}
               className="input min-h-[80px] resize-y"
               placeholder="Optional description"
             />
@@ -120,22 +105,16 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
               <label className="label">Unit Price (₦) *</label>
               <input
                 type="number"
-                value={form.unitPrice}
-                onChange={(e) => updateField('unitPrice', e.target.value)}
+                {...register('unitPrice', { required: 'Price is required', min: { value: 0, message: 'Price must be positive' } })}
                 className="input"
                 placeholder="0.00"
-                min="0"
                 step="0.01"
-                required
               />
+              {errors.unitPrice && <p className="text-red-500 text-xs mt-1">{errors.unitPrice.message}</p>}
             </div>
             <div>
               <label className="label">Product Type</label>
-              <select
-                value={form.productType}
-                onChange={(e) => updateField('productType', e.target.value)}
-                className="input"
-              >
+              <select {...register('productType')} className="input">
                 <option value="finished_good">Finished Good</option>
                 <option value="raw_material">Raw Material</option>
                 <option value="service">Service</option>
@@ -146,12 +125,10 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              id="isActive"
-              checked={form.isActive}
-              onChange={(e) => updateField('isActive', e.target.checked)}
+              {...register('isActive')}
               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <label htmlFor="isActive" className="text-sm text-gray-700">Active</label>
+            <label className="text-sm text-gray-700">Active</label>
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-gray-200">

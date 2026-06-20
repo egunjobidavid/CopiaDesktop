@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Loader2, Eye, ShoppingCart, Search } from 'lucide-react';
+import { FileText, Loader2, Eye, ShoppingCart, Search, Download } from 'lucide-react';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
+import { DataTable } from '../../components/DataTable';
+import { TableSkeleton } from '../../components/Skeleton';
+import { exportToCsv } from '../../utils/helpers';
+import type { ColumnDef } from '@tanstack/react-table';
 
 interface SalesOrder {
   id: string;
@@ -49,6 +53,47 @@ export function SalesOrders() {
   });
   const statusCounts = orders.reduce((acc, o) => { acc[o.status] = (acc[o.status] || 0) + 1; return acc; }, {} as Record<string, number>);
 
+  const columns: ColumnDef<SalesOrder, any>[] = [
+    {
+      accessorKey: 'orderNumber',
+      header: 'Order #',
+      cell: ({ row }) => <span className="font-mono text-sm">{row.original.orderNumber}</span>,
+    },
+    {
+      accessorKey: 'customerName',
+      header: 'Customer',
+      cell: ({ row }) => <span className="font-medium">{row.original.customerName || 'Walk-in'}</span>,
+    },
+    {
+      accessorKey: 'createdAt',
+      header: 'Date',
+      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString('en-GB'),
+    },
+    {
+      accessorKey: 'total',
+      header: 'Total',
+      cell: ({ row }) => <span className="font-medium">₦{Number(row.original.total).toLocaleString()}</span>,
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusColors[row.original.status] || 'bg-gray-100 text-gray-600'}`}>
+          {row.original.status}
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: () => (
+        <button className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
+          <Eye className="w-3.5 h-3.5" /> View
+        </button>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <Breadcrumbs />
@@ -57,9 +102,20 @@ export function SalesOrders() {
           <h1 className="page-title">Sales Orders</h1>
           <p className="page-subtitle">View and manage all sales orders</p>
         </div>
-        <button onClick={() => navigate('/pos')} className="btn-primary flex items-center gap-2">
-          <ShoppingCart className="w-4 h-4" /> New Sale (POS)
-        </button>
+        <div className="flex gap-2">
+          <button onClick={() => exportToCsv(filtered, [
+            { key: 'orderNumber', label: 'Order #' },
+            { key: 'customerName', label: 'Customer' },
+            { key: 'createdAt', label: 'Date' },
+            { key: 'total', label: 'Total' },
+            { key: 'status', label: 'Status' },
+          ], 'sales-orders')} className="btn-secondary flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export
+          </button>
+          <button onClick={() => navigate('/pos')} className="btn-primary flex items-center gap-2">
+            <ShoppingCart className="w-4 h-4" /> New Sale (POS)
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-2">
@@ -105,56 +161,17 @@ export function SalesOrders() {
         ))}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <FileText className="w-12 h-12 mx-auto mb-3" />
-            <p className="text-sm">No sales orders found</p>
-            <button onClick={() => navigate('/pos')} className="text-blue-600 text-sm mt-2 hover:underline">
-              Create your first sale
-            </button>
-          </div>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="table-header">Order #</th>
-                <th className="table-header">Customer</th>
-                <th className="table-header">Date</th>
-                <th className="table-header">Total</th>
-                <th className="table-header">Status</th>
-                <th className="table-header">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filtered.map((o) => (
-                <tr key={o.id} className="hover:bg-gray-50">
-                  <td className="table-cell font-mono text-sm">{o.orderNumber}</td>
-                  <td className="table-cell font-medium">{o.customerName || 'Walk-in'}</td>
-                  <td className="table-cell text-gray-500 text-sm">
-                    {new Date(o.createdAt).toLocaleDateString('en-GB')}
-                  </td>
-                  <td className="table-cell font-medium">₦{Number(o.total).toLocaleString()}</td>
-                  <td className="table-cell">
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${statusColors[o.status] || 'bg-gray-100 text-gray-600'}`}>
-                      {o.status}
-                    </span>
-                  </td>
-                  <td className="table-cell">
-                    <button className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
-                      <Eye className="w-3.5 h-3.5" /> View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      {isLoading ? (
+        <TableSkeleton rows={5} cols={6} />
+      ) : (
+        <DataTable
+          data={filtered}
+          columns={columns}
+          searchPlaceholder="Search by order # or customer..."
+          emptyMessage="No sales orders found"
+          emptyIcon={FileText}
+        />
+      )}
     </div>
   );
 }

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts } from '../../hooks/useProducts';
 import { ProductForm } from './ProductForm';
-import { Plus, Search, Package, Loader2, Edit2, Trash2, Upload } from 'lucide-react';
+import { Plus, Search, Package, Loader2, Edit2, Trash2, Upload, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
 import { CsvImport } from '../../components/CsvImport';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
+import { exportToCsv } from '../../utils/helpers';
+import { TableSkeleton } from '../../components/Skeleton';
 
 export function ProductList() {
   const navigate = useNavigate();
@@ -52,6 +54,15 @@ export function ProductList() {
           <p className="page-subtitle">Manage your product catalog</p>
         </div>
         <div className="flex gap-2">
+          <button onClick={() => exportToCsv(products, [
+            { key: 'sku', label: 'SKU' },
+            { key: 'name', label: 'Name' },
+            { key: 'productType', label: 'Type' },
+            { key: 'uom', label: 'UOM' },
+            { key: 'unitPrice', label: 'Unit Price' },
+          ], 'products')} className="btn-secondary flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export
+          </button>
           <button onClick={handleCreate} className="btn-primary flex items-center gap-2">
             <Plus className="w-4 h-4" /> Add Product
           </button>
@@ -80,9 +91,7 @@ export function ProductList() {
       {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-          </div>
+          <TableSkeleton rows={5} cols={5} />
         ) : products.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <Package className="w-12 h-12 mx-auto mb-3" />

@@ -29,6 +29,8 @@ import {
   ChevronRight,
   ClipboardCheck,
   HelpCircle,
+  FileSignature,
+  Banknote,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -61,6 +63,7 @@ const navSections: NavSection[] = [
       { path: '/inventory', label: 'Inventory', icon: Warehouse, minRole: 'Staff' },
       { path: '/customers', label: 'Customers', icon: Users, minRole: 'Sales Rep' },
       { path: '/sales', label: 'Sales Orders', icon: FileText, minRole: 'Sales Rep' },
+      { path: '/quotes', label: 'Quotes', icon: FileSignature, minRole: 'Sales Rep' },
       { path: '/invoices', label: 'Invoices', icon: Receipt, minRole: 'Accountant' },
     ],
   },
@@ -69,6 +72,7 @@ const navSections: NavSection[] = [
     items: [
       { path: '/vendors', label: 'Vendors', icon: ShoppingBag, minRole: 'Accountant' },
       { path: '/procurement', label: 'Purchase Orders', icon: ClipboardList, minRole: 'Manager' },
+      { path: '/procurement/payments', label: 'Bill Payments', icon: Banknote, minRole: 'Manager' },
     ],
   },
   {

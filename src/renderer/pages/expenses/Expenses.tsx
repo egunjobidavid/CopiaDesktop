@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
 import { Wallet, Plus, Loader2, Tag, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
@@ -27,8 +28,12 @@ export function Expenses() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState({ description: '', amount: '', categoryId: '', date: new Date().toISOString().split('T')[0] });
-  const [catForm, setCatForm] = useState({ name: '' });
+  const { register: regExp, handleSubmit: handleSubmitExp, reset: resetExp, formState: { errors: expErrors } } = useForm({
+    defaultValues: { description: '', amount: '', categoryId: '', date: new Date().toISOString().split('T')[0] },
+  });
+  const { register: regCat, handleSubmit: handleSubmitCat, reset: resetCat, formState: { errors: catErrors } } = useForm({
+    defaultValues: { name: '' },
+  });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -57,25 +62,23 @@ export function Expenses() {
 
   useEffect(() => { load(1); setPage(1); }, []);
 
-  async function handleCreateExpense() {
-    if (!form.description.trim() || !form.amount) { toast.error('Description and amount are required'); return; }
+  async function handleCreateExpense(formData: any) {
     try {
-      await api.post('/expenses', { ...form, amount: Number(form.amount) });
+      await api.post('/expenses', { ...formData, amount: Number(formData.amount) });
       toast.success('Expense recorded');
       setShowForm(false);
-      setForm({ description: '', amount: '', categoryId: '', date: new Date().toISOString().split('T')[0] });
+      resetExp();
       await load(1);
       setPage(1);
     } catch { toast.error('Failed to create expense'); }
   }
 
-  async function handleCreateCategory() {
-    if (!catForm.name.trim()) { toast.error('Category name is required'); return; }
+  async function handleCreateCategory(formData: { name: string }) {
     try {
-      await api.post('/expenses/categories', catForm);
+      await api.post('/expenses/categories', formData);
       toast.success('Category created');
       setShowCategoryForm(false);
-      setCatForm({ name: '' });
+      resetCat();
       await load();
     } catch { toast.error('Failed to create category'); }
   }
@@ -191,23 +194,25 @@ export function Expenses() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
             <h2 className="text-lg font-semibold mb-4">Record Expense</h2>
-            <div className="space-y-3">
-              <input placeholder="Description *" className="input w-full" value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              <input type="number" placeholder="Amount *" className="input w-full" value={form.amount}
-                onChange={(e) => setForm({ ...form, amount: e.target.value })} />
-              <select className="input w-full" value={form.categoryId}
-                onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
+            <form onSubmit={handleSubmitExp(handleCreateExpense)} className="space-y-3">
+              <div>
+                <input {...regExp('description', { required: 'Description is required' })} placeholder="Description *" className="input w-full" />
+                {expErrors.description && <p className="text-red-500 text-xs mt-1">{expErrors.description.message}</p>}
+              </div>
+              <div>
+                <input type="number" {...regExp('amount', { required: 'Amount is required', min: { value: 0.01, message: 'Amount must be positive' } })} placeholder="Amount *" className="input w-full" />
+                {expErrors.amount && <p className="text-red-500 text-xs mt-1">{expErrors.amount.message}</p>}
+              </div>
+              <select {...regExp('categoryId')} className="input w-full">
                 <option value="">Select category</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
-              <input type="date" className="input w-full" value={form.date}
-                onChange={(e) => setForm({ ...form, date: e.target.value })} />
-            </div>
-            <div className="flex gap-3 mt-6 justify-end">
-              <button onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
-              <button onClick={handleCreateExpense} className="btn-primary">Save</button>
-            </div>
+              <input type="date" {...regExp('date')} className="input w-full" />
+              <div className="flex gap-3 mt-6 justify-end">
+                <button type="button" onClick={() => { setShowForm(false); resetExp(); }} className="btn-secondary">Cancel</button>
+                <button type="submit" className="btn-primary">Save</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -217,12 +222,14 @@ export function Expenses() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-xl">
             <h2 className="text-lg font-semibold mb-4">New Category</h2>
-            <input placeholder="Category name" className="input w-full" value={catForm.name}
-              onChange={(e) => setCatForm({ name: e.target.value })} />
-            <div className="flex gap-3 mt-6 justify-end">
-              <button onClick={() => setShowCategoryForm(false)} className="btn-secondary">Cancel</button>
-              <button onClick={handleCreateCategory} className="btn-primary">Create</button>
-            </div>
+            <form onSubmit={handleSubmitCat(handleCreateCategory)}>
+              <input {...regCat('name', { required: 'Category name is required' })} placeholder="Category name" className="input w-full" />
+              {catErrors.name && <p className="text-red-500 text-xs mt-1">{catErrors.name.message}</p>}
+              <div className="flex gap-3 mt-6 justify-end">
+                <button type="button" onClick={() => { setShowCategoryForm(false); resetCat(); }} className="btn-secondary">Cancel</button>
+                <button type="submit" className="btn-primary">Create</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

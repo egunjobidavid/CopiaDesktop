@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useAuthStore } from '../store/auth.store';
 import { Breadcrumbs } from '../components/Breadcrumbs';
-import { TrendingUp, DollarSign, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, UserPlus, PackagePlus, PlusCircle } from 'lucide-react';
+import { DashboardSkeleton } from '../components/Skeleton';
+import { TrendingUp, DollarSign, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, UserPlus, PackagePlus, PlusCircle, AlertTriangle, CheckCircle, ClipboardList, Receipt } from 'lucide-react';
 
 interface DashboardMetrics {
   totalSales: number;
@@ -83,6 +84,7 @@ export function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const locationId = useAuthStore((s) => s.locationId);
   const locationName = useAuthStore((s) => s.locationName);
+  const userRole = user?.role ?? 'Staff';
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalSales: 0, totalCustomers: 0, totalProducts: 0, inventoryValue: 0, pendingOrders: 0, lowStockItems: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -138,11 +140,7 @@ export function Dashboard() {
   }, [locationId]);
 
   if (isLoading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-600 border-t-transparent" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -160,10 +158,17 @@ export function Dashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Sales (30d)" value={`₦${metrics.totalSales.toLocaleString()}`} icon={TrendingUp} color="bg-primary-600" />
+        {(userRole === 'MD' || userRole === 'Manager' || userRole === 'Director') && (
+          <>
+            <StatCard title="Sales (30d)" value={`₦${metrics.totalSales.toLocaleString()}`} icon={TrendingUp} color="bg-primary-600" />
+            <StatCard title="Inventory Value" value={`₦${metrics.inventoryValue.toLocaleString()}`} icon={DollarSign} color="bg-amber-600" />
+          </>
+        )}
         <StatCard title="Products" value={metrics.totalProducts.toLocaleString()} icon={Package} color="bg-green-600" />
         <StatCard title="Customers" value={metrics.totalCustomers.toLocaleString()} icon={Users} color="bg-purple-600" />
-        <StatCard title="Inventory Value" value={`₦${metrics.inventoryValue.toLocaleString()}`} icon={DollarSign} color="bg-amber-600" />
+        {metrics.lowStockItems > 0 && (
+          <StatCard title="Low Stock Alerts" value={metrics.lowStockItems.toString()} icon={AlertTriangle} color="bg-red-600" />
+        )}
       </div>
 
       {/* Quick Actions + Activity Feed */}
@@ -172,10 +177,22 @@ export function Dashboard() {
         <div className="lg:col-span-2 card">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <QuickActionButton label="New Sale" onClick={() => navigate('/pos')} color="bg-primary-600" icon={ShoppingCart} />
+            {(userRole === 'Sales Rep' || userRole === 'MD' || userRole === 'Manager') && (
+              <QuickActionButton label="New Sale" onClick={() => navigate('/pos')} color="bg-primary-600" icon={ShoppingCart} />
+            )}
             <QuickActionButton label="Invoice" onClick={() => navigate('/invoices')} color="bg-green-600" icon={FileText} />
-            <QuickActionButton label="Add Product" onClick={() => navigate('/products')} color="bg-purple-600" icon={PackagePlus} />
-            <QuickActionButton label="Purchase" onClick={() => navigate('/procurement')} color="bg-amber-600" icon={PlusCircle} />
+            {(userRole === 'MD' || userRole === 'Manager' || userRole === 'Director') && (
+              <>
+                <QuickActionButton label="Add Product" onClick={() => navigate('/products')} color="bg-purple-600" icon={PackagePlus} />
+                <QuickActionButton label="Purchase" onClick={() => navigate('/procurement')} color="bg-amber-600" icon={PlusCircle} />
+              </>
+            )}
+            {(userRole === 'Accountant' || userRole === 'MD' || userRole === 'Manager') && (
+              <>
+                <QuickActionButton label="Quotes" onClick={() => navigate('/quotes')} color="bg-indigo-600" icon={ClipboardList} />
+                <QuickActionButton label="Expenses" onClick={() => navigate('/expenses')} color="bg-rose-600" icon={Receipt} />
+              </>
+            )}
           </div>
         </div>
 

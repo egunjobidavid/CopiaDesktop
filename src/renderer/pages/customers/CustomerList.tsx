@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Users, Loader2, Mail, Phone, MapPin, Upload } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Plus, Search, Users, Loader2, Mail, Phone, MapPin, Upload, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
 import { CsvImport } from '../../components/CsvImport';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
+import { exportToCsv } from '../../utils/helpers';
+import { TableSkeleton } from '../../components/Skeleton';
 
 interface Customer {
   id: string;
@@ -22,7 +25,9 @@ export function CustomerList() {
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showImport, setShowImport] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '' });
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues: { name: '', email: '', phone: '', address: '' },
+  });
 
   useEffect(() => { fetchCustomers(); }, []);
 
@@ -35,13 +40,12 @@ export function CustomerList() {
     } catch { setCustomers([]); } finally { setIsLoading(false); }
   }
 
-  async function handleCreate() {
-    if (!form.name.trim()) { toast.error('Customer name is required'); return; }
+  async function handleCreate(formData: { name: string; email: string; phone: string; address: string }) {
     try {
-      await api.post('/customers', form);
+      await api.post('/customers', formData);
       toast.success('Customer created');
       setShowForm(false);
-      setForm({ name: '', email: '', phone: '', address: '' });
+      reset();
       await fetchCustomers();
     } catch { toast.error('Failed to create customer'); }
   }
@@ -55,6 +59,14 @@ export function CustomerList() {
           <p className="page-subtitle">Manage your customer database</p>
         </div>
         <div className="flex gap-2">
+          <button onClick={() => exportToCsv(customers, [
+            { key: 'name', label: 'Name' },
+            { key: 'email', label: 'Email' },
+            { key: 'phone', label: 'Phone' },
+            { key: 'address', label: 'Address' },
+          ], 'customers')} className="btn-secondary flex items-center gap-2">
+            <Download className="w-4 h-4" /> Export
+          </button>
           <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
             <Plus className="w-4 h-4" /> Add Customer
           </button>
@@ -76,9 +88,7 @@ export function CustomerList() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-          </div>
+          <TableSkeleton rows={5} cols={4} />
         ) : customers.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <Users className="w-12 h-12 mx-auto mb-3" />
@@ -131,20 +141,19 @@ export function CustomerList() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
             <h2 className="text-lg font-semibold mb-4">New Customer</h2>
-            <div className="space-y-3">
-              <input placeholder="Name *" className="input w-full" value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <input placeholder="Email" className="input w-full" value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <input placeholder="Phone" className="input w-full" value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              <textarea placeholder="Address" className="input w-full" rows={2} value={form.address}
-                onChange={(e) => setForm({ ...form, address: e.target.value })} />
-            </div>
-            <div className="flex gap-3 mt-6 justify-end">
-              <button onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
-              <button onClick={handleCreate} className="btn-primary">Create</button>
-            </div>
+            <form onSubmit={handleSubmit(handleCreate)} className="space-y-3">
+              <div>
+                <input {...register('name', { required: 'Name is required' })} placeholder="Name *" className="input w-full" />
+                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+              </div>
+              <input {...register('email')} type="email" placeholder="Email" className="input w-full" />
+              <input {...register('phone')} type="tel" placeholder="Phone" className="input w-full" />
+              <textarea {...register('address')} placeholder="Address" className="input w-full" rows={2} />
+              <div className="flex gap-3 mt-6 justify-end">
+                <button type="button" onClick={() => { setShowForm(false); reset(); }} className="btn-secondary">Cancel</button>
+                <button type="submit" className="btn-primary">Create</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

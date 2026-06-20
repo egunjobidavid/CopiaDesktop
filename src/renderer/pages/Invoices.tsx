@@ -3,8 +3,10 @@ import { useInvoicePrint } from '../hooks/useInvoicePrint';
 import { PrintButton } from '../components/Invoice/PrintButton';
 import { DownloadButton } from '../components/Invoice/DownloadButton';
 import { InvoiceData } from '../components/Invoice/InvoicePDF';
-import { FileText, Eye, Loader2, Search } from 'lucide-react';
+import { FileText, Eye, Loader2, Search, Download } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { TableSkeleton } from '../components/Skeleton';
+import { exportToCsv } from '../utils/helpers';
 import toast from 'react-hot-toast';
 
 export function Invoices() {
@@ -72,8 +74,15 @@ export function Invoices() {
 
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+      <div className="space-y-6">
+        <Breadcrumbs />
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Invoices</h1>
+            <p className="page-subtitle">Manage and print invoices</p>
+          </div>
+        </div>
+        <TableSkeleton rows={5} cols={5} />
       </div>
     );
   }
@@ -92,6 +101,21 @@ export function Invoices() {
           <h1 className="page-title">Invoices</h1>
           <p className="page-subtitle">Manage and print invoices</p>
         </div>
+        <button onClick={() => exportToCsv(filtered.map(inv => ({
+          invoiceNumber: inv.invoiceNumber,
+          customer: inv.customer?.name || 'Walk-in',
+          date: inv.invoiceDate,
+          total: inv.total,
+          status: inv.status,
+        })), [
+          { key: 'invoiceNumber', label: 'Invoice #' },
+          { key: 'customer', label: 'Customer' },
+          { key: 'date', label: 'Date' },
+          { key: 'total', label: 'Total' },
+          { key: 'status', label: 'Status' },
+        ], 'invoices')} className="btn-secondary flex items-center gap-2">
+          <Download className="w-4 h-4" /> Export CSV
+        </button>
       </div>
 
       <div className="flex gap-2">

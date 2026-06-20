@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import api from '../api/client';
-import { MapPin, ChevronDown, LogOut, Settings, Building2, Plus } from 'lucide-react';
+import { NotificationBell } from './NotificationBell';
+import { MapPin, ChevronDown, LogOut, Settings, Building2, Plus, Search } from 'lucide-react';
 
 interface LocationOption {
   id: string;
@@ -11,7 +12,11 @@ interface LocationOption {
   type: string | null;
 }
 
-export function Header() {
+interface HeaderProps {
+  onSearchOpen?: () => void;
+}
+
+export function Header({ onSearchOpen }: HeaderProps) {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const tenantId = useAuthStore((s) => s.tenantId);
@@ -55,7 +60,6 @@ export function Header() {
 
   return (
     <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 flex-shrink-0 z-30">
-      {/* Left: Org name + Location selector */}
       <div className="flex items-center gap-4 min-w-0">
         <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 truncate">
           <Building2 className="w-4 h-4 text-gray-400 flex-shrink-0" />
@@ -64,7 +68,6 @@ export function Header() {
 
         <div className="h-5 w-px bg-gray-200" />
 
-        {/* Location selector — always visible */}
         <div className="relative" ref={locRef}>
           <button
             onClick={() => setShowLocDropdown(!showLocDropdown)}
@@ -122,8 +125,18 @@ export function Header() {
         </div>
       </div>
 
-      {/* Right: User menu */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
+        <button
+          onClick={onSearchOpen}
+          className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-500 transition-colors mr-2"
+        >
+          <Search className="w-4 h-4" />
+          <span className="hidden sm:inline text-xs">Search...</span>
+          <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 bg-gray-200 text-gray-500 text-[10px] rounded">⌘K</kbd>
+        </button>
+
+        <NotificationBell />
+
         <div className="relative" ref={userRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}

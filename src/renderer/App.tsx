@@ -24,7 +24,9 @@ const InventoryReport = lazy(() => import('./pages/reports/InventoryReport').the
 const FinancialReport = lazy(() => import('./pages/reports/FinancialReport').then((m) => ({ default: m.FinancialReport })));
 const CustomerList = lazy(() => import('./pages/customers/CustomerList').then((m) => ({ default: m.CustomerList })));
 const SalesOrders = lazy(() => import('./pages/sales/SalesOrders').then((m) => ({ default: m.SalesOrders })));
+const Quotes = lazy(() => import('./pages/sales/Quotes').then((m) => ({ default: m.Quotes })));
 const VendorList = lazy(() => import('./pages/vendors/VendorList').then((m) => ({ default: m.VendorList })));
+const VendorBillPayment = lazy(() => import('./pages/procurement/VendorBillPayment').then((m) => ({ default: m.VendorBillPayment })));
 const Production = lazy(() => import('./pages/production/Production').then((m) => ({ default: m.Production })));
 const Expenses = lazy(() => import('./pages/expenses/Expenses').then((m) => ({ default: m.Expenses })));
 const Settings = lazy(() => import('./pages/settings/Settings').then((m) => ({ default: m.Settings })));
@@ -38,6 +40,7 @@ const Locations = lazy(() => import('./pages/settings/Locations').then((m) => ({
 const StaffAudit = lazy(() => import('./pages/settings/StaffAudit').then((m) => ({ default: m.StaffAudit })));
 const Approvals = lazy(() => import('./pages/approvals/Approvals').then((m) => ({ default: m.Approvals })));
 const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
+const OnboardingWizard = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.OnboardingWizard })));
 
 function PageLoader() {
   return (
@@ -90,6 +93,7 @@ export function App() {
               <Route path="/pos" element={<LazyPage><Pos /></LazyPage>} />
               <Route path="/customers" element={<LazyPage><CustomerList /></LazyPage>} />
               <Route path="/sales" element={<LazyPage><SalesOrders /></LazyPage>} />
+              <Route path="/quotes" element={<LazyPage><Quotes /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Accountant" />}>
               <Route path="/invoices" element={<LazyPage><Invoices /></LazyPage>} />
@@ -104,6 +108,7 @@ export function App() {
               <Route path="/procurement" element={<LazyPage><POList /></LazyPage>} />
               <Route path="/procurement/new" element={<LazyPage><POForm /></LazyPage>} />
               <Route path="/procurement/:id" element={<LazyPage><PODetail /></LazyPage>} />
+              <Route path="/procurement/payments" element={<LazyPage><VendorBillPayment /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
               <Route path="/production" element={<LazyPage><Production /></LazyPage>} />
@@ -123,6 +128,7 @@ export function App() {
             <Route element={<ProtectedRoute minRole="Staff" />}>
               <Route path="/settings/support" element={<LazyPage><Support /></LazyPage>} />
               <Route path="/help" element={<LazyPage><Help /></LazyPage>} />
+              <Route path="/onboarding" element={<LazyPage><OnboardingWizard /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Accountant" feature="approvals" />}>
               <Route path="/approvals" element={<LazyPage><Approvals /></LazyPage>} />

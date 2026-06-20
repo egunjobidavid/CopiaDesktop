@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/client';
 import { KPICard } from '../../components/charts/KPICard';
 import { SalesChart } from '../../components/charts/SalesChart';
-import { TrendingUp, DollarSign, ShoppingCart, Users, Loader2 } from 'lucide-react';
+import { exportToCsv } from '../../utils/helpers';
+import { TrendingUp, DollarSign, ShoppingCart, Users, Loader2, Download } from 'lucide-react';
 
 export function SalesReport() {
   const [days, setDays] = useState(30);
@@ -90,7 +91,16 @@ export function SalesReport() {
       </div>
 
       <div className="card">
-        <h2 className="font-semibold text-gray-900 mb-4">Revenue Trend</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-gray-900">Revenue Trend</h2>
+          <button onClick={() => exportToCsv(data, [
+            { key: 'date', label: 'Date' },
+            { key: 'revenue', label: 'Revenue' },
+            { key: 'orders', label: 'Orders' },
+          ], `sales-report-${days}d`)} className="btn-ghost text-xs">
+            <Download className="w-3.5 h-3.5" /> Export CSV
+          </button>
+        </div>
         <SalesChart data={data} type={chartType} dataKeys={[{ key: 'revenue', color: '#2563eb', name: 'Revenue' }]} />
       </div>
     </div>
