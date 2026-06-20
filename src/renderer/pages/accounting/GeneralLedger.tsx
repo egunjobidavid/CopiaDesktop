@@ -5,11 +5,13 @@ import toast from 'react-hot-toast';
 
 interface JournalEntry {
   id: string;
-  entryNumber: string;
-  date: string;
+  journal_number: string;
+  entry_date: string;
+  created_at: string;
   description: string;
   status: string;
-  reference?: string;
+  reference_type?: string;
+  reference_id?: string;
   lines?: any[];
 }
 
@@ -27,9 +29,8 @@ export function GeneralLedger() {
   const loadEntries = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/accounting/journal-entries', { params: { page, limit: 20 } });
-      const data = res.data?.data || res.data || [];
-      setEntries(Array.isArray(data) ? data : []);
+      const res = await api.get('/accounting/journal', { params: { page, limit: 20 } });
+      setEntries(res.data?.rows || []);
       setTotalPages(res.data?.totalPages || 1);
     } catch (err: any) {
       toast.error('Failed to load journal entries');
@@ -38,13 +39,8 @@ export function GeneralLedger() {
     }
   };
 
-  const viewEntry = async (entry: JournalEntry) => {
-    try {
-      const res = await api.get(`/accounting/journal-entries/${entry.id}`);
-      setSelectedEntry(res.data);
-    } catch (err) {
-      setSelectedEntry(entry);
-    }
+  const viewEntry = (entry: JournalEntry) => {
+    setSelectedEntry(entry);
   };
 
   const statusColors: Record<string, string> = {
@@ -78,26 +74,26 @@ export function GeneralLedger() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Description</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Reference</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase"></th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Lines</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((entry) => (
-                <tr key={entry.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-3 text-sm font-mono text-gray-900">{entry.entryNumber}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{new Date(entry.date).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{entry.description}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{entry.reference || '-'}</td>
+                <tr
+                  key={entry.id}
+                  className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer"
+                  onClick={() => viewEntry(entry)}
+                >
+                  <td className="px-4 py-3 text-sm font-mono text-gray-900">{entry.journal_number}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{new Date(entry.entry_date || entry.created_at).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{entry.description || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{entry.reference_type || '-'}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${statusColors[entry.status] || 'bg-gray-100 text-gray-600'}`}>
                       {entry.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => viewEntry(entry)} className="text-primary-600 text-sm font-medium hover:underline">
-                      View
-                    </button>
-                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{entry.lines?.length || 0}</td>
                 </tr>
               ))}
             </tbody>
@@ -105,7 +101,6 @@ export function GeneralLedger() {
         )}
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center gap-2">
           <button
@@ -126,20 +121,19 @@ export function GeneralLedger() {
         </div>
       )}
 
-      {/* Entry detail modal */}
       {selectedEntry && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-2xl shadow-xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">{selectedEntry.entryNumber}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{selectedEntry.journal_number}</h3>
                 <p className="text-sm text-gray-500">{selectedEntry.description}</p>
               </div>
-              <button onClick={() => setSelectedEntry(null)} className="text-gray-400 hover:text-gray-600">×</button>
+              <button onClick={() => setSelectedEntry(null)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
             </div>
             <div className="mb-4 text-sm text-gray-600">
-              <p>Date: {new Date(selectedEntry.date).toLocaleDateString()}</p>
-              {selectedEntry.reference && <p>Reference: {selectedEntry.reference}</p>}
+              <p>Date: {new Date(selectedEntry.entry_date || selectedEntry.created_at).toLocaleDateString()}</p>
+              {selectedEntry.reference_type && <p>Reference Type: {selectedEntry.reference_type}</p>}
               <p>Status: <span className="capitalize">{selectedEntry.status}</span></p>
             </div>
             {selectedEntry.lines && selectedEntry.lines.length > 0 && (
@@ -147,6 +141,7 @@ export function GeneralLedger() {
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="text-left py-2">Account</th>
+                    <th className="text-left py-2">Description</th>
                     <th className="text-right py-2">Debit</th>
                     <th className="text-right py-2">Credit</th>
                   </tr>
@@ -154,9 +149,10 @@ export function GeneralLedger() {
                 <tbody>
                   {selectedEntry.lines.map((line: any, idx: number) => (
                     <tr key={idx} className="border-b border-gray-50">
-                      <td className="py-2">{line.accountCode || line.accountId}</td>
-                      <td className="py-2 text-right">{line.debit ? Number(line.debit).toLocaleString() : '-'}</td>
-                      <td className="py-2 text-right">{line.credit ? Number(line.credit).toLocaleString() : '-'}</td>
+                      <td className="py-2 font-mono text-xs">{line.account_id}</td>
+                      <td className="py-2">{line.description || '-'}</td>
+                      <td className="py-2 text-right">{Number(line.debit || 0) > 0 ? Number(line.debit).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className="py-2 text-right">{Number(line.credit || 0) > 0 ? Number(line.credit).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
                     </tr>
                   ))}
                 </tbody>
