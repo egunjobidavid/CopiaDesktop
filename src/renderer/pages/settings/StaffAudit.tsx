@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../api/client';
 import { useAuthStore } from '../../store/auth.store';
+import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { Activity, Search, Filter, Clock, User, FileText, ChevronLeft, ChevronRight, RefreshCw, Download, Shield, ShoppingCart, CreditCard, Package, Users, Trash2, Edit3, PlusCircle, Eye } from 'lucide-react';
 
 interface ActivityItem {
@@ -201,8 +202,9 @@ export function StaffAudit() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Staff Audit</h1>
-          <p className="text-gray-500 mt-1">Track all user activities and system changes</p>
+          <Breadcrumbs />
+          <h1 className="page-title">Staff Audit</h1>
+          <p className="page-subtitle">Track all user activities and system changes</p>
         </div>
       </div>
 

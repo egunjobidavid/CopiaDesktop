@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CreditCard, CheckCircle, XCircle, Loader2, ExternalLink, Zap, Shield, Users, Package, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
+import { Breadcrumbs } from '../../components/Breadcrumbs';
 import api from '../../api/client';
 import toast from 'react-hot-toast';
 
@@ -43,9 +44,10 @@ export function Billing() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Billing</h1>
-        <p className="text-gray-500 mt-1">Manage your subscription and payment methods</p>
+        <h1 className="page-title">Billing & Subscription</h1>
+        <p className="page-subtitle">Manage your plan and payments</p>
       </div>
 
       {/* Current Plan */}
@@ -94,8 +96,8 @@ export function Billing() {
       {plans?.plans?.length > 0 && (
         <div className="card">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+              <Zap className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">Upgrade Plan</h2>
@@ -104,7 +106,7 @@ export function Billing() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {plans.plans.map((p: any) => (
-              <div key={p.name} className={`p-4 rounded-xl border-2 transition-colors ${sub?.plan === p.name.toLowerCase() ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}>
+              <div key={p.name} className={`p-4 rounded-xl border-2 transition-colors ${sub?.plan === p.name.toLowerCase() ? 'border-primary-500 bg-primary-50' : 'border-gray-200 hover:border-primary-300'}`}>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-lg font-bold">{p.name}</h3>
                   <p className="text-lg font-bold text-blue-600">₦{(p.amount / 100).toLocaleString()}</p>

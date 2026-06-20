@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useAuthStore } from '../store/auth.store';
-import { TrendingUp, DollarSign, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, PlusCircle, UserPlus } from 'lucide-react';
+import { Breadcrumbs } from '../components/Breadcrumbs';
+import { TrendingUp, DollarSign, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, UserPlus, PackagePlus, PlusCircle } from 'lucide-react';
 
 interface DashboardMetrics {
   totalSales: number;
@@ -24,29 +25,28 @@ interface ActivityItem {
 
 function StatCard({ title, value, icon: Icon, trend, trendUp, color }: { title: string; value: string; icon: any; trend?: string; trendUp?: boolean; color: string }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-gray-500">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {trend && (
-            <div className={`flex items-center gap-1 mt-2 text-sm ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
-              {trendUp ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
-              <span>{trend}</span>
-            </div>
-          )}
-        </div>
-        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
-        </div>
+    <div className="card flex items-center justify-between">
+      <div>
+        <p className="text-sm font-medium text-gray-500">{title}</p>
+        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        {trend && (
+          <div className={`flex items-center gap-1 mt-2 text-sm ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
+            {trendUp ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+            <span>{trend}</span>
+          </div>
+        )}
+      </div>
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
+        <Icon className="w-6 h-6 text-white" />
       </div>
     </div>
   );
 }
 
-function QuickActionButton({ label, onClick, color }: { label: string; onClick: () => void; color: string }) {
+function QuickActionButton({ label, onClick, color, icon: Icon }: { label: string; onClick: () => void; color: string; icon: any }) {
   return (
-    <button onClick={onClick} className={`${color} text-white rounded-lg px-4 py-3 text-sm font-medium hover:opacity-90 transition-opacity text-center`}>
+    <button onClick={onClick} className={`${color} text-white rounded-xl px-4 py-3 text-sm font-medium hover:opacity-90 transition-opacity text-center flex flex-col items-center gap-2`}>
+      <Icon className="w-5 h-5" />
       {label}
     </button>
   );
@@ -91,16 +91,18 @@ export function Dashboard() {
     async function loadMetrics() {
       try {
         const locParam = locationId ? `&locationId=${locationId}` : '';
-        const [analyticsRes, productsRes, customersRes, activityRes] = await Promise.allSettled([
+        const [analyticsRes, productsRes, customersRes, stockRes, activityRes] = await Promise.allSettled([
           api.get(`/analytics/sales?days=30${locParam}`),
           api.get('/inventory/products'),
           api.get('/customers'),
+          api.get(`/inventory/stock${locParam ? `?locationId=${locParam.slice(1)}` : ''}`),
           api.get('/activity?limit=10'),
         ]);
 
         const salesData = analyticsRes.status === 'fulfilled' ? analyticsRes.value.data : [];
         const productsData = productsRes.status === 'fulfilled' ? productsRes.value.data : [];
         const customersData = customersRes.status === 'fulfilled' ? customersRes.value.data : [];
+        const stockData = stockRes.status === 'fulfilled' ? stockRes.value.data : [];
 
         if (activityRes.status === 'fulfilled') {
           const body = activityRes.value.data;
@@ -111,13 +113,21 @@ export function Dashboard() {
           ? salesData.reduce((sum: number, s: any) => sum + Number(s.total || s.total_revenue || 0), 0)
           : 0;
 
+        const inventoryValue = Array.isArray(stockData)
+          ? stockData.reduce((sum: number, s: any) => sum + Number(s.quantity || 0) * Number(s.unit_price || 0), 0)
+          : 0;
+
+        const lowStockItems = Array.isArray(stockData)
+          ? stockData.filter((s: any) => Number(s.quantity || 0) < 10).length
+          : 0;
+
         setMetrics({
           totalSales,
           totalCustomers: Array.isArray(customersData) ? customersData.length : 0,
           totalProducts: Array.isArray(productsData) ? productsData.length : 0,
-          inventoryValue: totalSales * 0.6,
+          inventoryValue,
           pendingOrders: 0,
-          lowStockItems: 0,
+          lowStockItems,
         });
       } catch {
       } finally {
@@ -130,53 +140,56 @@ export function Dashboard() {
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-600 border-t-transparent" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-1">
-          Welcome back, {user?.fullName || 'User'}
-          {locationName && <span className="text-blue-600 font-medium"> • {locationName}</span>}
-        </p>
+      <Breadcrumbs />
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">
+            Welcome back, {user?.fullName || 'User'}
+            {locationName && <span className="text-primary-600 font-medium"> · {locationName}</span>}
+          </p>
+        </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Sales (30d)" value={`₦${metrics.totalSales.toLocaleString()}`} icon={TrendingUp} trend="+12.5% vs last period" trendUp color="bg-blue-600" />
+        <StatCard title="Sales (30d)" value={`₦${metrics.totalSales.toLocaleString()}`} icon={TrendingUp} color="bg-primary-600" />
         <StatCard title="Products" value={metrics.totalProducts.toLocaleString()} icon={Package} color="bg-green-600" />
-        <StatCard title="Customers" value={metrics.totalCustomers.toLocaleString()} icon={Users} trend="+5 new this month" trendUp color="bg-purple-600" />
+        <StatCard title="Customers" value={metrics.totalCustomers.toLocaleString()} icon={Users} color="bg-purple-600" />
         <StatCard title="Inventory Value" value={`₦${metrics.inventoryValue.toLocaleString()}`} icon={DollarSign} color="bg-amber-600" />
       </div>
 
       {/* Quick Actions + Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="lg:col-span-2 card">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <QuickActionButton label="New Sale (POS)" onClick={() => navigate('/pos')} color="bg-blue-600" />
-            <QuickActionButton label="Create Invoice" onClick={() => navigate('/invoices')} color="bg-green-600" />
-            <QuickActionButton label="Add Product" onClick={() => navigate('/products')} color="bg-purple-600" />
-            <QuickActionButton label="New Purchase" onClick={() => navigate('/procurement')} color="bg-amber-600" />
+            <QuickActionButton label="New Sale" onClick={() => navigate('/pos')} color="bg-primary-600" icon={ShoppingCart} />
+            <QuickActionButton label="Invoice" onClick={() => navigate('/invoices')} color="bg-green-600" icon={FileText} />
+            <QuickActionButton label="Add Product" onClick={() => navigate('/products')} color="bg-purple-600" icon={PackagePlus} />
+            <QuickActionButton label="Purchase" onClick={() => navigate('/procurement')} color="bg-amber-600" icon={PlusCircle} />
           </div>
         </div>
 
         {/* Activity Feed */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="card">
           <div className="flex items-center gap-2 mb-4">
-            <Activity className="w-5 h-5 text-blue-600" />
+            <Activity className="w-5 h-5 text-primary-600" />
             <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
           </div>
           {activities.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-8">No recent activity</p>
           ) : (
             <div className="space-y-3">
-              {activities.map((a) => (
+              {activities.slice(0, 8).map((a) => (
                 <div key={a.id} className="flex items-start gap-3 text-sm">
                   <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <ActivityIcon action={a.action} />

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, User, Shield, Building2, Copy, CheckCircle2, Mail, Plus, X, Loader2, Users, Clock, CheckCircle, Ban, Trash2, ChevronDown } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
+import { Breadcrumbs } from '../../components/Breadcrumbs';
 import api from '../../api/client';
 import toast from 'react-hot-toast';
 
@@ -197,17 +198,20 @@ export function Settings() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 mt-1">Manage your account, organization, and team</p>
+      <Breadcrumbs />
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Settings</h1>
+          <p className="page-subtitle">Manage your account, organization, and team</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Profile */}
         <div className="card">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <User className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+              <User className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">Profile</h2>
@@ -234,8 +238,8 @@ export function Settings() {
         {/* Organization */}
         <div className="card">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+              <Building2 className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">Organization</h2>
@@ -262,8 +266,8 @@ export function Settings() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-              <Users className="w-5 h-5 text-green-600" />
+            <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+              <Users className="w-5 h-5 text-primary-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">Team</h2>
@@ -287,8 +291,8 @@ export function Settings() {
             {members.map((m) => (
               <div key={m.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="text-sm font-semibold text-blue-600">
+                  <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center">
+                    <span className="text-sm font-semibold text-primary-600">
                       {(m.full_name || m.email)[0].toUpperCase()}
                     </span>
                   </div>
@@ -310,7 +314,7 @@ export function Settings() {
                       ))}
                     </select>
                   ) : (
-                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize bg-blue-100 text-blue-700">{m.role}</span>
+                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full capitalize bg-primary-100 text-primary-700">{m.role}</span>
                   )}
                   <span className="text-xs text-gray-400">
                     Joined {new Date(m.joined_at).toLocaleDateString('en-GB')}
@@ -366,8 +370,8 @@ export function Settings() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                <Users className="w-5 h-5 text-orange-600" />
+              <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+                <Users className="w-5 h-5 text-primary-600" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold">Unassigned Users</h2>
@@ -392,8 +396,8 @@ export function Settings() {
               {orphanUsers.map((u) => (
                 <div key={u.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-orange-600">
+                    <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center">
+                      <span className="text-sm font-semibold text-primary-600">
                         {(u.full_name || u.email)[0].toUpperCase()}
                       </span>
                     </div>
@@ -418,8 +422,8 @@ export function Settings() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
-                <User className="w-5 h-5 text-indigo-600" />
+              <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+                <User className="w-5 h-5 text-primary-600" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold">Create User</h2>

@@ -84,15 +84,15 @@ export function Login() {
     }
   };
 
-  const inputClass = "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors";
+  const inputClass = "w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-colors";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-primary-600 rounded-xl flex items-center justify-center mb-4">
               <span className="text-white font-bold text-2xl">C</span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">CopiaOS</h1>
@@ -138,11 +138,11 @@ export function Login() {
                   </div>
                 </div>
                 <button type="submit" disabled={isLoading}
-                  className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  className="w-full py-2.5 px-4 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {isLoading ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> Signing in...</> : 'Sign In'}
                 </button>
                 <button type="button" onClick={() => { setMode('forgot'); setResetSent(false); }}
-                  className="w-full text-center text-sm text-blue-600 hover:text-blue-700 mt-2">
+                  className="w-full text-center text-sm text-primary-600 hover:text-primary-700 mt-2">
                   Forgot password?
                 </button>
               </form>
@@ -181,7 +181,7 @@ export function Login() {
                 </div>
               )}
               <button onClick={() => { setMode('login'); setResetSent(false); setResetToken(''); }}
-                className="w-full text-center text-sm text-blue-600 hover:text-blue-700">
+                className="w-full text-center text-sm text-primary-600 hover:text-primary-700">
                 Back to Sign In
               </button>
             </div>
