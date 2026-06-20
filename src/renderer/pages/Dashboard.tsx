@@ -81,6 +81,8 @@ function formatTime(iso: string) {
 export function Dashboard() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
+  const locationId = useAuthStore((s) => s.locationId);
+  const locationName = useAuthStore((s) => s.locationName);
   const [metrics, setMetrics] = useState<DashboardMetrics>({ totalSales: 0, totalCustomers: 0, totalProducts: 0, inventoryValue: 0, pendingOrders: 0, lowStockItems: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -88,8 +90,9 @@ export function Dashboard() {
   useEffect(() => {
     async function loadMetrics() {
       try {
+        const locParam = locationId ? `&locationId=${locationId}` : '';
         const [analyticsRes, productsRes, customersRes, activityRes] = await Promise.allSettled([
-          api.get('/analytics/sales?days=30'),
+          api.get(`/analytics/sales?days=30${locParam}`),
           api.get('/inventory/products'),
           api.get('/customers'),
           api.get('/activity?limit=10'),
@@ -105,7 +108,7 @@ export function Dashboard() {
         }
 
         const totalSales = Array.isArray(salesData)
-          ? salesData.reduce((sum: number, s: any) => sum + Number(s.total_revenue || 0), 0)
+          ? salesData.reduce((sum: number, s: any) => sum + Number(s.total || s.total_revenue || 0), 0)
           : 0;
 
         setMetrics({
@@ -122,7 +125,7 @@ export function Dashboard() {
       }
     }
     loadMetrics();
-  }, []);
+  }, [locationId]);
 
   if (isLoading) {
     return (
@@ -136,7 +139,10 @@ export function Dashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-1">Welcome back, {user?.fullName || 'User'}</p>
+        <p className="text-gray-500 mt-1">
+          Welcome back, {user?.fullName || 'User'}
+          {locationName && <span className="text-blue-600 font-medium"> • {locationName}</span>}
+        </p>
       </div>
 
       {/* KPI Cards */}

@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { Users, Plus, Trash2, Loader2 } from 'lucide-react';
 import { staffApi } from '../../api/staff';
 import { departmentsApi } from '../../api/departments';
+import { locationsApi } from '../../api/locations';
 import toast from 'react-hot-toast';
 
 interface StaffMember {
   id: string; userId: string; jobTitle: string; employeeCode: string | null;
-  departmentName: string | null; email: string; fullName: string;
+  departmentName: string | null; locationName: string | null; email: string; fullName: string;
   createdAt: string;
 }
 
 export function Staff() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [email, setEmail] = useState('');
@@ -20,24 +22,30 @@ export function Staff() {
   const [jobTitle, setJobTitle] = useState('');
   const [employeeCode, setEmployeeCode] = useState('');
   const [departmentId, setDepartmentId] = useState('');
+  const [defaultLocationId, setDefaultLocationId] = useState('');
 
   const load = async () => {
     setLoading(true);
     try {
-      const [sRes, dRes] = await Promise.all([staffApi.list(), departmentsApi.list()]);
+      const [sRes, dRes, lRes] = await Promise.all([staffApi.list(), departmentsApi.list(), locationsApi.list()]);
       setStaff(sRes.data || []);
       setDepartments(dRes.data || []);
+      setLocations(Array.isArray(lRes.data) ? lRes.data : []);
     } catch (_) {} finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
 
-  const resetForm = () => { setEmail(''); setFullName(''); setJobTitle(''); setEmployeeCode(''); setDepartmentId(''); setShowCreate(false); };
+  const resetForm = () => { setEmail(''); setFullName(''); setJobTitle(''); setEmployeeCode(''); setDepartmentId(''); setDefaultLocationId(''); setShowCreate(false); };
 
   const handleCreate = async () => {
     if (!email.trim() || !jobTitle.trim()) { toast.error('Email and Job Title are required'); return; }
     try {
-      await staffApi.create({ email: email.trim(), fullName: fullName.trim() || undefined, jobTitle: jobTitle.trim(), employeeCode: employeeCode.trim() || undefined, departmentId: departmentId || undefined });
+      await staffApi.create({
+        email: email.trim(), fullName: fullName.trim() || undefined,
+        jobTitle: jobTitle.trim(), employeeCode: employeeCode.trim() || undefined,
+        departmentId: departmentId || undefined, defaultLocationId: defaultLocationId || undefined,
+      });
       toast.success('Staff created');
       resetForm();
       load();
@@ -54,7 +62,7 @@ export function Staff() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Staff</h1>
-          <p className="text-gray-500 mt-1">Manage your team members</p>
+          <p className="text-gray-500 mt-1">Manage your team members and their locations</p>
         </div>
         <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
           <Plus className="w-4 h-4" /> Add Staff
@@ -71,10 +79,16 @@ export function Staff() {
               <input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="Job Title *" className="flex-1 px-3 py-2 border rounded-lg text-sm" />
               <input value={employeeCode} onChange={(e) => setEmployeeCode(e.target.value)} placeholder="Employee Code (optional)" className="flex-1 px-3 py-2 border rounded-lg text-sm" />
             </div>
-            <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm">
-              <option value="">No department</option>
-              {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
+            <div className="flex gap-3">
+              <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm">
+                <option value="">No department</option>
+                {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+              <select value={defaultLocationId} onChange={(e) => setDefaultLocationId(e.target.value)} className="flex-1 px-3 py-2 border rounded-lg text-sm">
+                <option value="">No location</option>
+                {locations.map((l: any) => <option key={l.id} value={l.id}>{l.name}{l.city ? ` (${l.city})` : ''}</option>)}
+              </select>
+            </div>
             <p className="text-xs text-gray-400">If the email is not yet registered, a new user account will be created with password &quot;changeme123&quot;.</p>
             <div className="flex gap-2">
               <button onClick={handleCreate} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">Create</button>
@@ -94,7 +108,12 @@ export function Staff() {
                 <div className="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center"><Users className="w-4 h-4 text-green-600" /></div>
                 <div>
                   <span className="font-medium text-gray-900">{s.fullName || s.email}</span>
-                  <p className="text-xs text-gray-500">{s.jobTitle}{s.departmentName ? ` · ${s.departmentName}` : ''}{s.employeeCode ? ` · ${s.employeeCode}` : ''}</p>
+                  <p className="text-xs text-gray-500">
+                    {s.jobTitle}
+                    {s.departmentName ? ` · ${s.departmentName}` : ''}
+                    {s.locationName ? ` · ${s.locationName}` : ''}
+                    {s.employeeCode ? ` · ${s.employeeCode}` : ''}
+                  </p>
                 </div>
               </div>
               <button onClick={() => handleDelete(s.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>

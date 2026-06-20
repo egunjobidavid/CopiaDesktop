@@ -26,6 +26,7 @@ import {
   Building2,
   MapPin,
   UserCog,
+  ChevronDown,
 } from 'lucide-react';
 
 type NavItem = {
@@ -76,14 +77,26 @@ function hasMinRole(userRole: string, minRole: string): boolean {
   return (ROLE_HIERARCHY[userRole] ?? 0) >= (ROLE_HIERARCHY[minRole] ?? 0);
 }
 
+interface LocationOption {
+  id: string;
+  name: string;
+  city: string | null;
+  type: string | null;
+}
+
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.user);
   const tenantId = useAuthStore((s) => s.tenantId);
+  const locationId = useAuthStore((s) => s.locationId);
+  const locationName = useAuthStore((s) => s.locationName);
+  const setLocation = useAuthStore((s) => s.setLocation);
   const { hasFeature } = useFeature();
   const [orgName, setOrgName] = useState('');
+  const [locations, setLocations] = useState<LocationOption[]>([]);
+  const [showLocDropdown, setShowLocDropdown] = useState(false);
 
   const userRole = user?.role ?? 'Staff';
 
@@ -97,6 +110,12 @@ export function Sidebar() {
       }).catch(() => {});
     }
   }, [tenantId]);
+
+  useEffect(() => {
+    api.get('/locations').then(({ data }) => {
+      setLocations(Array.isArray(data) ? data : []);
+    }).catch(() => {});
+  }, []);
 
   const handleLogout = useCallback(() => {
     logout();
@@ -117,7 +136,7 @@ export function Sidebar() {
         <span className="font-semibold text-lg text-gray-900">CopiaOS</span>
       </div>
 
-      {/* User info */}
+      {/* User info + Org + Location */}
       <div className="px-6 py-3 border-b border-gray-100">
         <p className="text-sm font-medium text-gray-900 truncate">
           {user?.fullName || 'User'}
@@ -128,6 +147,38 @@ export function Sidebar() {
         )}
         {orgName && (
           <p className="text-xs text-purple-600 font-medium truncate">{orgName}</p>
+        )}
+        {/* Location Selector */}
+        {locations.length > 0 && (
+          <div className="relative mt-2">
+            <button
+              onClick={() => setShowLocDropdown(!showLocDropdown)}
+              className="w-full flex items-center gap-2 px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs hover:bg-gray-100 transition-colors"
+            >
+              <MapPin className="w-3 h-3 text-green-600 flex-shrink-0" />
+              <span className="text-gray-700 truncate flex-1 text-left">{locationName || 'All Locations'}</span>
+              <ChevronDown className="w-3 h-3 text-gray-400 flex-shrink-0" />
+            </button>
+            {showLocDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                <button
+                  onClick={() => { setLocation(null, null); setShowLocDropdown(false); }}
+                  className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 ${!locationId ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'}`}
+                >
+                  All Locations
+                </button>
+                {locations.map((loc) => (
+                  <button
+                    key={loc.id}
+                    onClick={() => { setLocation(loc.id, loc.name); setShowLocDropdown(false); }}
+                    className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-50 ${locationId === loc.id ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'}`}
+                  >
+                    {loc.name}{loc.city ? ` (${loc.city})` : ''}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

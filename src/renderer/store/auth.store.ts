@@ -16,6 +16,8 @@ interface AuthState {
   user: User | null;
   tenantId: string | null;
   permissions: string[];
+  locationId: string | null;
+  locationName: string | null;
   isAuthenticated: boolean;
   isInitialized: boolean;
 
@@ -25,6 +27,7 @@ interface AuthState {
   setInitialized: () => void;
   setUser: (user: User) => void;
   setPermissions: (perms: string[]) => void;
+  setLocation: (id: string | null, name: string | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -35,6 +38,8 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       tenantId: null,
       permissions: [],
+      locationId: null,
+      locationName: null,
       isAuthenticated: false,
       isInitialized: true,
 
@@ -67,9 +72,24 @@ export const useAuthStore = create<AuthState>()(
             }
           }
         } catch (_) {}
+        // Auto-select default location
+        try {
+          const { data } = await api.get('/locations');
+          const locs = Array.isArray(data) ? data : [];
+          const savedLocId = get().locationId;
+          const savedLoc = locs.find((l: any) => l.id === savedLocId);
+          if (savedLoc) {
+            set({ locationName: savedLoc.name });
+          } else if (locs.length > 0) {
+            const def = locs.find((l: any) => l.isDefault) || locs[0];
+            set({ locationId: def.id, locationName: def.name });
+          }
+        } catch (_) {}
       },
 
       setPermissions: (perms: string[]) => { set({ permissions: perms }); },
+
+      setLocation: (id: string | null, name: string | null) => { set({ locationId: id, locationName: name }); },
 
       logout: () => {
         set({
@@ -77,6 +97,9 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: null,
           user: null,
           tenantId: null,
+          permissions: [],
+          locationId: null,
+          locationName: null,
           isAuthenticated: false,
           isInitialized: true,
         });
@@ -108,6 +131,8 @@ export const useAuthStore = create<AuthState>()(
         tenantId: state.tenantId,
         user: state.user,
         permissions: state.permissions,
+        locationId: state.locationId,
+        locationName: state.locationName,
         isAuthenticated: state.isAuthenticated,
       }),
     },
