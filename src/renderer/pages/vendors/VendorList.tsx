@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingBag, Loader2, Mail, Phone } from 'lucide-react';
+import { Plus, Search, ShoppingBag, Loader2, Mail, Phone, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
+import { CsvImport } from '../../components/CsvImport';
 
 interface Vendor {
   id: string;
@@ -18,6 +19,7 @@ export function VendorList() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', contactPerson: '' });
 
   useEffect(() => { fetchVendors(); }, []);
@@ -48,6 +50,9 @@ export function VendorList() {
         <h1 className="text-2xl font-bold text-gray-900">Vendors</h1>
         <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" /> Add Vendor
+        </button>
+        <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
+          <Upload className="w-4 h-4" /> Import CSV
         </button>
       </div>
 
@@ -130,6 +135,19 @@ export function VendorList() {
             </div>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <CsvImport
+          title="Vendors"
+          templateHeaders={['name', 'email', 'phone', 'address', 'city', 'country']}
+          requiredFields={['name']}
+          onImport={async (items) => {
+            const { data } = await api.post('/vendors/batch', { items });
+            return data;
+          }}
+          onClose={() => { setShowImport(false); fetchVendors(); }}
+        />
       )}
     </div>
   );

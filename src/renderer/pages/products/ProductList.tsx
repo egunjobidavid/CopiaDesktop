@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts } from '../../hooks/useProducts';
 import { ProductForm } from './ProductForm';
-import { Plus, Search, Package, Loader2, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Package, Loader2, Edit2, Trash2, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../../api/client';
+import { CsvImport } from '../../components/CsvImport';
 
 export function ProductList() {
   const navigate = useNavigate();
   const { products, isLoading, fetchProducts, deleteProduct } = useProducts();
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
 
   useEffect(() => {
@@ -45,6 +48,9 @@ export function ProductList() {
         <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         <button onClick={handleCreate} className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" /> Add Product
+        </button>
+        <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
+          <Upload className="w-4 h-4" /> Import CSV
         </button>
       </div>
 
@@ -146,6 +152,23 @@ export function ProductList() {
           product={editingProduct}
           onClose={() => { setShowForm(false); setEditingProduct(null); }}
           onSaved={() => { setShowForm(false); setEditingProduct(null); fetchProducts(); }}
+        />
+      )}
+
+      {showImport && (
+        <CsvImport
+          title="Products"
+          templateHeaders={['sku', 'name', 'description', 'productType', 'uom', 'unitPrice']}
+          requiredFields={['sku', 'name', 'productType', 'uom']}
+          onImport={async (items) => {
+            const mapped = items.map((item) => ({
+              ...item,
+              unitPrice: item.unitPrice ? Number(item.unitPrice) : undefined,
+            }));
+            const { data } = await api.post('/inventory/products/batch', { items: mapped });
+            return data;
+          }}
+          onClose={() => { setShowImport(false); fetchProducts(); }}
         />
       )}
     </div>

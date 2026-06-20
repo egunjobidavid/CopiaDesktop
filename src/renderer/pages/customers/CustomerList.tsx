@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, Users, Loader2, Mail, Phone, MapPin } from 'lucide-react';
+import { Plus, Search, Users, Loader2, Mail, Phone, MapPin, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
+import { CsvImport } from '../../components/CsvImport';
 
 interface Customer {
   id: string;
@@ -19,6 +20,7 @@ export function CustomerList() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', address: '' });
 
   useEffect(() => { fetchCustomers(); }, []);
@@ -49,6 +51,9 @@ export function CustomerList() {
         <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
         <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" /> Add Customer
+        </button>
+        <button onClick={() => setShowImport(true)} className="btn-secondary flex items-center gap-2">
+          <Upload className="w-4 h-4" /> Import CSV
         </button>
       </div>
 
@@ -135,6 +140,19 @@ export function CustomerList() {
             </div>
           </div>
         </div>
+      )}
+
+      {showImport && (
+        <CsvImport
+          title="Customers"
+          templateHeaders={['name', 'email', 'phone', 'address', 'city', 'country']}
+          requiredFields={['name']}
+          onImport={async (items) => {
+            const { data } = await api.post('/customers/batch', { items });
+            return data;
+          }}
+          onClose={() => { setShowImport(false); fetchCustomers(); }}
+        />
       )}
     </div>
   );
