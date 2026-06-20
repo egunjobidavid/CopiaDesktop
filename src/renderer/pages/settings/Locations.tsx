@@ -31,12 +31,12 @@ const TYPE_COLORS: Record<string, string> = {
 
 interface Location {
   id: string; code: string; name: string; type: string | null;
-  isDefault: boolean | null; address: string | null;
+  isDefault: boolean | null; location: string | null;
   city: string | null; state: string | null; country: string | null;
   phone: string | null; email: string | null;
 }
 
-const defaultForm = { code: '', name: '', type: 'shop', isDefault: false, address: '', city: '', state: '', country: 'Nigeria', phone: '', email: '' };
+const defaultForm = { code: '', name: '', type: 'shop', isDefault: false, location: '', city: '', state: '', country: 'Nigeria', phone: '', email: '' };
 
 export function Locations() {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -63,7 +63,7 @@ export function Locations() {
   const handleEdit = (loc: Location) => {
     setForm({
       code: loc.code, name: loc.name, type: loc.type || 'shop',
-      isDefault: loc.isDefault || false, address: loc.address || '',
+      isDefault: loc.isDefault || false, location: loc.location || '',
       city: loc.city || '', state: loc.state || '', country: loc.country || 'Nigeria',
       phone: loc.phone || '', email: loc.email || '',
     });
@@ -140,7 +140,7 @@ export function Locations() {
                 </select>
               </div>
             </div>
-            <div><label className="label">Address</label><textarea value={form.address} onChange={(e) => set('address', e.target.value)} placeholder="123 Main Street" className={inputClass} rows={2} /></div>
+            <div><label className="label">Address</label><textarea value={form.location} onChange={(e) => set('location', e.target.value)} placeholder="123 Main Street" className={inputClass} rows={2} /></div>
             <div className="grid grid-cols-3 gap-4">
               <div><label className="label">City</label><input value={form.city} onChange={(e) => set('city', e.target.value)} className={inputClass} /></div>
               <div><label className="label">State</label><input value={form.state} onChange={(e) => set('state', e.target.value)} className={inputClass} /></div>
