@@ -46,6 +46,7 @@ const TaxConfig = lazy(() => import('./pages/accounting/TaxConfig').then((m) => 
 const BankReconciliation = lazy(() => import('./pages/accounting/BankReconciliation').then((m) => ({ default: m.BankReconciliation })));
 const Projects = lazy(() => import('./pages/projects/Projects').then((m) => ({ default: m.Projects })));
 const ProjectDetail = lazy(() => import('./pages/projects/ProjectDetail').then((m) => ({ default: m.ProjectDetail })));
+const ProjectReports = lazy(() => import('./pages/projects/ProjectReports').then((m) => ({ default: m.ProjectReports })));
 const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
 const OnboardingWizard = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.OnboardingWizard })));
 
@@ -125,6 +126,7 @@ export function App() {
             <Route element={<ProtectedRoute minRole="Staff" />}>
               <Route path="/projects" element={<LazyPage><Projects /></LazyPage>} />
               <Route path="/projects/:id" element={<LazyPage><ProjectDetail /></LazyPage>} />
+              <Route path="/projects/reports/overview" element={<LazyPage><ProjectReports /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
               <Route path="/production" element={<LazyPage><Production /></LazyPage>} />

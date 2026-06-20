@@ -37,6 +37,7 @@ import {
   Percent,
   Building,
   FolderKanban,
+  BarChart2,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -91,6 +92,7 @@ const navSections: NavSection[] = [
     label: 'Projects',
     items: [
       { path: '/projects', label: 'Project Management', icon: FolderKanban, minRole: 'Staff' },
+      { path: '/projects/reports/overview', label: 'Project Reports', icon: BarChart2, minRole: 'Staff' },
     ],
   },
   {
