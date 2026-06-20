@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Wallet, Plus, Loader2, Tag, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
+import { Pagination } from '../../components/Pagination';
 
 interface Expense {
   id: string;
@@ -28,20 +29,33 @@ export function Expenses() {
   const [search, setSearch] = useState('');
   const [form, setForm] = useState({ description: '', amount: '', categoryId: '', date: new Date().toISOString().split('T')[0] });
   const [catForm, setCatForm] = useState({ name: '' });
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 20;
 
-  useEffect(() => { load(); }, []);
-
-  async function load() {
+  const load = useCallback(async (p = page) => {
     setIsLoading(true);
     try {
       const [expRes, catRes] = await Promise.allSettled([
-        api.get('/expenses?limit=100'),
+        api.get(`/expenses?page=${p}&limit=${limit}`),
         api.get('/expenses/categories'),
       ]);
-      if (expRes.status === 'fulfilled') setExpenses(Array.isArray(expRes.value.data) ? expRes.value.data : []);
+      if (expRes.status === 'fulfilled') {
+        const items = Array.isArray(expRes.value.data) ? expRes.value.data : [];
+        setExpenses(items);
+        if (items.length === limit) {
+          setTotalPages(Math.max(p + 1, totalPages));
+        } else if (p === 1) {
+          setTotalPages(1);
+        }
+        setTotal(items.length);
+      }
       if (catRes.status === 'fulfilled') setCategories(Array.isArray(catRes.value.data) ? catRes.value.data : []);
     } catch { /* ignore */ } finally { setIsLoading(false); }
-  }
+  }, [page, totalPages, limit]);
+
+  useEffect(() => { load(1); setPage(1); }, []);
 
   async function handleCreateExpense() {
     if (!form.description.trim() || !form.amount) { toast.error('Description and amount are required'); return; }
@@ -50,7 +64,8 @@ export function Expenses() {
       toast.success('Expense recorded');
       setShowForm(false);
       setForm({ description: '', amount: '', categoryId: '', date: new Date().toISOString().split('T')[0] });
-      await load();
+      await load(1);
+      setPage(1);
     } catch { toast.error('Failed to create expense'); }
   }
 
@@ -137,32 +152,37 @@ export function Expenses() {
             <p className="text-sm">No expenses found</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gray-50">
-                <th className="table-header">Description</th>
-                <th className="table-header">Category</th>
-                <th className="table-header">Date</th>
-                <th className="table-header">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filtered.map((e) => (
-                <tr key={e.id} className="hover:bg-gray-50">
-                  <td className="table-cell font-medium">{e.description}</td>
-                  <td className="table-cell">
-                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
-                      {e.categoryName || 'Uncategorized'}
-                    </span>
-                  </td>
-                  <td className="table-cell text-gray-500 text-sm">
-                    {new Date(e.date || e.createdAt).toLocaleDateString('en-GB')}
-                  </td>
-                  <td className="table-cell font-medium text-red-600">-₦{Number(e.amount).toLocaleString()}</td>
+          <>
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="table-header">Description</th>
+                  <th className="table-header">Category</th>
+                  <th className="table-header">Date</th>
+                  <th className="table-header">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filtered.map((e) => (
+                  <tr key={e.id} className="hover:bg-gray-50">
+                    <td className="table-cell font-medium">{e.description}</td>
+                    <td className="table-cell">
+                      <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                        {e.categoryName || 'Uncategorized'}
+                      </span>
+                    </td>
+                    <td className="table-cell text-gray-500 text-sm">
+                      {new Date(e.date || e.createdAt).toLocaleDateString('en-GB')}
+                    </td>
+                    <td className="table-cell font-medium text-red-600">-₦{Number(e.amount).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="px-4 pb-4">
+              <Pagination page={page} totalPages={totalPages} total={total} onPageChange={(p) => { setPage(p); load(p); }} />
+            </div>
+          </>
         )}
       </div>
 

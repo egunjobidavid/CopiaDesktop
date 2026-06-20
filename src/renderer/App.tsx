@@ -1,41 +1,61 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { startSync, stopSync } from './workers/sync.manager';
 import { useAuthStore } from './store/auth.store';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { Login } from './pages/Login';
-import { Dashboard } from './pages/Dashboard';
-import { Pos } from './pages/pos/Pos';
-import { Invoices } from './pages/Invoices';
-import { ProductList } from './pages/products/ProductList';
-import { ProductDetail } from './pages/products/ProductDetail';
-import { StockView } from './pages/inventory/StockView';
-import { StockMovement } from './pages/inventory/StockMovement';
-import { POList } from './pages/procurement/POList';
-import { POForm } from './pages/procurement/POForm';
-import { PODetail } from './pages/procurement/PODetail';
-import { Reports } from './pages/reports/Reports';
-import { SalesReport } from './pages/reports/SalesReport';
-import { InventoryReport } from './pages/reports/InventoryReport';
-import { FinancialReport } from './pages/reports/FinancialReport';
-import { CustomerList } from './pages/customers/CustomerList';
-import { SalesOrders } from './pages/sales/SalesOrders';
-import { VendorList } from './pages/vendors/VendorList';
-import { Production } from './pages/production/Production';
-import { Expenses } from './pages/expenses/Expenses';
-import { Settings } from './pages/settings/Settings';
-import { Support } from './pages/settings/Support';
-import { Billing } from './pages/settings/Billing';
-import { Roles } from './pages/settings/Roles';
-import { RoleDetail } from './pages/settings/RoleDetail';
-import { Departments } from './pages/settings/Departments';
-import { Staff } from './pages/settings/Staff';
-import { Locations } from './pages/settings/Locations';
-import { StaffAudit } from './pages/settings/StaffAudit';
-import { Approvals } from './pages/approvals/Approvals';
-import { Help } from './pages/Help';
+import { ErrorBoundary } from './components/ErrorBoundary';
+
+const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const Pos = lazy(() => import('./pages/pos/Pos').then((m) => ({ default: m.Pos })));
+const Invoices = lazy(() => import('./pages/Invoices').then((m) => ({ default: m.Invoices })));
+const ProductList = lazy(() => import('./pages/products/ProductList').then((m) => ({ default: m.ProductList })));
+const ProductDetail = lazy(() => import('./pages/products/ProductDetail').then((m) => ({ default: m.ProductDetail })));
+const StockView = lazy(() => import('./pages/inventory/StockView').then((m) => ({ default: m.StockView })));
+const StockMovement = lazy(() => import('./pages/inventory/StockMovement').then((m) => ({ default: m.StockMovement })));
+const POList = lazy(() => import('./pages/procurement/POList').then((m) => ({ default: m.POList })));
+const POForm = lazy(() => import('./pages/procurement/POForm').then((m) => ({ default: m.POForm })));
+const PODetail = lazy(() => import('./pages/procurement/PODetail').then((m) => ({ default: m.PODetail })));
+const Reports = lazy(() => import('./pages/reports/Reports').then((m) => ({ default: m.Reports })));
+const SalesReport = lazy(() => import('./pages/reports/SalesReport').then((m) => ({ default: m.SalesReport })));
+const InventoryReport = lazy(() => import('./pages/reports/InventoryReport').then((m) => ({ default: m.InventoryReport })));
+const FinancialReport = lazy(() => import('./pages/reports/FinancialReport').then((m) => ({ default: m.FinancialReport })));
+const CustomerList = lazy(() => import('./pages/customers/CustomerList').then((m) => ({ default: m.CustomerList })));
+const SalesOrders = lazy(() => import('./pages/sales/SalesOrders').then((m) => ({ default: m.SalesOrders })));
+const VendorList = lazy(() => import('./pages/vendors/VendorList').then((m) => ({ default: m.VendorList })));
+const Production = lazy(() => import('./pages/production/Production').then((m) => ({ default: m.Production })));
+const Expenses = lazy(() => import('./pages/expenses/Expenses').then((m) => ({ default: m.Expenses })));
+const Settings = lazy(() => import('./pages/settings/Settings').then((m) => ({ default: m.Settings })));
+const Support = lazy(() => import('./pages/settings/Support').then((m) => ({ default: m.Support })));
+const Billing = lazy(() => import('./pages/settings/Billing').then((m) => ({ default: m.Billing })));
+const Roles = lazy(() => import('./pages/settings/Roles').then((m) => ({ default: m.Roles })));
+const RoleDetail = lazy(() => import('./pages/settings/RoleDetail').then((m) => ({ default: m.RoleDetail })));
+const Departments = lazy(() => import('./pages/settings/Departments').then((m) => ({ default: m.Departments })));
+const Staff = lazy(() => import('./pages/settings/Staff').then((m) => ({ default: m.Staff })));
+const Locations = lazy(() => import('./pages/settings/Locations').then((m) => ({ default: m.Locations })));
+const StaffAudit = lazy(() => import('./pages/settings/StaffAudit').then((m) => ({ default: m.StaffAudit })));
+const Approvals = lazy(() => import('./pages/approvals/Approvals').then((m) => ({ default: m.Approvals })));
+const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
+
+function PageLoader() {
+  return (
+    <div className="flex h-64 items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-600 border-t-transparent" />
+    </div>
+  );
+}
+
+function LazyPage({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
+        {children}
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
 
 export function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -57,55 +77,55 @@ export function App() {
         }}
       />
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Login />} />
+        <Route path="/login" element={<LazyPage><Login /></LazyPage>} />
+        <Route path="/register" element={<LazyPage><Login /></LazyPage>} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/products" element={<ProductList />} />
-            <Route path="/products/:id" element={<ProductDetail />} />
-            <Route path="/inventory" element={<StockView />} />
-            <Route path="/inventory/movements" element={<StockMovement />} />
+            <Route path="/dashboard" element={<LazyPage><Dashboard /></LazyPage>} />
+            <Route path="/products" element={<LazyPage><ProductList /></LazyPage>} />
+            <Route path="/products/:id" element={<LazyPage><ProductDetail /></LazyPage>} />
+            <Route path="/inventory" element={<LazyPage><StockView /></LazyPage>} />
+            <Route path="/inventory/movements" element={<LazyPage><StockMovement /></LazyPage>} />
             <Route element={<ProtectedRoute minRole="Sales Rep" />}>
-              <Route path="/pos" element={<Pos />} />
-              <Route path="/customers" element={<CustomerList />} />
-              <Route path="/sales" element={<SalesOrders />} />
+              <Route path="/pos" element={<LazyPage><Pos /></LazyPage>} />
+              <Route path="/customers" element={<LazyPage><CustomerList /></LazyPage>} />
+              <Route path="/sales" element={<LazyPage><SalesOrders /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Accountant" />}>
-              <Route path="/invoices" element={<Invoices />} />
-              <Route path="/vendors" element={<VendorList />} />
-              <Route path="/expenses" element={<Expenses />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/reports/sales" element={<SalesReport />} />
-              <Route path="/reports/inventory" element={<InventoryReport />} />
-              <Route path="/reports/financial" element={<FinancialReport />} />
+              <Route path="/invoices" element={<LazyPage><Invoices /></LazyPage>} />
+              <Route path="/vendors" element={<LazyPage><VendorList /></LazyPage>} />
+              <Route path="/expenses" element={<LazyPage><Expenses /></LazyPage>} />
+              <Route path="/reports" element={<LazyPage><Reports /></LazyPage>} />
+              <Route path="/reports/sales" element={<LazyPage><SalesReport /></LazyPage>} />
+              <Route path="/reports/inventory" element={<LazyPage><InventoryReport /></LazyPage>} />
+              <Route path="/reports/financial" element={<LazyPage><FinancialReport /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" />}>
-              <Route path="/procurement" element={<POList />} />
-              <Route path="/procurement/new" element={<POForm />} />
-              <Route path="/procurement/:id" element={<PODetail />} />
+              <Route path="/procurement" element={<LazyPage><POList /></LazyPage>} />
+              <Route path="/procurement/new" element={<LazyPage><POForm /></LazyPage>} />
+              <Route path="/procurement/:id" element={<LazyPage><PODetail /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
-              <Route path="/production" element={<Production />} />
+              <Route path="/production" element={<LazyPage><Production /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" />}>
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/settings/billing" element={<Billing />} />
+              <Route path="/settings" element={<LazyPage><Settings /></LazyPage>} />
+              <Route path="/settings/billing" element={<LazyPage><Billing /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Staff" module="hr" />}>
-              <Route path="/settings/roles" element={<Roles />} />
-              <Route path="/settings/roles/:id" element={<RoleDetail />} />
-              <Route path="/settings/departments" element={<Departments />} />
-              <Route path="/settings/staff" element={<Staff />} />
-              <Route path="/settings/locations" element={<Locations />} />
-              <Route path="/settings/audit" element={<StaffAudit />} />
+              <Route path="/settings/roles" element={<LazyPage><Roles /></LazyPage>} />
+              <Route path="/settings/roles/:id" element={<LazyPage><RoleDetail /></LazyPage>} />
+              <Route path="/settings/departments" element={<LazyPage><Departments /></LazyPage>} />
+              <Route path="/settings/staff" element={<LazyPage><Staff /></LazyPage>} />
+              <Route path="/settings/locations" element={<LazyPage><Locations /></LazyPage>} />
+              <Route path="/settings/audit" element={<LazyPage><StaffAudit /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Staff" />}>
-              <Route path="/settings/support" element={<Support />} />
-              <Route path="/help" element={<Help />} />
+              <Route path="/settings/support" element={<LazyPage><Support /></LazyPage>} />
+              <Route path="/help" element={<LazyPage><Help /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Accountant" feature="approvals" />}>
-              <Route path="/approvals" element={<Approvals />} />
+              <Route path="/approvals" element={<LazyPage><Approvals /></LazyPage>} />
             </Route>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
