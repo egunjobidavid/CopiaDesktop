@@ -10,7 +10,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const Pos = lazy(() => import('./pages/pos/Pos').then((m) => ({ default: m.Pos })));
-const Invoices = lazy(() => import('./pages/Invoices').then((m) => ({ default: m.Invoices })));
+const Invoices = lazy(() => import('./pages/sales/Invoices').then((m) => ({ default: m.Invoices })));
 const ProductList = lazy(() => import('./pages/products/ProductList').then((m) => ({ default: m.ProductList })));
 const ProductDetail = lazy(() => import('./pages/products/ProductDetail').then((m) => ({ default: m.ProductDetail })));
 const StockView = lazy(() => import('./pages/inventory/StockView').then((m) => ({ default: m.StockView })));

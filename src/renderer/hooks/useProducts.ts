@@ -8,8 +8,11 @@ export interface Product {
   name: string;
   description?: string;
   unitPrice: string;
+  costPrice?: string;
   productType: string;
   uom: string;
+  barcode?: string;
+  reorderPoint?: number;
   categoryId?: string;
   isActive: boolean;
   stockQuantity?: number;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useProducts, Product } from '../../hooks/useProducts';
 import { X, Loader2 } from 'lucide-react';
@@ -10,17 +10,42 @@ interface ProductFormProps {
   onSaved: () => void;
 }
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
   const { createProduct, updateProduct } = useProducts();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  async function fetchCategories() {
+    try {
+      const { default: api } = await import('../../api/client');
+      const { data } = await api.get('/inventory/categories');
+      setCategories(Array.isArray(data) ? data : data?.rows || []);
+    } catch {
+      setCategories([]);
+    }
+  }
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
       sku: product?.sku || '',
       name: product?.name || '',
       description: product?.description || '',
       unitPrice: product?.unitPrice || '',
+      costPrice: product?.costPrice || '',
       productType: product?.productType || 'finished_good',
       uom: product?.uom || 'pcs',
+      barcode: product?.barcode || '',
+      reorderPoint: product?.reorderPoint || '',
+      categoryId: product?.categoryId || '',
       isActive: product?.isActive ?? true,
     },
   });
@@ -28,10 +53,16 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
   const onSubmit = async (formData: any) => {
     setIsSubmitting(true);
     try {
+      const payload = {
+        ...formData,
+        costPrice: formData.costPrice ? Number(formData.costPrice) : undefined,
+        reorderPoint: formData.reorderPoint ? Number(formData.reorderPoint) : undefined,
+        categoryId: formData.categoryId || undefined,
+      };
       if (product) {
-        await updateProduct(product.id, formData);
+        await updateProduct(product.id, payload);
       } else {
-        await createProduct(formData);
+        await createProduct(payload);
       }
       onSaved();
     } catch (err: any) {
@@ -66,17 +97,13 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
               {errors.sku && <p className="text-red-500 text-xs mt-1">{errors.sku.message}</p>}
             </div>
             <div>
-              <label className="label">Unit of Measure</label>
-              <select {...register('uom')} className="input">
-                <option value="pcs">Pieces (pcs)</option>
-                <option value="kg">Kilograms (kg)</option>
-                <option value="g">Grams (g)</option>
-                <option value="l">Litres (l)</option>
-                <option value="ml">Millilitres (ml)</option>
-                <option value="m">Meters (m)</option>
-                <option value="box">Box</option>
-                <option value="pack">Pack</option>
-              </select>
+              <label className="label">Barcode</label>
+              <input
+                type="text"
+                {...register('barcode')}
+                className="input"
+                placeholder="Barcode or EAN"
+              />
             </div>
           </div>
 
@@ -100,9 +127,9 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="label">Unit Price (₦) *</label>
+              <label className="label">Selling Price (₦) *</label>
               <input
                 type="number"
                 {...register('unitPrice', { required: 'Price is required', min: { value: 0, message: 'Price must be positive' } })}
@@ -113,6 +140,30 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
               {errors.unitPrice && <p className="text-red-500 text-xs mt-1">{errors.unitPrice.message}</p>}
             </div>
             <div>
+              <label className="label">Cost Price (₦)</label>
+              <input
+                type="number"
+                {...register('costPrice')}
+                className="input"
+                placeholder="0.00"
+                step="0.01"
+                min={0}
+              />
+            </div>
+            <div>
+              <label className="label">Reorder Point</label>
+              <input
+                type="number"
+                {...register('reorderPoint')}
+                className="input"
+                placeholder="0"
+                min={0}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label className="label">Product Type</label>
               <select {...register('productType')} className="input">
                 <option value="finished_good">Finished Good</option>
@@ -120,13 +171,36 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
                 <option value="service">Service</option>
               </select>
             </div>
+            <div>
+              <label className="label">Unit of Measure</label>
+              <select {...register('uom')} className="input">
+                <option value="pcs">Pieces (pcs)</option>
+                <option value="kg">Kilograms (kg)</option>
+                <option value="g">Grams (g)</option>
+                <option value="l">Litres (l)</option>
+                <option value="ml">Millilitres (ml)</option>
+                <option value="m">Meters (m)</option>
+                <option value="box">Box</option>
+                <option value="pack">Pack</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Category</label>
+            <select {...register('categoryId')} className="input">
+              <option value="">No Category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
           </div>
 
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
               {...register('isActive')}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
             />
             <label className="text-sm text-gray-700">Active</label>
           </div>
