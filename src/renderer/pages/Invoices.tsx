@@ -3,12 +3,14 @@ import { useInvoicePrint } from '../hooks/useInvoicePrint';
 import { PrintButton } from '../components/Invoice/PrintButton';
 import { DownloadButton } from '../components/Invoice/DownloadButton';
 import { InvoiceData } from '../components/Invoice/InvoicePDF';
-import { FileText, Eye, Loader2 } from 'lucide-react';
+import { FileText, Eye, Loader2, Search } from 'lucide-react';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 import toast from 'react-hot-toast';
 
 export function Invoices() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const { printInvoice, downloadInvoice, isPrinting, isDownloading } = useInvoicePrint();
 
   useEffect(() => {
@@ -76,16 +78,34 @@ export function Invoices() {
     );
   }
 
+  const filtered = invoices.filter((inv) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (inv.invoiceNumber || '').toLowerCase().includes(q) || (inv.customer?.name || '').toLowerCase().includes(q);
+  });
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
+      <Breadcrumbs />
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Invoices</h1>
+          <p className="page-subtitle">Manage and print invoices</p>
+        </div>
       </div>
 
-      {invoices.length === 0 ? (
+      <div className="flex gap-2">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by invoice # or customer..." className="input pl-9" />
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
           <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">No invoices yet</p>
+          <p className="text-gray-500">No invoices found</p>
           <p className="text-sm text-gray-400 mt-1">
             Invoices will appear here after completing sales from the POS
           </p>

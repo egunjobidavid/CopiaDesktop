@@ -77,7 +77,8 @@ export function Locations() {
     setSubmitting(true);
     try {
       if (editId) {
-        await locationsApi.update(editId, form);
+        const { code, ...updateData } = form;
+        await locationsApi.update(editId, updateData);
         toast.success('Location updated');
       } else {
         await locationsApi.create(form);
@@ -132,7 +133,7 @@ export function Locations() {
           </div>
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-4">
-              <div><label className="label">Code *</label><input value={form.code} onChange={(e) => set('code', e.target.value)} placeholder="LOC-001" className={inputClass} /></div>
+              <div><label className="label">Code *</label><input value={form.code} onChange={(e) => set('code', e.target.value)} placeholder="LOC-001" className={inputClass} disabled={!!editId} /></div>
               <div><label className="label">Name *</label><input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Main Store" className={inputClass} /></div>
               <div><label className="label">Type</label>
                 <select value={form.type} onChange={(e) => set('type', e.target.value)} className="select">

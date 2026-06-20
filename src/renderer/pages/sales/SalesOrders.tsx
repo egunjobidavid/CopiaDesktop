@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Loader2, Eye, ShoppingCart } from 'lucide-react';
+import { FileText, Loader2, Eye, ShoppingCart, Search } from 'lucide-react';
 import api from '../../api/client';
+import { Breadcrumbs } from '../../components/Breadcrumbs';
 
 interface SalesOrder {
   id: string;
@@ -26,6 +27,7 @@ export function SalesOrders() {
   const [orders, setOrders] = useState<SalesOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => { fetchOrders(); }, []);
 
@@ -37,16 +39,35 @@ export function SalesOrders() {
     } catch { setOrders([]); } finally { setIsLoading(false); }
   }
 
-  const filtered = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
+  const filtered = orders.filter((o) => {
+    if (filter !== 'all' && o.status !== filter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return (o.orderNumber || '').toLowerCase().includes(q) || (o.customerName || '').toLowerCase().includes(q);
+    }
+    return true;
+  });
   const statusCounts = orders.reduce((acc, o) => { acc[o.status] = (acc[o.status] || 0) + 1; return acc; }, {} as Record<string, number>);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Sales Orders</h1>
+      <Breadcrumbs />
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Sales Orders</h1>
+          <p className="page-subtitle">View and manage all sales orders</p>
+        </div>
         <button onClick={() => navigate('/pos')} className="btn-primary flex items-center gap-2">
           <ShoppingCart className="w-4 h-4" /> New Sale (POS)
         </button>
+      </div>
+
+      <div className="flex gap-2">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by order # or customer..." className="input pl-9" />
+        </div>
       </div>
 
       <div className="grid grid-cols-4 gap-4">

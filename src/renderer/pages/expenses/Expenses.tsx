@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Wallet, Plus, Loader2, Tag, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
+import { Breadcrumbs } from '../../components/Breadcrumbs';
 
 interface Expense {
   id: string;
@@ -24,6 +25,7 @@ export function Expenses() {
   const [showForm, setShowForm] = useState(false);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
   const [form, setForm] = useState({ description: '', amount: '', categoryId: '', date: new Date().toISOString().split('T')[0] });
   const [catForm, setCatForm] = useState({ name: '' });
 
@@ -63,13 +65,24 @@ export function Expenses() {
     } catch { toast.error('Failed to create category'); }
   }
 
-  const filtered = filter === 'all' ? expenses : expenses.filter((e) => e.categoryName === filter);
+  const filtered = expenses.filter((e) => {
+    if (filter !== 'all' && e.categoryName !== filter) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      return e.description.toLowerCase().includes(q) || (e.categoryName || '').toLowerCase().includes(q);
+    }
+    return true;
+  });
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
+      <Breadcrumbs />
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Expenses</h1>
+          <p className="page-subtitle">Track and manage business expenses</p>
+        </div>
         <div className="flex gap-2">
           <button onClick={() => setShowCategoryForm(true)} className="btn-secondary flex items-center gap-2">
             <Tag className="w-4 h-4" /> Categories
@@ -77,6 +90,14 @@ export function Expenses() {
           <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
             <Plus className="w-4 h-4" /> Add Expense
           </button>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search expenses..." className="input pl-9" />
         </div>
       </div>
 
