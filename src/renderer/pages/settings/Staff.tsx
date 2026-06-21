@@ -1,22 +1,39 @@
 import { useState, useEffect } from 'react';
-import { Users, Plus, Trash2, UserCog, Edit3 } from 'lucide-react';
+import { Users, Plus, Trash2, UserCog, Edit3, Shield } from 'lucide-react';
 import { staffApi } from '../../api/staff';
 import { departmentsApi } from '../../api/departments';
 import { locationsApi } from '../../api/locations';
+import { useAuthStore } from '../../store/auth.store';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ListSkeleton } from '../../components/Skeleton';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import toast from 'react-hot-toast';
 
+const ROLES = ['Staff', 'Sales Rep', 'Accountant', 'Manager', 'admin', 'Director', 'MD'];
+const ROLE_COLORS: Record<string, string> = {
+  'MD': 'bg-purple-100 text-purple-700',
+  'Director': 'bg-blue-100 text-blue-700',
+  'admin': 'bg-red-100 text-red-700',
+  'Manager': 'bg-green-100 text-green-700',
+  'Accountant': 'bg-amber-100 text-amber-700',
+  'Sales Rep': 'bg-cyan-100 text-cyan-700',
+  'Staff': 'bg-gray-100 text-gray-700',
+  'viewer': 'bg-gray-100 text-gray-500',
+};
+
 interface StaffMember {
   id: string; userId: string; jobTitle: string; employeeCode: string | null;
   departmentName: string | null; locationName: string | null; email: string; fullName: string;
   departmentId: string | null; defaultLocationId: string | null;
+  user_role: string | null; isActive: boolean;
   createdAt: string;
 }
 
 export function Staff() {
+  const user = useAuthStore((s) => s.user);
+  const canManage = user?.role === 'MD' || user?.role === 'Director' || user?.role === 'admin' || user?.role === 'Manager';
+
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
@@ -24,13 +41,16 @@ export function Staff() {
   const [showCreate, setShowCreate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<StaffMember | null>(null);
+  const [editTarget, setEditTarget] = useState<StaffMember | null>(null);
   const [search, setSearch] = useState('');
+
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [employeeCode, setEmployeeCode] = useState('');
   const [departmentId, setDepartmentId] = useState('');
   const [defaultLocationId, setDefaultLocationId] = useState('');
+  const [role, setRole] = useState('Staff');
 
   const load = async () => {
     setLoading(true);
@@ -44,7 +64,7 @@ export function Staff() {
 
   useEffect(() => { load(); }, []);
 
-  const resetForm = () => { setEmail(''); setFullName(''); setJobTitle(''); setEmployeeCode(''); setDepartmentId(''); setDefaultLocationId(''); setShowCreate(false); };
+  const resetForm = () => { setEmail(''); setFullName(''); setJobTitle(''); setEmployeeCode(''); setDepartmentId(''); setDefaultLocationId(''); setRole('Staff'); setShowCreate(false); setEditTarget(null); };
 
   const handleCreate = async () => {
     if (!email.trim()) { toast.error('Email is required'); return; }
@@ -55,6 +75,7 @@ export function Staff() {
         email: email.trim(), fullName: fullName.trim() || undefined,
         jobTitle: jobTitle.trim(), employeeCode: employeeCode.trim() || undefined,
         departmentId: departmentId || undefined, defaultLocationId: defaultLocationId || undefined,
+        role,
       });
       toast.success('Staff member created');
       resetForm();
@@ -64,10 +85,40 @@ export function Staff() {
     } finally { setSubmitting(false); }
   };
 
+  const handleEdit = async () => {
+    if (!editTarget) return;
+    if (!jobTitle.trim()) { toast.error('Job Title is required'); return; }
+    setSubmitting(true);
+    try {
+      await staffApi.update(editTarget.id, {
+        jobTitle: jobTitle.trim(), employeeCode: employeeCode.trim() || undefined,
+        departmentId: departmentId || undefined, defaultLocationId: defaultLocationId || undefined,
+        role,
+      });
+      toast.success('Staff member updated');
+      resetForm();
+      load();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to update staff member');
+    } finally { setSubmitting(false); }
+  };
+
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try { await staffApi.delete(deleteTarget.id); toast.success('Staff member removed'); setDeleteTarget(null); load(); }
     catch (err: any) { toast.error(err?.response?.data?.message || 'Failed to delete'); }
+  };
+
+  const startEdit = (s: StaffMember) => {
+    setEditTarget(s);
+    setEmail(s.email);
+    setFullName(s.fullName || '');
+    setJobTitle(s.jobTitle);
+    setEmployeeCode(s.employeeCode || '');
+    setDepartmentId(s.departmentId || '');
+    setDefaultLocationId(s.defaultLocationId || '');
+    setRole(s.user_role || 'Staff');
+    setShowCreate(true);
   };
 
   const filtered = staff.filter((s) => {
@@ -84,37 +135,32 @@ export function Staff() {
           <h1 className="page-title">Staff</h1>
           <p className="page-subtitle">Manage your team members and their locations</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="btn-primary">
-          <Plus className="w-4 h-4" /> Add Staff
-        </button>
+        {canManage && (
+          <button onClick={() => { resetForm(); setShowCreate(true); }} className="btn-primary">
+            <Plus className="w-4 h-4" /> Add Staff
+          </button>
+        )}
       </div>
 
-      {/* Search */}
       {!loading && staff.length > 0 && (
         <div className="flex items-center gap-3">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search staff..."
-            className="input max-w-sm"
-          />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff..." className="input max-w-sm" />
           <span className="text-sm text-gray-500">{filtered.length} of {staff.length}</span>
         </div>
       )}
 
-      {/* Create Form */}
       {showCreate && (
         <div className="card">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">New Staff Member</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{editTarget ? 'Edit Staff Member' : 'New Staff Member'}</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Email *</label>
-                <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="staff@company.com" className="input" type="email" />
+                <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="staff@company.com" className="input" type="email" disabled={!!editTarget} />
               </div>
               <div>
                 <label className="label">Full Name</label>
-                <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" className="input" />
+                <input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="John Doe" className="input" disabled={!!editTarget} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -127,7 +173,13 @@ export function Staff() {
                 <input value={employeeCode} onChange={(e) => setEmployeeCode(e.target.value)} placeholder="EMP-001" className="input" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="label">Role</label>
+                <select value={role} onChange={(e) => setRole(e.target.value)} className="select">
+                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
               <div>
                 <label className="label">Department</label>
                 <select value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} className="select">
@@ -143,11 +195,13 @@ export function Staff() {
                 </select>
               </div>
             </div>
-            <p className="text-xs text-gray-400">If the email is not yet registered, a new user account will be created with password &quot;changeme123&quot;.</p>
+            {!editTarget && (
+              <p className="text-xs text-gray-400">If the email is not yet registered, a new user account will be created with password &quot;changeme123&quot;.</p>
+            )}
             <div className="flex gap-3 pt-2">
-              <button onClick={handleCreate} disabled={submitting} className="btn-primary">
+              <button onClick={editTarget ? handleEdit : handleCreate} disabled={submitting} className="btn-primary">
                 {submitting && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />}
-                Create Staff
+                {editTarget ? 'Save Changes' : 'Create Staff'}
               </button>
               <button onClick={resetForm} className="btn-secondary">Cancel</button>
             </div>
@@ -155,7 +209,6 @@ export function Staff() {
         </div>
       )}
 
-      {/* Staff List */}
       {loading ? (
         <ListSkeleton rows={5} />
       ) : filtered.length === 0 ? (
@@ -163,7 +216,7 @@ export function Staff() {
           icon={Users}
           title={search ? 'No staff found' : 'No staff members yet'}
           description={search ? 'Try a different search term' : 'Add your first team member to get started'}
-          action={!search ? { label: 'Add Staff', onClick: () => setShowCreate(true) } : undefined}
+          action={!search && canManage ? { label: 'Add Staff', onClick: () => { resetForm(); setShowCreate(true); } } : undefined}
         />
       ) : (
         <div className="card p-0 overflow-hidden">
@@ -171,11 +224,12 @@ export function Staff() {
             <thead>
               <tr className="border-b border-gray-200">
                 <th className="table-header text-left">Name</th>
+                <th className="table-header text-left">Role</th>
                 <th className="table-header text-left">Job Title</th>
                 <th className="table-header text-left">Department</th>
                 <th className="table-header text-left">Location</th>
                 <th className="table-header text-left">Code</th>
-                <th className="table-header text-right">Actions</th>
+                {canManage && <th className="table-header text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -192,18 +246,28 @@ export function Staff() {
                       </div>
                     </div>
                   </td>
+                  <td className="table-cell">
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${ROLE_COLORS[s.user_role || 'Staff'] || 'bg-gray-100 text-gray-700'}`}>
+                      <Shield className="w-3 h-3" />
+                      {s.user_role || 'Staff'}
+                    </span>
+                  </td>
                   <td className="table-cell">{s.jobTitle}</td>
                   <td className="table-cell">{s.departmentName || '—'}</td>
                   <td className="table-cell">{s.locationName || '—'}</td>
                   <td className="table-cell text-gray-500">{s.employeeCode || '—'}</td>
-                  <td className="table-cell text-right">
-                    <button
-                      onClick={() => setDeleteTarget(s)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
+                  {canManage && (
+                    <td className="table-cell text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => startEdit(s)} className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setDeleteTarget(s)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -211,7 +275,6 @@ export function Staff() {
         </div>
       )}
 
-      {/* Delete Confirmation */}
       <ConfirmDialog
         open={!!deleteTarget}
         title="Remove Staff Member"

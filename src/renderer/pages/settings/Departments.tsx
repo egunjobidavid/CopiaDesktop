@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Building2, Plus, Trash2, Edit3 } from 'lucide-react';
+import { Building2, Plus, Trash2, Edit3, Users, UserCheck } from 'lucide-react';
 import { departmentsApi } from '../../api/departments';
+import { staffApi } from '../../api/staff';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ListSkeleton } from '../../components/Skeleton';
@@ -11,11 +12,16 @@ interface Department {
   id: string;
   name: string;
   description: string | null;
+  headId: string | null;
+  head_name: string | null;
+  head_email: string | null;
+  member_count: number;
   createdAt: string;
 }
 
 export function Departments() {
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [staffList, setStaffList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -23,25 +29,30 @@ export function Departments() {
   const [deleteTarget, setDeleteTarget] = useState<Department | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [headId, setHeadId] = useState('');
 
-  const load = () => {
+  const load = async () => {
     setLoading(true);
-    departmentsApi.list().then(({ data }) => setDepartments(data || [])).catch(() => {}).finally(() => setLoading(false));
+    try {
+      const [dRes, sRes] = await Promise.all([departmentsApi.list(), staffApi.list()]);
+      setDepartments(dRes.data || []);
+      setStaffList(sRes.data || []);
+    } catch (_) {} finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);
 
-  const resetForm = () => { setName(''); setDescription(''); setShowCreate(false); setEditId(null); };
+  const resetForm = () => { setName(''); setDescription(''); setHeadId(''); setShowCreate(false); setEditId(null); };
 
   const handleSave = async () => {
     if (!name.trim()) { toast.error('Name is required'); return; }
     setSubmitting(true);
     try {
       if (editId) {
-        await departmentsApi.update(editId, { name: name.trim(), description: description.trim() || undefined });
+        await departmentsApi.update(editId, { name: name.trim(), description: description.trim() || undefined, headId: headId || undefined });
         toast.success('Department updated');
       } else {
-        await departmentsApi.create({ name: name.trim(), description: description.trim() || undefined });
+        await departmentsApi.create({ name: name.trim(), description: description.trim() || undefined, headId: headId || undefined });
         toast.success('Department created');
       }
       resetForm();
@@ -50,7 +61,7 @@ export function Departments() {
     finally { setSubmitting(false); }
   };
 
-  const handleEdit = (d: Department) => { setEditId(d.id); setName(d.name); setDescription(d.description || ''); setShowCreate(false); };
+  const handleEdit = (d: Department) => { setEditId(d.id); setName(d.name); setDescription(d.description || ''); setHeadId(d.headId || ''); setShowCreate(false); };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -83,6 +94,13 @@ export function Departments() {
               <label className="label">Description</label>
               <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Optional description" className="input" rows={2} />
             </div>
+            <div>
+              <label className="label">Department Head</label>
+              <select value={headId} onChange={(e) => setHeadId(e.target.value)} className="select">
+                <option value="">No head assigned</option>
+                {staffList.map((s: any) => <option key={s.id} value={s.user_id}>{s.full_name || s.email} ({s.job_title || 'Staff'})</option>)}
+              </select>
+            </div>
             <div className="flex gap-3">
               <button onClick={handleSave} disabled={submitting} className="btn-primary">
                 {submitting && <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />}
@@ -107,8 +125,20 @@ export function Departments() {
                   <Building2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="font-medium text-gray-900">{d.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900">{d.name}</span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                      <Users className="w-3 h-3" />
+                      {d.member_count || 0} members
+                    </span>
+                  </div>
                   {d.description && <p className="text-sm text-gray-500">{d.description}</p>}
+                  {d.head_name && (
+                    <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                      <UserCheck className="w-3 h-3 text-green-600" />
+                      Head: {d.head_name}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1">

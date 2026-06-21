@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, Pencil, Trash2, X } from 'lucide-react';
+import { MapPin, Plus, Pencil, Trash2, X, AlertTriangle } from 'lucide-react';
 import { locationsApi } from '../../api/locations';
+import { useAuthStore } from '../../store/auth.store';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ListSkeleton } from '../../components/Skeleton';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import toast from 'react-hot-toast';
+
+const LOCATION_LIMITS: Record<string, number> = {
+  free: 1, growth: 3, professional: 15, enterprise: 999,
+};
 
 const LOCATION_TYPES = [
   { value: 'head_office', label: 'Head Office' },
@@ -39,7 +44,12 @@ interface Location {
 const defaultForm = { code: '', name: '', type: 'shop', isDefault: false, location: '', city: '', state: '', country: 'Nigeria', phone: '', email: '' };
 
 export function Locations() {
+  const user = useAuthStore((s) => s.user);
+  const plan = (user as any)?.plan || 'free';
+  const maxLocations = LOCATION_LIMITS[plan] || 1;
+
   const [locations, setLocations] = useState<Location[]>([]);
+  const atLimit = locations.length >= maxLocations;
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -110,8 +120,19 @@ export function Locations() {
         <div>
           <h1 className="page-title">Locations</h1>
           <p className="page-subtitle">Manage your warehouses, shops, offices, and branches</p>
+          {plan !== 'enterprise' && (
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex-1 max-w-xs bg-gray-200 rounded-full h-2">
+                <div className={`h-2 rounded-full ${atLimit ? 'bg-red-500' : 'bg-primary-500'}`} style={{ width: `${Math.min(100, (locations.length / maxLocations) * 100)}%` }} />
+              </div>
+              <span className={`text-xs font-medium ${atLimit ? 'text-red-600' : 'text-gray-500'}`}>
+                {locations.length} of {maxLocations} locations
+              </span>
+              {atLimit && <AlertTriangle className="w-3.5 h-3.5 text-red-500" />}
+            </div>
+          )}
         </div>
-        <button onClick={() => { resetForm(); setShowForm(true); }} className="btn-primary">
+        <button onClick={() => { resetForm(); setShowForm(true); }} disabled={atLimit} className={`btn-primary ${atLimit ? 'opacity-50 cursor-not-allowed' : ''}`}>
           <Plus className="w-4 h-4" /> Add Location
         </button>
       </div>

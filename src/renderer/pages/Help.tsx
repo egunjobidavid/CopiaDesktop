@@ -93,10 +93,10 @@ const sections: Section[] = [
           <div className="space-y-2">
             <p>CopiaOS offers four plans to fit your business:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>Free</strong> - ₦0/mo. 1 user, 1 location. Core sales, inventory, POS, CRM, production.</li>
-              <li><strong>Growth</strong> - ₦7,500/mo (annual). 5 users, 3 locations. Accounting, analytics, procurement, HR.</li>
-              <li><strong>Professional</strong> - ₦22,500/mo (annual). 15 users, 15 locations. Projects, time tracking, fixed assets.</li>
-              <li><strong>Enterprise</strong> - ₦55,000/mo (annual). Unlimited users, 99 locations. API access, priority support, custom integrations.</li>
+              <li><strong>Free</strong> - ₦0/mo. 2 users, 1 location. Core sales, inventory, POS, CRM, production.</li>
+              <li><strong>Growth</strong> - ₦7,500/mo (annual). 10 users, 3 locations. Accounting, analytics, procurement, approvals.</li>
+              <li><strong>Professional</strong> - ₦22,500/mo (annual). 50 users, 15 locations. Projects, time tracking, HR, fixed assets.</li>
+              <li><strong>Enterprise</strong> - ₦55,000/mo (annual). Unlimited users, unlimited locations. API access, priority support, custom integrations.</li>
             </ul>
             <p>Go to <strong>Settings &gt; Billing</strong> to upgrade. Payment is via Paystack (card, bank transfer, USSD).</p>
           </div>
@@ -588,7 +588,7 @@ const sections: Section[] = [
               <li>Fill in address, city, state, country details</li>
               <li>Mark one location as default</li>
             </ol>
-            <p>Location limits: Free=1, Growth=3, Professional=15, Enterprise=99</p>
+            <p>Location limits: Free=1, Growth=3, Professional=15, Enterprise=Unlimited</p>
           </div>
         ),
       },

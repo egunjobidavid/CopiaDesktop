@@ -80,6 +80,25 @@ export function Billing() {
       .then((res) => setSub(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('reference');
+    if (reference) {
+      toast.loading('Verifying payment...', { id: 'paystack-verify' });
+      api.get(`/billing/paystack/verify?reference=${reference}&tenantId=${tenantId}`)
+        .then((res) => {
+          if (res.data.verified) {
+            toast.success(`Upgraded to ${res.data.plan} plan!`, { id: 'paystack-verify' });
+            api.get('/billing/subscription').then((r) => setSub(r.data));
+          } else {
+            toast.error('Payment verification failed', { id: 'paystack-verify' });
+          }
+        })
+        .catch(() => toast.error('Could not verify payment', { id: 'paystack-verify' }))
+        .finally(() => {
+          window.history.replaceState({}, '', window.location.pathname);
+        });
+    }
   }, [tenantId]);
 
   const payWithPaystack = async (planKey: string) => {

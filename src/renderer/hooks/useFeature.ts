@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/auth.store';
 import api from '../api/client';
 
-const FREE_FEATURES = ['inventory', 'sales', 'crm', 'procurement', 'production', 'accounting', 'analytics', 'approvals', 'support', 'locations', 'hr'];
+const FREE_FEATURES = ['inventory', 'sales', 'crm', 'production', 'projects', 'time_tracking'];
 
 let cachedFeatures: string[] | null = null;
 let cachedLimits: Record<string, number> = {};
