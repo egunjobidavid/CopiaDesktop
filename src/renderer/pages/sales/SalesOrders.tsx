@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Loader2, Eye, ShoppingCart, Search, Download, AlertTriangle } from 'lucide-react';
+import { FileText, Loader2, Eye, ShoppingCart, Search, Download, AlertTriangle, Plus } from 'lucide-react';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { DataTable } from '../../components/DataTable';
 import { TableSkeleton } from '../../components/Skeleton';
 import { exportToCsv } from '../../utils/helpers';
+import { CreateOrderModal } from './CreateOrderModal';
 import toast from 'react-hot-toast';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -40,6 +41,7 @@ export function SalesOrders() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [creditWarning, setCreditWarning] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => { fetchOrders(); }, []);
 
@@ -139,6 +141,9 @@ export function SalesOrders() {
           <button onClick={() => navigate('/pos')} className="btn-primary flex items-center gap-2">
             <ShoppingCart className="w-4 h-4" /> New Sale (POS)
           </button>
+          <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /> New Order
+          </button>
         </div>
       </div>
 
@@ -204,6 +209,13 @@ export function SalesOrders() {
           searchPlaceholder="Search by order # or customer..."
           emptyMessage="No sales orders found"
           emptyIcon={FileText}
+        />
+      )}
+
+      {showCreate && (
+        <CreateOrderModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => { setShowCreate(false); fetchOrders(); }}
         />
       )}
     </div>

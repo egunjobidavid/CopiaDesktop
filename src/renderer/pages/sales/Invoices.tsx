@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Loader2, Search, Mail, CreditCard, AlertCircle, X, Ban } from 'lucide-react';
+import { FileText, Loader2, Search, Mail, CreditCard, AlertCircle, X, Ban, Plus } from 'lucide-react';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { DataTable } from '../../components/DataTable';
 import { TableSkeleton } from '../../components/Skeleton';
 import { EmailSendModal } from '../../components/EmailSendModal';
+import { CreateInvoiceModal } from './CreateInvoiceModal';
 import toast from 'react-hot-toast';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -42,6 +43,7 @@ export function Invoices() {
   const [creditMemoAmount, setCreditMemoAmount] = useState('');
   const [creditMemoReason, setCreditMemoReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => { fetchInvoices(); }, []);
 
@@ -196,6 +198,9 @@ export function Invoices() {
           <h1 className="page-title">Invoices</h1>
           <p className="page-subtitle">Manage invoices, payments, and credit memos</p>
         </div>
+        <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
+          <Plus className="w-4 h-4" /> New Invoice
+        </button>
       </div>
 
       <div className="flex gap-2">
@@ -312,6 +317,13 @@ export function Invoices() {
             </div>
           </div>
         </div>
+      )}
+
+      {showCreate && (
+        <CreateInvoiceModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => { setShowCreate(false); fetchInvoices(); }}
+        />
       )}
     </div>
   );

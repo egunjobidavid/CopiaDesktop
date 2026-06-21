@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Loader2, Search, ArrowRight, Trash2, Download, Mail, Clock, Hash } from 'lucide-react';
+import { FileText, Loader2, Search, ArrowRight, Trash2, Download, Mail, Clock, Hash, Plus } from 'lucide-react';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { EmailSendModal } from '../../components/EmailSendModal';
+import { CreateQuoteModal } from './CreateQuoteModal';
 import toast from 'react-hot-toast';
 
 interface Quote {
@@ -36,6 +37,7 @@ export function Quotes() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [emailQuote, setEmailQuote] = useState<Quote | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => { fetchQuotes(); }, []);
 
@@ -126,6 +128,9 @@ export function Quotes() {
           <h1 className="page-title">Quotes</h1>
           <p className="page-subtitle">Create and manage quotes, convert to sales orders or invoices</p>
         </div>
+        <button onClick={() => setShowCreate(true)} className="btn-primary flex items-center gap-2">
+          <Plus className="w-4 h-4" /> New Quote
+        </button>
       </div>
 
       <div className="flex gap-2">
@@ -264,6 +269,13 @@ export function Quotes() {
           documentNumber={emailQuote.quoteNumber}
           documentId={emailQuote.id}
           onClose={() => setEmailQuote(null)}
+        />
+      )}
+
+      {showCreate && (
+        <CreateQuoteModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => { setShowCreate(false); fetchQuotes(); }}
         />
       )}
     </div>
