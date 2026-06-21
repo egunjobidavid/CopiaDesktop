@@ -12,33 +12,35 @@ interface DealStage {
   sequence: number;
   probability: number;
   color: string;
-  isWon: boolean;
-  isLost: boolean;
+  is_won: boolean;
+  is_lost: boolean;
 }
 
 interface Deal {
   id: string;
-  dealNumber: string;
+  deal_number: string;
   title: string;
-  customerId: string;
-  stageId: string;
+  customer_id: string;
+  stage_id: string;
   value: string;
   currency: string;
   probability: number;
-  expectedCloseDate: string;
-  actualCloseDate: string;
-  assigneeId: string;
+  expected_close_date: string;
+  actual_close_date: string;
+  assignee_id: string;
   source: string;
   type: string;
   status: string;
   notes: string;
-  createdAt: string;
+  created_at: string;
+  customer_name?: string;
 }
 
-interface Pipeline {
-  stages: DealStage[];
+interface PipelineItem {
+  stage: DealStage;
   deals: Deal[];
-  stageTotals: Record<string, { count: number; value: number }>;
+  totalValue: number;
+  dealCount: number;
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -52,7 +54,7 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export function CRM() {
-  const [pipeline, setPipeline] = useState<Pipeline | null>(null);
+  const [pipeline, setPipeline] = useState<PipelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDeal, setShowCreateDeal] = useState(false);
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
@@ -64,7 +66,7 @@ export function CRM() {
     try {
       setLoading(true);
       const res = await api.get('/crm/pipeline');
-      setPipeline(res.data);
+      setPipeline(Array.isArray(res.data) ? res.data : []);
     } catch {
       toast.error('Failed to load pipeline');
     } finally {
@@ -132,16 +134,12 @@ export function CRM() {
     return `₦${Number(value).toLocaleString()}`;
   };
 
-  const totalPipelineValue = pipeline
-    ? Object.values(pipeline.stageTotals).reduce((sum, t) => sum + t.value, 0)
-    : 0;
+  const allStages = pipeline.map(p => p.stage);
+  const allDeals = pipeline.flatMap(p => p.deals);
 
-  const totalDeals = pipeline
-    ? Object.values(pipeline.stageTotals).reduce((sum, t) => sum + t.count, 0)
-    : 0;
-
-  const wonStage = pipeline?.stages.find(s => s.isWon);
-  const wonDeals = pipeline?.deals.filter(d => d.status === 'won') || [];
+  const totalPipelineValue = pipeline.reduce((sum, p) => sum + p.totalValue, 0);
+  const totalDeals = pipeline.reduce((sum, p) => sum + p.dealCount, 0);
+  const wonDeals = allDeals.filter(d => d.status === 'won');
   const wonValue = wonDeals.reduce((sum, d) => sum + Number(d.value), 0);
 
   if (loading) {
@@ -217,13 +215,12 @@ export function CRM() {
       </div>
 
       {/* Kanban Board */}
-      {pipeline && (
+      {pipeline.length > 0 && (
         <div className="flex gap-4 overflow-x-auto pb-4" style={{ minHeight: 'calc(100vh - 280px)' }}>
-          {pipeline.stages
-            .sort((a, b) => a.sequence - b.sequence)
-            .map((stage) => {
-              const stageDeals = pipeline.deals.filter(d => d.stageId === stage.id);
-              const stageTotal = pipeline.stageTotals[stage.id] || { count: 0, value: 0 };
+          {pipeline
+            .sort((a, b) => a.stage.sequence - b.stage.sequence)
+            .map((item) => {
+              const { stage, deals: stageDeals, totalValue, dealCount } = item;
 
               return (
                 <div
@@ -242,16 +239,16 @@ export function CRM() {
                         />
                         <h3 className="font-semibold text-sm text-gray-900">{stage.name}</h3>
                         <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-full">
-                          {stageDeals.length}
+                          {dealCount}
                         </span>
                       </div>
-                      {stage.isWon && (
+                      {stage.is_won && (
                         <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
                           Won
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">{formatCurrency(stageTotal.value)}</p>
+                    <p className="text-xs text-gray-500 mt-1">{formatCurrency(totalValue)}</p>
                   </div>
 
                   {/* Deal Cards */}
@@ -310,10 +307,10 @@ export function CRM() {
                           {formatCurrency(deal.value)}
                         </p>
                         <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
-                          {deal.expectedCloseDate && (
+                          {deal.expected_close_date && (
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
-                              {new Date(deal.expectedCloseDate).toLocaleDateString()}
+                              {new Date(deal.expected_close_date).toLocaleDateString()}
                             </span>
                           )}
                           {deal.source && (
@@ -345,7 +342,7 @@ export function CRM() {
 
       {showCreateDeal && (
         <CreateDealModal
-          stages={pipeline?.stages || []}
+          stages={allStages}
           onClose={() => setShowCreateDeal(false)}
           onCreate={loadPipeline}
         />
@@ -354,7 +351,7 @@ export function CRM() {
       {selectedDealId && (
         <DealDetailModal
           dealId={selectedDealId}
-          stages={pipeline?.stages || []}
+          stages={allStages}
           onClose={() => setSelectedDealId(null)}
           onUpdate={loadPipeline}
         />
