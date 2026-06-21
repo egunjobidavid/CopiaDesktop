@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { PageHeader } from '../../components/PageHeader';
 import { CreateDealModal } from './CreateDealModal';
-import { DealDetailModal } from './DealDetailModal';
+import DealDetailModal from './DealDetailModal';
 import toast from 'react-hot-toast';
 import { Plus, Calendar, MoreHorizontal, Target, TrendingUp } from 'lucide-react';
 
