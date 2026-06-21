@@ -423,6 +423,52 @@ const sections: Section[] = [
     color: 'bg-purple-100 text-purple-700',
     articles: [
       {
+        title: 'Chart of Accounts',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Accounting &gt; Chart of Accounts</strong> to set up your ledger:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>Click <strong>"Add Account"</strong> to create new accounts</li>
+              <li>Enter a unique code (e.g., 1000 for Cash, 2000 for Accounts Payable)</li>
+              <li>Choose a type: Asset, Liability, Equity, Revenue, or Expense</li>
+              <li>Toggle accounts active/inactive as needed</li>
+              <li>Use filter tabs to view accounts by type</li>
+            </ol>
+            <p><strong>Tip:</strong> Most businesses start with 10-20 core accounts. Add more as needed.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Creating Journal Entries',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Accounting &gt; General Ledger</strong> to create journal entries:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>Click <strong>"New Journal Entry"</strong></li>
+              <li>Enter a description (e.g., "Office rent payment")</li>
+              <li>Add journal lines: select account code, enter debit or credit amount</li>
+              <li><strong>Debits must equal credits</strong> — the form shows balance validation</li>
+              <li>Add at least 2 lines per entry</li>
+              <li>Click <strong>"Post Entry"</strong> to save</li>
+            </ol>
+            <p><strong>Example:</strong> Paying rent of ₦50,000 → Debit Rent Expense (5000), Credit Cash (1000)</p>
+          </div>
+        ),
+      },
+      {
+        title: 'General Ledger & Trial Balance',
+        content: (
+          <div className="space-y-2">
+            <p>View your financial data in two ways:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>General Ledger:</strong> See all journal entries with date, description, status, and line details</li>
+              <li><strong>Trial Balance:</strong> See aggregated balances per account — verify debits equal credits</li>
+            </ul>
+            <p>Use the date filter on Trial Balance to view balances as of a specific date. Export to CSV for external reporting.</p>
+          </div>
+        ),
+      },
+      {
         title: 'Recording Expenses',
         content: (
           <div className="space-y-2">
@@ -524,6 +570,85 @@ const sections: Section[] = [
               <li>Schedule preventive maintenance</li>
               <li>Log maintenance history and costs</li>
             </ul>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: 'hr',
+    title: 'HR & People',
+    icon: Users,
+    color: 'bg-pink-100 text-pink-700',
+    articles: [
+      {
+        title: 'Managing Employees',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>HR &gt; Employees</strong> to manage your team:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Add Employee:</strong> Click "Add Employee", fill in employee code, name, email, phone, department, position, and salary</li>
+              <li><strong>Edit Employee:</strong> Click the edit icon to update any employee details</li>
+              <li><strong>Filter by Status:</strong> Use tabs to filter by Active, Inactive, or Terminated employees</li>
+              <li><strong>Employee Codes:</strong> Use unique codes like EMP-001, EMP-002 for easy identification</li>
+              <li><strong>Salary:</strong> Set base salary for payroll processing (in Naira)</li>
+              <li><strong>Bank & Tax:</strong> Optionally add bank account and tax ID for payroll</li>
+            </ul>
+            <p><strong>Note:</strong> HR module requires Professional plan or above.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Attendance & Time Tracking',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>HR &gt; Attendance</strong> to track work hours:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Quick Clock In/Out:</strong> Use the quick action buttons at the top to clock in or out for any employee</li>
+              <li><strong>Filter by Employee:</strong> Select a specific employee from the dropdown</li>
+              <li><strong>Date Range:</strong> Set a date range to view attendance history</li>
+              <li><strong>Hours Tracking:</strong> Total hours worked are calculated automatically</li>
+              <li><strong>Attendance Log:</strong> View all clock-in/out records with timestamps</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Payroll Processing',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>HR &gt; Payroll</strong> to manage payroll:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>Click <strong>"Process Payroll"</strong> to start a new payroll run</li>
+              <li>Set the pay period (start and end dates)</li>
+              <li>The system creates payroll lines for all active employees with a salary</li>
+              <li>Review the payroll run in the table</li>
+              <li><strong>Approve:</strong> Click the checkmark to approve the payroll</li>
+              <li><strong>Mark as Paid:</strong> Click the dollar icon to mark as paid</li>
+              <li><strong>View Details:</strong> Click the eye icon to see individual employee breakdowns</li>
+            </ol>
+            <p><strong>Payroll statuses:</strong></p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Draft:</strong> Newly created, not yet reviewed</li>
+              <li><strong>Processing:</strong> Being reviewed</li>
+              <li><strong>Approved:</strong> Reviewed and ready for payment</li>
+              <li><strong>Paid:</strong> Payment completed</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Payroll Line Items',
+        content: (
+          <div className="space-y-2">
+            <p>Each payroll run contains individual lines for each employee:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Base Salary:</strong> The employee's configured salary amount</li>
+              <li><strong>Allowances:</strong> Additional payments (housing, transport, etc.)</li>
+              <li><strong>Deductions:</strong> Subtractions (tax, loans, etc.)</li>
+              <li><strong>Net Pay:</strong> Base + Allowances - Deductions</li>
+            </ul>
+            <p>Click the eye icon on any payroll run to see the detailed breakdown per employee.</p>
           </div>
         ),
       },
@@ -651,9 +776,9 @@ export function Help() {
           { label: 'Create Quote', path: '/quotes', icon: FileText, color: 'bg-blue-50 text-blue-700 hover:bg-blue-100' },
           { label: 'Send Invoice', path: '/invoices', icon: Send, color: 'bg-purple-50 text-purple-700 hover:bg-purple-100' },
           { label: 'CRM Pipeline', path: '/crm', icon: Briefcase, color: 'bg-teal-50 text-teal-700 hover:bg-teal-100' },
-          { label: 'Projects', path: '/projects', icon: FolderKanban, color: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' },
-          { label: 'Products', path: '/products', icon: Package, color: 'bg-amber-50 text-amber-700 hover:bg-amber-100' },
-          { label: 'View Reports', path: '/reports', icon: BarChart3, color: 'bg-red-50 text-red-700 hover:bg-red-100' },
+          { label: 'Journal Entry', path: '/accounting/general-ledger', icon: BookOpen, color: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' },
+          { label: 'Chart of Accounts', path: '/accounting/chart-of-accounts', icon: Wallet, color: 'bg-violet-50 text-violet-700 hover:bg-violet-100' },
+          { label: 'Employees', path: '/hr/employees', icon: Users, color: 'bg-pink-50 text-pink-700 hover:bg-pink-100' },
           { label: 'Billing', path: '/settings/billing', icon: CreditCard, color: 'bg-gray-50 text-gray-700 hover:bg-gray-100' },
         ].map((item) => {
           const Icon = item.icon;

@@ -50,6 +50,9 @@ const ProjectReports = lazy(() => import('./pages/projects/ProjectReports').then
 const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
 const OnboardingWizard = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.OnboardingWizard })));
 const CRM = lazy(() => import('./pages/crm/CRM').then((m) => ({ default: m.CRM })));
+const Employees = lazy(() => import('./pages/hr/Employees').then((m) => ({ default: m.Employees })));
+const Attendance = lazy(() => import('./pages/hr/Attendance').then((m) => ({ default: m.Attendance })));
+const Payroll = lazy(() => import('./pages/hr/Payroll').then((m) => ({ default: m.Payroll })));
 
 function PageLoader() {
   return (
@@ -134,6 +137,11 @@ export function App() {
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="crm" />}>
               <Route path="/crm" element={<LazyPage><CRM /></LazyPage>} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Manager" feature="hr" />}>
+              <Route path="/hr/employees" element={<LazyPage><Employees /></LazyPage>} />
+              <Route path="/hr/attendance" element={<LazyPage><Attendance /></LazyPage>} />
+              <Route path="/hr/payroll" element={<LazyPage><Payroll /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" />}>
               <Route path="/settings" element={<LazyPage><Settings /></LazyPage>} />

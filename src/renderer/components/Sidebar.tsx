@@ -39,6 +39,7 @@ import {
   FolderKanban,
   BarChart2,
   Users2,
+  Clock,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -100,6 +101,14 @@ const navSections: NavSection[] = [
     label: 'CRM',
     items: [
       { path: '/crm', label: 'Pipeline', icon: Users2, minRole: 'Sales Rep', feature: 'crm' },
+    ],
+  },
+  {
+    label: 'HR',
+    items: [
+      { path: '/hr/employees', label: 'Employees', icon: Users, minRole: 'Manager', feature: 'hr' },
+      { path: '/hr/attendance', label: 'Attendance', icon: Clock, minRole: 'Manager', feature: 'hr' },
+      { path: '/hr/payroll', label: 'Payroll', icon: Banknote, minRole: 'Manager', feature: 'hr' },
     ],
   },
   {

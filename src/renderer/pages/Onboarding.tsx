@@ -5,7 +5,7 @@ import api from '../api/client';
 import toast from 'react-hot-toast';
 import {
   Building2, MapPin, Package, UserPlus, Check, ArrowRight, ArrowLeft,
-  Store, Globe, Phone, Mail, Hash,
+  Store, Globe, Phone, Mail, Hash, Landmark,
 } from 'lucide-react';
 
 interface OnboardingData {
@@ -28,6 +28,7 @@ const steps = [
   { title: 'Organization', subtitle: 'Tell us about your business', icon: Building2 },
   { title: 'First Location', subtitle: 'Set up your first location', icon: MapPin },
   { title: 'First Product', subtitle: 'Add your first product', icon: Package },
+  { title: 'Accounting', subtitle: 'Set up your chart of accounts', icon: Landmark },
   { title: 'Invite Staff', subtitle: 'Add your team members', icon: UserPlus },
   { title: 'All Done!', subtitle: "You're ready to go", icon: Check },
 ];
@@ -53,6 +54,17 @@ export function OnboardingWizard() {
     staffName: '',
   });
 
+  const [accounts, setAccounts] = useState([
+    { code: '1000', name: 'Cash', type: 'asset', enabled: true },
+    { code: '1100', name: 'Accounts Receivable', type: 'asset', enabled: true },
+    { code: '2000', name: 'Accounts Payable', type: 'liability', enabled: true },
+    { code: '3000', name: 'Owner\'s Equity', type: 'equity', enabled: true },
+    { code: '4000', name: 'Sales Revenue', type: 'revenue', enabled: true },
+    { code: '5000', name: 'Cost of Goods Sold', type: 'expense', enabled: true },
+    { code: '5100', name: 'Rent Expense', type: 'expense', enabled: true },
+    { code: '5200', name: 'Utilities Expense', type: 'expense', enabled: true },
+  ]);
+
   const update = (field: keyof OnboardingData, value: string) =>
     setData((prev) => ({ ...prev, [field]: value }));
 
@@ -67,6 +79,14 @@ export function OnboardingWizard() {
       }
       if (data.productName && data.productSku) {
         await api.post('/inventory/products', { name: data.productName, sku: data.productSku, productType: 'goods', uom: 'unit', unitPrice: Number(data.productPrice) || 0 }).catch(() => null);
+      }
+      const enabledAccounts = accounts.filter((a) => a.enabled);
+      for (const acc of enabledAccounts) {
+        await api.post('/accounting/accounts', {
+          accountCode: acc.code,
+          name: acc.name,
+          accountType: acc.type,
+        }).catch(() => null);
       }
       if (data.staffEmail && data.staffName) {
         await api.post('/invites', { email: data.staffEmail, role: 'Staff' }).catch(() => null);
@@ -222,6 +242,50 @@ export function OnboardingWizard() {
 
           {step === 3 && (
             <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Set up your Chart of Accounts. These are the accounts you'll use for journal entries and financial reporting. You can add more later in <strong>Accounting &gt; Chart of Accounts</strong>.
+              </p>
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left px-3 py-2 text-xs font-medium text-gray-500">Code</th>
+                      <th className="text-left px-3 py-2 text-xs font-medium text-gray-500">Name</th>
+                      <th className="text-left px-3 py-2 text-xs font-medium text-gray-500">Type</th>
+                      <th className="text-center px-3 py-2 text-xs font-medium text-gray-500">Include</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accounts.map((acc, idx) => (
+                      <tr key={acc.code} className="border-b border-gray-50 last:border-b-0">
+                        <td className="px-3 py-2 font-mono text-xs">{acc.code}</td>
+                        <td className="px-3 py-2 text-xs">{acc.name}</td>
+                        <td className="px-3 py-2 text-xs capitalize">{acc.type}</td>
+                        <td className="px-3 py-2 text-center">
+                          <input
+                            type="checkbox"
+                            checked={acc.enabled}
+                            onChange={(e) => {
+                              const updated = [...accounts];
+                              updated[idx] = { ...updated[idx], enabled: e.target.checked };
+                              setAccounts(updated);
+                            }}
+                            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-gray-400">
+                {accounts.filter((a) => a.enabled).length} accounts selected. You can always add more later.
+              </p>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-4">
               <div>
                 <label className="label">Staff Name</label>
                 <div className="relative">
@@ -242,7 +306,7 @@ export function OnboardingWizard() {
             </div>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <div className="text-center py-6">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Check className="w-8 h-8 text-green-600" />
@@ -263,6 +327,9 @@ export function OnboardingWizard() {
                     <Check className="w-4 h-4 text-green-500" /> First product added
                   </div>
                 )}
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Check className="w-4 h-4 text-green-500" /> Chart of Accounts ({accounts.filter((a) => a.enabled).length} accounts)
+                </div>
                 {data.staffEmail && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <Check className="w-4 h-4 text-green-500" /> Team invite sent
