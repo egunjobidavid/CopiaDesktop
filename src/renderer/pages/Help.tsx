@@ -25,6 +25,9 @@ import {
   CheckSquare,
   ArrowRight,
   FolderKanban,
+  Send,
+  Handshake,
+  Briefcase,
 } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 
@@ -85,16 +88,17 @@ const sections: Section[] = [
         ),
       },
       {
-        title: 'Understanding Plan Limits',
+        title: 'Understanding Plans & Pricing',
         content: (
           <div className="space-y-2">
-            <p>CopiaOS offers three plans:</p>
+            <p>CopiaOS offers four plans to fit your business:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>Free</strong> - 1 user, all core features included</li>
-              <li><strong>Monthly</strong> - 5 users, 5 locations, 5 years data retention</li>
-              <li><strong>Yearly</strong> - 99 users, 99 locations, unlimited data retention</li>
+              <li><strong>Free</strong> - ₦0/mo. 1 user, 1 location. Core sales, inventory, POS, CRM, production.</li>
+              <li><strong>Growth</strong> - ₦7,500/mo (annual). 5 users, 3 locations. Accounting, analytics, procurement, HR.</li>
+              <li><strong>Professional</strong> - ₦22,500/mo (annual). 15 users, 15 locations. Projects, time tracking, fixed assets.</li>
+              <li><strong>Enterprise</strong> - ₦55,000/mo (annual). Unlimited users, 99 locations. API access, priority support, custom integrations.</li>
             </ul>
-            <p>Free plan now includes production, procurement, accounting, analytics, approvals, support, locations, and HR modules.</p>
+            <p>Go to <strong>Settings &gt; Billing</strong> to upgrade. Payment is via Paystack (card, bank transfer, USSD).</p>
           </div>
         ),
       },
@@ -126,13 +130,47 @@ const sections: Section[] = [
           <div className="space-y-2">
             <p>Navigate to <strong>Point of Sale</strong> in the sidebar:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm">
-              <li>Select a customer (or use Walk-in)</li>
-              <li>Search for products by name or scan barcode</li>
+              <li>Click <strong>Open Drawer</strong> to start a session (enter opening cash balance)</li>
+              <li>Search for products by name or <strong>scan barcode</strong></li>
               <li>Adjust quantities as needed</li>
+              <li>Click <strong>Checkout</strong> and select payment method (Cash, Card, Transfer)</li>
+              <li>Supports <strong>split payments</strong> (e.g., part cash, part card)</li>
               <li>Click <strong>Complete Sale</strong> to finalize</li>
-              <li>A receipt/invoice is automatically generated</li>
             </ol>
-            <p>The sale will be recorded and inventory will be updated automatically.</p>
+            <p>At end of day, click <strong>Z-Report</strong> to close the drawer with cash count breakdown.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Quotes & Estimates',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Sales &gt; Quotes</strong> to create and send quotes:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Custom Items:</strong> Add products from inventory OR type custom item names for non-standard work</li>
+              <li><strong>Document Types:</strong> Choose General, Contract, Project, or Supply quote templates</li>
+              <li><strong>Send to Client:</strong> Click the email icon to send a professional branded quote</li>
+              <li><strong>PDF Download:</strong> Download as PDF for printing</li>
+              <li><strong>Version Control:</strong> Quotes auto-version when edited</li>
+              <li><strong>Convert:</strong> Convert accepted quotes to Sales Orders or Invoices</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Invoices',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Sales &gt; Invoices</strong> to manage invoices:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Create Manually:</strong> Add any items (inventory or custom) with quantities and prices</li>
+              <li><strong>From Quote:</strong> Convert a quote directly into an invoice</li>
+              <li><strong>From Sales Order:</strong> Auto-generate invoice when order is fulfilled</li>
+              <li><strong>Send via Email:</strong> Click the email icon, choose a template (General/Contract/Project/Supply), and send</li>
+              <li><strong>PDF Download:</strong> Download professional invoice PDF</li>
+              <li><strong>Credit Memo:</strong> Issue credit memos for returns or adjustments</li>
+              <li><strong>Void:</strong> Void invoices that were issued in error</li>
+            </ul>
           </div>
         ),
       },
@@ -150,27 +188,16 @@ const sections: Section[] = [
         ),
       },
       {
-        title: 'Viewing Sales Orders',
+        title: 'Sales Orders',
         content: (
           <div className="space-y-2">
-            <p>Go to <strong>Sales Orders</strong> to see all transactions:</p>
+            <p>Go to <strong>Sales &gt; Sales Orders</strong> to track orders:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>Use status filters (Draft, Confirmed, Processing, Delivered, Cancelled)</li>
-              <li>Search by order number or customer name</li>
-              <li>View order details and totals</li>
-            </ul>
-          </div>
-        ),
-      },
-      {
-        title: 'Generating Invoices',
-        content: (
-          <div className="space-y-2">
-            <p>Invoices are automatically created when you complete a sale. Go to <strong>Invoices</strong> to:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>Print:</strong> Click the print button to send to printer</li>
-              <li><strong>Download:</strong> Download as PDF for sending to customers</li>
-              <li><strong>Search:</strong> Find invoices by number or customer name</li>
+              <li><strong>Discounts & Tax:</strong> Apply line-item discounts and tax rates</li>
+              <li><strong>Delivery:</strong> Set delivery date and shipping address</li>
+              <li><strong>Approval:</strong> Orders can be submitted for manager approval</li>
+              <li>Convert to Invoice when ready</li>
             </ul>
           </div>
         ),
@@ -190,9 +217,11 @@ const sections: Section[] = [
             <p>Go to <strong>Products</strong> and click "Add Product":</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>Enter SKU (auto-generated if left blank), name, description</li>
-              <li>Select product type (raw material, finished good, etc.)</li>
+              <li>Set <strong>barcode</strong> for POS scanning</li>
+              <li>Select product type and category</li>
               <li>Set unit of measure (piece, kg, litre, etc.)</li>
-              <li>Set selling price</li>
+              <li>Set selling price and cost price</li>
+              <li>Set <strong>reorder point</strong> for low stock alerts</li>
             </ul>
           </div>
         ),
@@ -219,7 +248,8 @@ const sections: Section[] = [
             <p>Go to <strong>Inventory</strong> to monitor stock:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li><strong>Stock View:</strong> See current quantities across all locations</li>
-              <li><strong>Stock Movements:</strong> Track all stock in/out movements</li>
+              <li><strong>Stock Transfers:</strong> Move stock between locations</li>
+              <li><strong>Categories:</strong> Organize products by category</li>
               <li>Low stock items are highlighted in red</li>
               <li>Use location filter to view stock at specific locations</li>
             </ul>
@@ -236,6 +266,114 @@ const sections: Section[] = [
               <li>Use the location selector in the header to switch context</li>
               <li>Stock movements can be recorded per location</li>
               <li>Reports can be filtered by location</li>
+            </ul>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: 'crm',
+    title: 'CRM & Pipeline',
+    icon: Briefcase,
+    color: 'bg-teal-100 text-teal-700',
+    articles: [
+      {
+        title: 'Managing Deals',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>CRM</strong> to manage your sales pipeline:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Pipeline View:</strong> See deals organized by stage (Lead, Proposal, Negotiation, Won, Lost)</li>
+              <li><strong>Create Deal:</strong> Add deal name, value, stage, and assignee</li>
+              <li><strong>Activities:</strong> Log calls, meetings, emails, and tasks against deals</li>
+              <li><strong>Notes:</strong> Add internal notes visible to your team</li>
+              <li><strong>Tags:</strong> Categorize deals with color-coded tags</li>
+              <li><strong>Convert:</strong> Won deals can be converted to quotes or invoices</li>
+            </ul>
+          </div>
+        ),
+      },
+    ],
+  },
+  {
+    id: 'projects',
+    title: 'Project Management',
+    icon: FolderKanban,
+    color: 'bg-indigo-100 text-indigo-700',
+    articles: [
+      {
+        title: 'Creating Your First Project',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Projects</strong> in the sidebar to manage your projects:</p>
+            <ol className="list-decimal list-inside space-y-1 text-sm">
+              <li>Click "New Project" to create a project</li>
+              <li>Enter a name, description, priority, and due date</li>
+              <li>Choose a color to identify the project visually</li>
+              <li>Click "Create Project" to save</li>
+            </ol>
+            <p>Projects are available on Professional plan and above.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Managing Tasks with Kanban Board',
+        content: (
+          <div className="space-y-2">
+            <p>Open a project to see the <strong>Kanban Board</strong> view:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>To Do:</strong> Tasks waiting to be started</li>
+              <li><strong>In Progress:</strong> Tasks currently being worked on</li>
+              <li><strong>In Review:</strong> Tasks awaiting review or approval</li>
+              <li><strong>Done:</strong> Completed tasks</li>
+            </ul>
+            <p><strong>Drag and drop</strong> tasks between columns to update their status. You can also use the <strong>List</strong> view for a table-based layout.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Task Details & Features',
+        content: (
+          <div className="space-y-2">
+            <p>Click on any task to open the <strong>Task Detail</strong> panel:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Description:</strong> Add detailed notes about the task</li>
+              <li><strong>Subtasks:</strong> Break tasks into smaller actionable items with checkboxes</li>
+              <li><strong>Priority:</strong> Set Low, Medium, High, or Urgent priority</li>
+              <li><strong>Due Date:</strong> Set deadlines (overdue tasks are highlighted in red)</li>
+              <li><strong>Time Tracking:</strong> Track estimated vs actual hours spent</li>
+              <li><strong>Labels:</strong> Add color-coded labels for categorization</li>
+              <li><strong>Comments:</strong> Discuss tasks with your team in the comments section</li>
+              <li><strong>Activity Log:</strong> See the complete history of changes</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Timeline / Gantt View',
+        content: (
+          <div className="space-y-2">
+            <p>The <strong>Timeline</strong> tab shows tasks as horizontal bars:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Tasks with due dates are displayed on a timeline</li>
+              <li>Bar length represents the estimated duration</li>
+              <li>Quickly identify overlapping tasks and schedule conflicts</li>
+              <li>Click on any bar to open task details</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Team Collaboration',
+        content: (
+          <div className="space-y-2">
+            <p>Collaborate with your team on projects:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Project Members:</strong> Add team members to projects with Lead, Member, or Viewer roles</li>
+              <li><strong>Assignees:</strong> Assign tasks to specific team members</li>
+              <li><strong>Comments:</strong> Discuss tasks in real-time with threaded comments</li>
+              <li><strong>Activity Feed:</strong> Stay updated on all project changes</li>
             </ul>
           </div>
         ),
@@ -299,13 +437,16 @@ const sections: Section[] = [
         ),
       },
       {
-        title: 'Managing Expense Categories',
+        title: 'Bank Reconciliation',
         content: (
           <div className="space-y-2">
-            <p>On the Expenses page, click <strong>"Categories"</strong> to create custom expense categories:</p>
+            <p>Go to <strong>Accounting &gt; Bank Reconciliation</strong> to match bank statements with your books:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Examples: Rent, Utilities, Salaries, Transport, Office Supplies</li>
-              <li>Categories help you filter and analyze spending patterns</li>
+              <li><strong>Import Bank Statement:</strong> Upload a CSV from your bank</li>
+              <li><strong>Auto-Match:</strong> System matches transactions by amount and date</li>
+              <li><strong>Manual Match:</strong> Drag unmatched items together</li>
+              <li><strong>Bank Rules:</strong> Create rules for recurring transaction categories</li>
+              <li><strong>Reconciliation Report:</strong> Verify balances match</li>
             </ul>
           </div>
         ),
@@ -341,22 +482,48 @@ const sections: Section[] = [
   },
   {
     id: 'production',
-    title: 'Production',
+    title: 'Production & Manufacturing',
     icon: Factory,
     color: 'bg-red-100 text-red-700',
     articles: [
       {
-        title: 'Managing Production',
+        title: 'Bill of Materials (BOM)',
         content: (
           <div className="space-y-2">
-            <p>Go to <strong>Production</strong> to manage manufacturing:</p>
+            <p>Go to <strong>Production &gt; BOMs</strong> to define how products are made:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Create production orders with raw material requirements</li>
-              <li>Track work-in-progress and completed items</li>
-              <li>Raw materials are deducted from inventory automatically</li>
-              <li>Finished goods are added to inventory upon completion</li>
+              <li>Create BOMs linking raw materials to finished goods</li>
+              <li>Define quantities of each raw material needed</li>
+              <li>Set production stages and time estimates</li>
             </ul>
-            <p><strong>Note:</strong> Production is available on all plans including Free.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Work Orders & Production Tracking',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Production &gt; Work Orders</strong> to track manufacturing:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Create work orders from BOMs</li>
+              <li>Track work-in-progress through production stages</li>
+              <li>Quality inspections at each stage</li>
+              <li>Raw materials deducted from inventory automatically</li>
+              <li>Finished goods added to inventory upon completion</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Equipment & Maintenance',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Production &gt; Equipment</strong> to manage machinery:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Track equipment status and utilization</li>
+              <li>Schedule preventive maintenance</li>
+              <li>Log maintenance history and costs</li>
+            </ul>
           </div>
         ),
       },
@@ -421,7 +588,7 @@ const sections: Section[] = [
               <li>Fill in address, city, state, country details</li>
               <li>Mark one location as default</li>
             </ol>
-            <p>Location limits: Free=1, Monthly=5, Yearly=99</p>
+            <p>Location limits: Free=1, Growth=3, Professional=15, Enterprise=99</p>
           </div>
         ),
       },
@@ -446,107 +613,9 @@ const sections: Section[] = [
             <p>Go to <strong>Settings &gt; Billing</strong> to manage your subscription:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>View your current plan and limits</li>
-              <li>Upgrade to Monthly or Yearly plan via Paystack</li>
+              <li>Upgrade to Growth, Professional, or Enterprise plan via Paystack</li>
+              <li>Annual billing saves 2 months compared to monthly</li>
               <li>Manage payment methods and view invoices</li>
-              <li>Yearly plan saves you 2 months compared to monthly</li>
-            </ul>
-          </div>
-        ),
-      },
-    ],
-  },
-  {
-    id: 'projects',
-    title: 'Project Management',
-    icon: FolderKanban,
-    color: 'bg-indigo-100 text-indigo-700',
-    articles: [
-      {
-        title: 'Creating Your First Project',
-        content: (
-          <div className="space-y-2">
-            <p>Go to <strong>Projects</strong> in the sidebar to manage your projects:</p>
-            <ol className="list-decimal list-inside space-y-1 text-sm">
-              <li>Click "New Project" to create a project</li>
-              <li>Enter a name, description, priority, and due date</li>
-              <li>Choose a color to identify the project visually</li>
-              <li>Click "Create Project" to save</li>
-            </ol>
-            <p>Projects are available on all plans including Free.</p>
-          </div>
-        ),
-      },
-      {
-        title: 'Managing Tasks with Kanban Board',
-        content: (
-          <div className="space-y-2">
-            <p>Open a project to see the <strong>Kanban Board</strong> view:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>To Do:</strong> Tasks waiting to be started</li>
-              <li><strong>In Progress:</strong> Tasks currently being worked on</li>
-              <li><strong>In Review:</strong> Tasks awaiting review or approval</li>
-              <li><strong>Done:</strong> Completed tasks</li>
-            </ul>
-            <p><strong>Drag and drop</strong> tasks between columns to update their status. You can also use the <strong>List</strong> view for a table-based layout.</p>
-          </div>
-        ),
-      },
-      {
-        title: 'Task Details & Features',
-        content: (
-          <div className="space-y-2">
-            <p>Click on any task to open the <strong>Task Detail</strong> panel:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>Description:</strong> Add detailed notes about the task</li>
-              <li><strong>Subtasks:</strong> Break tasks into smaller actionable items with checkboxes</li>
-              <li><strong>Priority:</strong> Set Low, Medium, High, or Urgent priority</li>
-              <li><strong>Due Date:</strong> Set deadlines (overdue tasks are highlighted in red)</li>
-              <li><strong>Time Tracking:</strong> Track estimated vs actual hours spent</li>
-              <li><strong>Labels:</strong> Add color-coded labels for categorization</li>
-              <li><strong>Comments:</strong> Discuss tasks with your team in the comments section</li>
-              <li><strong>Activity Log:</strong> See the complete history of changes</li>
-            </ul>
-          </div>
-        ),
-      },
-      {
-        title: 'Using Milestones',
-        content: (
-          <div className="space-y-2">
-            <p>Milestones help you track major project goals:</p>
-            <ol className="list-decimal list-inside space-y-1 text-sm">
-              <li>Open a project and go to the <strong>Milestones</strong> tab</li>
-              <li>Click "Add Milestone" and set a name and due date</li>
-              <li>Assign tasks to milestones when creating or editing them</li>
-              <li>Track progress as tasks within milestones are completed</li>
-            </ol>
-          </div>
-        ),
-      },
-      {
-        title: 'Timeline / Gantt View',
-        content: (
-          <div className="space-y-2">
-            <p>The <strong>Timeline</strong> tab shows tasks as horizontal bars:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Tasks with due dates are displayed on a timeline</li>
-              <li>Bar length represents the estimated duration</li>
-              <li>Quickly identify overlapping tasks and schedule conflicts</li>
-              <li>Click on any bar to open task details</li>
-            </ul>
-          </div>
-        ),
-      },
-      {
-        title: 'Team Collaboration',
-        content: (
-          <div className="space-y-2">
-            <p>Collaborate with your team on projects:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>Project Members:</strong> Add team members to projects with Lead, Member, or Viewer roles</li>
-              <li><strong>Assignees:</strong> Assign tasks to specific team members</li>
-              <li><strong>Comments:</strong> Discuss tasks in real-time with threaded comments</li>
-              <li><strong>Activity Feed:</strong> Stay updated on all project changes</li>
             </ul>
           </div>
         ),
@@ -579,10 +648,13 @@ export function Help() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Make a Sale', path: '/pos', icon: ShoppingCart, color: 'bg-green-50 text-green-700 hover:bg-green-100' },
-          { label: 'Add Product', path: '/products', icon: Package, color: 'bg-blue-50 text-blue-700 hover:bg-blue-100' },
-          { label: 'Manage Stock', path: '/inventory', icon: Warehouse, color: 'bg-purple-50 text-purple-700 hover:bg-purple-100' },
-          { label: 'View Reports', path: '/reports', icon: BarChart3, color: 'bg-amber-50 text-amber-700 hover:bg-amber-100' },
+          { label: 'Create Quote', path: '/quotes', icon: FileText, color: 'bg-blue-50 text-blue-700 hover:bg-blue-100' },
+          { label: 'Send Invoice', path: '/invoices', icon: Send, color: 'bg-purple-50 text-purple-700 hover:bg-purple-100' },
+          { label: 'CRM Pipeline', path: '/crm', icon: Briefcase, color: 'bg-teal-50 text-teal-700 hover:bg-teal-100' },
           { label: 'Projects', path: '/projects', icon: FolderKanban, color: 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' },
+          { label: 'Products', path: '/products', icon: Package, color: 'bg-amber-50 text-amber-700 hover:bg-amber-100' },
+          { label: 'View Reports', path: '/reports', icon: BarChart3, color: 'bg-red-50 text-red-700 hover:bg-red-100' },
+          { label: 'Billing', path: '/settings/billing', icon: CreditCard, color: 'bg-gray-50 text-gray-700 hover:bg-gray-100' },
         ].map((item) => {
           const Icon = item.icon;
           return (
