@@ -40,9 +40,14 @@ export function ZReportModal({ onClose }: { onClose: () => void }) {
   }
 
   async function handleCloseSession() {
+    if (!session) return;
     setIsClosing(true);
     try {
-      await api.post('/pos/session/close', { actualCash });
+      await api.post('/pos/session/close', {
+        sessionId: session.id,
+        actualCash,
+        closingBalance: actualCash,
+      });
       toast.success('Session closed successfully');
       onClose();
     } catch (err: any) {
