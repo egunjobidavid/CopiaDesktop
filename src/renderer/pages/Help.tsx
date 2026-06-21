@@ -91,14 +91,33 @@ const sections: Section[] = [
         title: 'Understanding Plans & Pricing',
         content: (
           <div className="space-y-2">
-            <p>CopiaOS offers four plans to fit your business:</p>
+            <p>CopiaOS uses a <strong>Core Plan + Module Add-ons</strong> pricing model. Choose a core plan for your team size, then add modules you need.</p>
+            <p className="font-medium text-gray-900">Core Plans:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>Free</strong> - ₦0/mo. 2 users, 1 location. Core sales, inventory, POS, CRM, production.</li>
-              <li><strong>Growth</strong> - ₦7,500/mo (annual). 10 users, 3 locations. Accounting, analytics, procurement, approvals.</li>
-              <li><strong>Professional</strong> - ₦22,500/mo (annual). 50 users, 15 locations. Projects, time tracking, HR, fixed assets.</li>
-              <li><strong>Enterprise</strong> - ₦55,000/mo (annual). Unlimited users, unlimited locations. API access, priority support, custom integrations.</li>
+              <li><strong>Starter</strong> - Free. 2 users, 1 location. POS, products, inventory, sales, quotes, invoices.</li>
+              <li><strong>Business</strong> - ₦12,000/mo (₦9,600/mo annual). 10 users, 3 locations. + Sales orders, reports, export.</li>
+              <li><strong>Professional</strong> - ₦32,000/mo (₦25,600/mo annual). 50 users, 15 locations. + Phone support.</li>
+              <li><strong>Enterprise</strong> - ₦75,000/mo (₦60,000/mo annual). Unlimited everything. + API, priority support, custom integrations.</li>
             </ul>
-            <p>Go to <strong>Settings &gt; Billing</strong> to upgrade. Payment is via Paystack (card, bank transfer, USSD).</p>
+            <p className="font-medium text-gray-900">Module Add-ons (any paid plan):</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Accounting Suite</strong> - ₦10,000/mo. Chart of accounts, journal entries, trial balance, bank reconciliation.</li>
+              <li><strong>HR & Payroll</strong> - ₦10,000/mo. Employees, attendance, payroll processing.</li>
+              <li><strong>Projects & Time</strong> - ₦20,000/mo. Projects, tasks, kanban, time tracking.</li>
+              <li><strong>CRM Pipeline</strong> - ₦10,000/mo. Deals, pipeline, activities, lead scoring.</li>
+              <li><strong>Production & BOM</strong> - ₦20,000/mo. BOMs, work orders, stages, quality, equipment.</li>
+              <li><strong>Procurement</strong> - ₦10,000/mo. Vendors, purchase orders, bill payments.</li>
+              <li><strong>Multi-Location</strong> - ₦5,000/mo. Extra locations beyond plan limit.</li>
+              <li><strong>Analytics Pro</strong> - ₦5,000/mo. Advanced reports, custom dashboards.</li>
+            </ul>
+            <p className="font-medium text-gray-900">Bundles (save 14-33%):</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Finance Bundle</strong> - ₦20,000/mo. Accounting + Procurement.</li>
+              <li><strong>Project Bundle</strong> - ₦25,000/mo. HR + Projects + Time. (38% off)</li>
+              <li><strong>Operations Bundle</strong> - ₦30,000/mo. Production + Procurement + Multi-Location.</li>
+              <li><strong>Full Suite</strong> - ₦60,000/mo. All 8 modules. (33% off)</li>
+            </ul>
+            <p>Annual billing saves 20% on all plans and modules. Go to <strong>Settings &gt; Billing</strong> to upgrade. Payment is via Paystack (card, bank transfer, USSD).</p>
           </div>
         ),
       },
@@ -713,7 +732,7 @@ const sections: Section[] = [
               <li>Fill in address, city, state, country details</li>
               <li>Mark one location as default</li>
             </ol>
-            <p>Location limits: Free=1, Growth=3, Professional=15, Enterprise=Unlimited</p>
+            <p>Location limits: Starter=1, Business=3, Professional=15, Enterprise=Unlimited. Extra locations available via Multi-Location add-on (₦5,000/mo).</p>
           </div>
         ),
       },
