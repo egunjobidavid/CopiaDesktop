@@ -155,15 +155,7 @@ export function CRM() {
       <PageHeader
         title="CRM Pipeline"
         subtitle={`${totalDeals} deals • ${formatCurrency(totalPipelineValue)} total value`}
-        actions={
-          <button
-            onClick={() => setShowCreateDeal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-medium"
-          >
-            <Plus className="w-4 h-4" />
-            New Deal
-          </button>
-        }
+        action={{ label: 'New Deal', onClick: () => setShowCreateDeal(true) }}
       />
 
       {/* Summary Cards */}

@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
-import { X, Calendar, Plus, Check, Trash2 } from 'lucide-react';
+import { X, Calendar, Plus, Check, Trash2, FileText, Receipt } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Deal {
@@ -68,6 +69,7 @@ const activityTypes = [
 ];
 
 export default function DealDetailModal({ dealId, stages, onClose, onUpdate }: DealDetailModalProps) {
+  const navigate = useNavigate();
   const [deal, setDeal] = useState<Deal | null>(null);
   const [activeTab, setActiveTab] = useState<'details' | 'activities' | 'notes' | 'tags'>('details');
   const [loading, setLoading] = useState(true);
@@ -190,6 +192,16 @@ export default function DealDetailModal({ dealId, stages, onClose, onUpdate }: D
     } catch {
       toast.error('Failed to delete deal');
     }
+  };
+
+  const handleConvertToQuote = () => {
+    onClose();
+    navigate('/quotes');
+  };
+
+  const handleConvertToInvoice = () => {
+    onClose();
+    navigate('/invoices');
   };
 
   const handleCreateActivity = async () => {
@@ -447,6 +459,24 @@ export default function DealDetailModal({ dealId, stages, onClose, onUpdate }: D
                       <Check size={16} />
                       Mark Won
                     </button>
+                  )}
+                  {deal.status === 'won' && (
+                    <>
+                      <button
+                        onClick={handleConvertToQuote}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                      >
+                        <FileText size={16} />
+                        Convert to Quote
+                      </button>
+                      <button
+                        onClick={handleConvertToInvoice}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors"
+                      >
+                        <Receipt size={16} />
+                        Convert to Invoice
+                      </button>
+                    </>
                   )}
                   {deal.status !== 'lost' && (
                     <button
