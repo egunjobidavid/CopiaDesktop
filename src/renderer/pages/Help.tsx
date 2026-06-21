@@ -732,7 +732,7 @@ const sections: Section[] = [
               <li>Fill in address, city, state, country details</li>
               <li>Mark one location as default</li>
             </ol>
-            <p>Location limits: Starter=1, Business=3, Professional=15, Enterprise=Unlimited. Extra locations available via Multi-Location add-on (₦5,000/mo).</p>
+            <p>Limits: Starter=2 users/1 location, Business=10 users/3 locations, Professional=30 users/15 locations, Enterprise=100 users/25 locations. Extra locations available via Multi-Location add-on (₦5,000/mo).</p>
           </div>
         ),
       },

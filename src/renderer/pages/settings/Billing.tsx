@@ -42,23 +42,23 @@ const CORE_PLANS = [
     annualPrice: 25600,
     description: 'For established businesses needing phone support',
     features: [
-      '50 Users', '5,000 Products', '50,000 Transactions/mo', '15 Locations',
+      '30 Users', '5,000 Products', '50,000 Transactions/mo', '15 Locations',
       'All Business features', 'Phone Support', 'Priority Email',
     ],
-    limits: 'Users: 50 | Products: 5,000 | Locations: 15',
+    limits: 'Users: 30 | Products: 5,000 | Locations: 15',
   },
   {
     name: 'Enterprise',
     key: 'enterprise',
     monthlyPrice: 75000,
     annualPrice: 60000,
-    description: 'For large organizations needing unlimited access',
+    description: 'For large organizations needing premium access',
     features: [
-      'Unlimited Users', 'Unlimited Products', 'Unlimited Transactions',
-      'Unlimited Locations', 'All Professional features', 'API Access',
+      '100 Users', 'Unlimited Products', 'Unlimited Transactions',
+      '25 Locations', 'All Professional features', 'API Access',
       'Priority Support', 'Custom Integrations', 'Dedicated Account Manager',
     ],
-    limits: 'Unlimited everything',
+    limits: 'Users: 100 | Products: Unlimited | Locations: 25',
   },
 ];
 
