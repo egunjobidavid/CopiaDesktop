@@ -39,8 +39,10 @@ export function Attendance() {
   const loadEmployees = async () => {
     try {
       const res = await api.get('/hr/employees', { params: { status: 'active', limit: 100 } });
-      setEmployees(res.data?.data || []);
-    } catch (_) {}
+      setEmployees(res.data?.data || res.data || []);
+    } catch (_) {
+      setEmployees([]);
+    }
   };
 
   const loadAttendance = async () => {
