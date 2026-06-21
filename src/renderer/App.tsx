@@ -49,6 +49,7 @@ const ProjectDetail = lazy(() => import('./pages/projects/ProjectDetail').then((
 const ProjectReports = lazy(() => import('./pages/projects/ProjectReports').then((m) => ({ default: m.ProjectReports })));
 const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
 const OnboardingWizard = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.OnboardingWizard })));
+const CRM = lazy(() => import('./pages/crm/CRM').then((m) => ({ default: m.CRM })));
 
 function PageLoader() {
   return (
@@ -130,6 +131,9 @@ export function App() {
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
               <Route path="/production" element={<LazyPage><Production /></LazyPage>} />
+            </Route>
+            <Route element={<ProtectedRoute minRole="Manager" feature="crm" />}>
+              <Route path="/crm" element={<LazyPage><CRM /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" />}>
               <Route path="/settings" element={<LazyPage><Settings /></LazyPage>} />

@@ -38,6 +38,7 @@ import {
   Building,
   FolderKanban,
   BarChart2,
+  Users2,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -93,6 +94,12 @@ const navSections: NavSection[] = [
     items: [
       { path: '/projects', label: 'Project Management', icon: FolderKanban, minRole: 'Staff' },
       { path: '/projects/reports/overview', label: 'Project Reports', icon: BarChart2, minRole: 'Staff' },
+    ],
+  },
+  {
+    label: 'CRM',
+    items: [
+      { path: '/crm', label: 'Pipeline', icon: Users2, minRole: 'Sales Rep', feature: 'crm' },
     ],
   },
   {

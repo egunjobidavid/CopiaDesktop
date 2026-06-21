@@ -1,21 +1,45 @@
 import { useState, useEffect } from 'react';
 import { useInventory } from '../../hooks/useInventory';
-import { Search, Warehouse, Loader2 } from 'lucide-react';
+import { Search, Warehouse, Loader2, Filter } from 'lucide-react';
+import api from '../../api/client';
+
+interface ProductCategory {
+  id: string;
+  name: string;
+}
+
+interface Product {
+  id: string;
+  categoryId?: string;
+}
 
 export function StockView() {
   const { balances, isLoading, fetchBalances } = useInventory();
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categories, setCategories] = useState<ProductCategory[]>([]);
+  const [productCategories, setProductCategories] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchBalances();
+    api.get('/inventory/categories').then((res) => {
+      setCategories(res.data?.data || res.data || []);
+    }).catch(() => {});
+    api.get('/inventory/products').then((res) => {
+      const products: Product[] = res.data?.data || res.data || [];
+      const map: Record<string, string> = {};
+      products.forEach(p => { if (p.categoryId) map[p.id] = p.categoryId; });
+      setProductCategories(map);
+    }).catch(() => {});
   }, [fetchBalances]);
 
-  const filtered = search
-    ? balances.filter((b) =>
-        b.productName.toLowerCase().includes(search.toLowerCase()) ||
-        b.productSku.toLowerCase().includes(search.toLowerCase()),
-      )
-    : balances;
+  const filtered = balances.filter((b) => {
+    const matchesSearch = !search ||
+      b.productName.toLowerCase().includes(search.toLowerCase()) ||
+      b.productSku.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = !categoryFilter || productCategories[b.productId] === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   const totalItems = balances.reduce((sum, b) => sum + b.quantity, 0);
   const lowStock = balances.filter((b) => b.quantity > 0 && b.quantity < 10).length;
@@ -40,16 +64,33 @@ export function StockView() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Filter by product name or SKU..."
-          className="input pl-9"
-        />
+      {/* Search & Filters */}
+      <div className="flex gap-3 max-w-lg">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Filter by product name or SKU..."
+            className="input pl-9"
+          />
+        </div>
+        {categories.length > 0 && (
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="input pl-9 pr-8 appearance-none min-w-[160px]"
+            >
+              <option value="">All Categories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Balances table */}
