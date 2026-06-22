@@ -34,6 +34,7 @@ import {
   Landmark,
   BookOpen,
   Scale,
+  TrendingUp,
   Percent,
   Building,
   FolderKanban,
@@ -42,6 +43,9 @@ import {
   Clock,
   Calendar,
   UserCheck,
+  Repeat,
+  Mail,
+  Calculator,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -85,12 +89,14 @@ const navSections: NavSection[] = [
       { path: '/procurement', label: 'Purchase Orders', icon: ClipboardList, minRole: 'Manager', feature: 'procurement' },
       { path: '/procurement/payments', label: 'Bill Payments', icon: Banknote, minRole: 'Manager', feature: 'procurement' },
       { path: '/procurement/reports', label: 'Spend Reports', icon: BarChart3, minRole: 'Manager', feature: 'procurement' },
+      { path: '/procurement/approvals', label: 'Approvals', icon: Shield, minRole: 'Manager', feature: 'procurement' },
     ],
   },
   {
     label: 'Production',
     items: [
       { path: '/production', label: 'Production', icon: Factory, minRole: 'Manager', feature: 'production' },
+      { path: '/production/costing', label: 'Costing', icon: Calculator, minRole: 'Manager', feature: 'production' },
     ],
   },
   {
@@ -99,6 +105,7 @@ const navSections: NavSection[] = [
       { path: '/projects', label: 'Project Management', icon: FolderKanban, minRole: 'Staff', feature: 'projects' },
       { path: '/projects/reports/overview', label: 'Project Reports', icon: BarChart2, minRole: 'Staff', feature: 'projects' },
       { path: '/projects/gantt', label: 'Timeline (Gantt)', icon: Gantt, minRole: 'Staff', feature: 'projects' },
+      { path: '/projects/recurring', label: 'Recurring Tasks', icon: Repeat, minRole: 'Staff', feature: 'projects' },
     ],
   },
   {
@@ -106,6 +113,7 @@ const navSections: NavSection[] = [
     items: [
       { path: '/crm', label: 'Pipeline', icon: Users2, minRole: 'Sales Rep', feature: 'crm' },
       { path: '/crm/reports', label: 'Pipeline Reports', icon: BarChart3, minRole: 'Sales Rep', feature: 'crm' },
+      { path: '/crm/email-templates', label: 'Email Templates', icon: Mail, minRole: 'Sales Rep', feature: 'crm' },
     ],
   },
   {
@@ -117,6 +125,7 @@ const navSections: NavSection[] = [
       { path: '/hr/leave', label: 'Leave', icon: Calendar, minRole: 'Manager', feature: 'hr' },
       { path: '/hr/deductions', label: 'Deductions', icon: Settings, minRole: 'Manager', feature: 'hr' },
       { path: '/hr/onboarding', label: 'Onboarding', icon: UserCheck, minRole: 'Manager', feature: 'hr' },
+      { path: '/hr/expenses', label: 'Expense Claims', icon: Receipt, minRole: 'Manager', feature: 'hr' },
     ],
   },
   {
@@ -125,6 +134,8 @@ const navSections: NavSection[] = [
       { path: '/expenses', label: 'Expenses', icon: Wallet, minRole: 'Accountant' },
       { path: '/accounting/chart-of-accounts', label: 'Chart of Accounts', icon: Landmark, minRole: 'Accountant', feature: 'accounting' },
       { path: '/accounting/general-ledger', label: 'General Ledger', icon: BookOpen, minRole: 'Accountant', feature: 'accounting' },
+      { path: '/accounting/profit-and-loss', label: 'Profit & Loss', icon: TrendingUp, minRole: 'Accountant', feature: 'accounting' },
+      { path: '/accounting/balance-sheet', label: 'Balance Sheet', icon: Scale, minRole: 'Accountant', feature: 'accounting' },
       { path: '/accounting/trial-balance', label: 'Trial Balance', icon: Scale, minRole: 'Accountant', feature: 'accounting' },
       { path: '/accounting/tax-config', label: 'Tax Config', icon: Percent, minRole: 'Accountant', feature: 'accounting' },
       { path: '/accounting/bank-reconciliation', label: 'Bank Reconciliation', icon: Building, minRole: 'Accountant', feature: 'accounting' },
