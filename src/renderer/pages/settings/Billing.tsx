@@ -9,6 +9,20 @@ const ICON_MAP: Record<string, any> = {
   Wallet, Users, FolderKanban, Briefcase, Factory, ShoppingBag, MapPin, BarChart3, CheckCircle, Crown, Package,
 };
 
+const PLAN_FEATURES: Record<string, string[]> = {
+  starter: ['inventory', 'sales', 'pos', 'quotes', 'invoices', 'customers', 'basic_reports'],
+  business: ['inventory', 'sales', 'pos', 'quotes', 'invoices', 'customers', 'basic_reports', 'sales_orders', 'advanced_reports', 'export'],
+  professional: ['inventory', 'sales', 'pos', 'quotes', 'invoices', 'customers', 'basic_reports', 'sales_orders', 'advanced_reports', 'export', 'phone_support'],
+  enterprise: ['inventory', 'sales', 'pos', 'quotes', 'invoices', 'customers', 'basic_reports', 'sales_orders', 'advanced_reports', 'export', 'phone_support', 'api_access', 'priority_support', 'custom_integrations'],
+};
+
+const PLAN_LIMITS: Record<string, Record<string, number | string>> = {
+  starter: { max_users: 2, max_products: 25, max_transactions: 200, max_locations: 1, max_storage_mb: 500, data_retention_days: 90, currencies: 1 },
+  business: { max_users: 10, max_products: 500, max_transactions: 5000, max_locations: 3, max_storage_mb: 5120, data_retention_days: 365, currencies: 2 },
+  professional: { max_users: 30, max_products: 5000, max_transactions: 50000, max_locations: 15, max_storage_mb: 51200, data_retention_days: 1095, currencies: -1 },
+  enterprise: { max_users: 100, max_products: -1, max_transactions: -1, max_locations: 25, max_storage_mb: -1, data_retention_days: 2555, currencies: -1 },
+};
+
 const CORE_PLANS = [
   {
     name: 'Starter',
