@@ -49,7 +49,7 @@ export function Employees() {
       const params: any = { page, limit: 20 };
       if (filter !== 'all') params.status = filter;
       const res = await api.get('/hr/employees', { params });
-      setEmployees(res.data?.data || []);
+      setEmployees(res.data?.data || res.data || []);
       setTotal(res.data?.total || 0);
       setTotalPages(res.data?.totalPages || 1);
     } catch (err: any) {

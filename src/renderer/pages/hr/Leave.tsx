@@ -54,14 +54,14 @@ export function Leave() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [reqRes, typesRes, empRes] = await Promise.all([
+      const [reqRes, typesRes, empRes] = await Promise.allSettled([
         api.get('/hr/leave/requests'),
         api.get('/hr/leave/types'),
         api.get('/hr/employees'),
       ]);
-      setRequests(Array.isArray(reqRes.data) ? reqRes.data : []);
-      setLeaveTypes(Array.isArray(typesRes.data) ? typesRes.data : []);
-      const empData = empRes.data?.items || empRes.data || [];
+      setRequests(reqRes.status === 'fulfilled' ? (Array.isArray(reqRes.value?.data) ? reqRes.value.data : []) : []);
+      setLeaveTypes(typesRes.status === 'fulfilled' ? (Array.isArray(typesRes.value?.data) ? typesRes.value.data : []) : []);
+      const empData = empRes.status === 'fulfilled' ? (empRes.value?.data?.items || empRes.value?.data || []) : [];
       setEmployees(Array.isArray(empData) ? empData : []);
     } catch {
       toast.error('Failed to load leave data');

@@ -29,7 +29,7 @@ export function PipelineReports() {
         api.get('/crm/reports/pipeline'),
         api.get('/crm/reports/forecast'),
       ]);
-      setReport(pipelineRes.data);
+      setReport(pipelineRes.data?.data || pipelineRes.data || {});
       setForecast(forecastRes.data);
     } catch {
       toast.error('Failed to load pipeline reports');
@@ -55,7 +55,7 @@ export function PipelineReports() {
     );
   }
 
-  const maxStageCount = Math.max(...report.dealsByStage.map(s => s.count), 1);
+  const maxStageCount = Math.max(...(report.dealsByStage || []).map(s => s.count), 1);
 
   return (
     <div className="p-6 space-y-6">
@@ -114,7 +114,7 @@ export function PipelineReports() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Deals by Stage</h3>
         <div className="space-y-3">
-          {report.dealsByStage.map((stage) => (
+          {(report.dealsByStage || []).map((stage) => (
             <div key={stage.stage} className="flex items-center gap-4">
               <span className="text-sm text-gray-600 w-32 truncate">{stage.stage}</span>
               <div className="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
@@ -130,7 +130,7 @@ export function PipelineReports() {
               <span className="text-sm text-gray-500 w-24 text-right">${stage.value.toLocaleString()}</span>
             </div>
           ))}
-          {report.dealsByStage.length === 0 && (
+          {(report.dealsByStage || []).length === 0 && (
             <p className="text-sm text-gray-400">No deals in pipeline.</p>
           )}
         </div>
@@ -149,14 +149,14 @@ export function PipelineReports() {
               </tr>
             </thead>
             <tbody>
-              {report.dealsBySource.map((src) => (
+              {(report.dealsBySource || []).map((src) => (
                 <tr key={src.source} className="border-b border-gray-50">
                   <td className="py-2.5 text-gray-700">{src.source || 'Unknown'}</td>
                   <td className="py-2.5 text-right text-gray-600">{src.count}</td>
                   <td className="py-2.5 text-right text-gray-600">${src.value.toLocaleString()}</td>
                 </tr>
               ))}
-              {report.dealsBySource.length === 0 && (
+              {(report.dealsBySource || []).length === 0 && (
                 <tr><td colSpan={3} className="py-3 text-gray-400 text-center">No data</td></tr>
               )}
             </tbody>

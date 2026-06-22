@@ -70,7 +70,7 @@ export function ProductionCosting() {
     try {
       setLoading(true);
       const res = await api.get('/production/reports/costs');
-      const data = res.data;
+      const data = res.data?.data || res.data;
       if (data?.summary) setSummary(data.summary);
       if (Array.isArray(data?.byProduct)) setProductCosts(data.byProduct);
       else if (Array.isArray(data)) setProductCosts(data);
@@ -86,7 +86,7 @@ export function ProductionCosting() {
       setWoLoading(true);
       setSelectedWO(null);
       const res = await api.get(`/production/work-orders/${workOrderId}/costing`);
-      setSelectedWO(res.data);
+      setSelectedWO(res.data?.data || res.data);
     } catch {
       toast.error('Failed to load work order costing');
     } finally {

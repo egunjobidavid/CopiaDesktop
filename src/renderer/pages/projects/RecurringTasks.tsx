@@ -40,7 +40,7 @@ export function RecurringTasks() {
     try {
       setLoading(true);
       const res = await api.get('/projects/recurring-tasks');
-      setTasks(res.data?.data || []);
+      setTasks(res.data?.data || res.data || []);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to load recurring tasks');
     } finally {
@@ -96,7 +96,9 @@ export function RecurringTasks() {
   };
 
   const formatRecurrence = (type: string, interval: number) => {
-    const label = type === 'day' ? 'days' : type === 'week' ? 'weeks' : 'months';
+    const label = type === 'daily' || type === 'day' ? 'days'
+      : type === 'weekly' || type === 'week' ? 'weeks'
+      : 'months';
     return `Every ${interval} ${label}`;
   };
 

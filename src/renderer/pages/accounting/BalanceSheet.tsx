@@ -45,9 +45,9 @@ export function BalanceSheet() {
   const assets = data?.assets || [];
   const liabilities = data?.liabilities || [];
   const equity = data?.equity || [];
-  const totalAssets = data?.totalAssets ?? assets.reduce((s, r) => s + r.balance, 0);
-  const totalLiabilities = data?.totalLiabilities ?? liabilities.reduce((s, r) => s + r.balance, 0);
-  const totalEquity = data?.totalEquity ?? equity.reduce((s, r) => s + r.balance, 0);
+  const totalAssets = data?.totalAssets ?? (Array.isArray(assets) ? assets : []).reduce((s, r) => s + r.balance, 0);
+  const totalLiabilities = data?.totalLiabilities ?? (Array.isArray(liabilities) ? liabilities : []).reduce((s, r) => s + r.balance, 0);
+  const totalEquity = data?.totalEquity ?? (Array.isArray(equity) ? equity : []).reduce((s, r) => s + r.balance, 0);
   const equationBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01;
 
   const renderSection = (title: string, items: BSLineItem[], total: number, color: string) => (

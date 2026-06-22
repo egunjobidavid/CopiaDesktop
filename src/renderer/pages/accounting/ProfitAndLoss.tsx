@@ -48,8 +48,8 @@ export function ProfitAndLoss() {
 
   const revenue = data?.revenue || [];
   const expenses = data?.expenses || [];
-  const totalRevenue = data?.totalRevenue ?? revenue.reduce((s, r) => s + r.net, 0);
-  const totalExpenses = data?.totalExpenses ?? expenses.reduce((s, r) => s + r.net, 0);
+  const totalRevenue = data?.totalRevenue ?? (Array.isArray(revenue) ? revenue : []).reduce((s, r) => s + r.net, 0);
+  const totalExpenses = data?.totalExpenses ?? (Array.isArray(expenses) ? expenses : []).reduce((s, r) => s + r.net, 0);
   const netProfit = data?.netProfit ?? totalRevenue - totalExpenses;
   const isProfit = netProfit >= 0;
 

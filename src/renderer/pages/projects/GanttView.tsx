@@ -72,8 +72,10 @@ export function GanttView() {
 
   // Determine overall timeline
   const allDates = projects.flatMap(p => [p.startDate, p.dueDate]);
-  const minDate = new Date(allDates.reduce((a, b) => a < b ? a : b));
-  const maxDate = new Date(allDates.reduce((a, b) => a > b ? a : b));
+  const validDates = allDates.filter(Boolean);
+  if (validDates.length === 0) return null;
+  const minDate = new Date(validDates.reduce((a, b) => a < b ? a : b));
+  const maxDate = new Date(validDates.reduce((a, b) => a > b ? a : b));
   const totalDays = daysBetween(formatDate(minDate), formatDate(maxDate));
   const today = formatDate(new Date());
 

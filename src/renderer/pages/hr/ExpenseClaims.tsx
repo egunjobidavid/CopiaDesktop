@@ -56,8 +56,8 @@ export function ExpenseClaims() {
         api.get('/hr/expense-claims'),
         api.get('/hr/expense-claims/summary'),
       ]);
-      setClaims(claimsRes.data?.data || []);
-      setSummary(summaryRes.data || { pending: 0, approved: 0, total_amount: 0 });
+      setClaims(claimsRes.data?.data || claimsRes.data || []);
+      setSummary(summaryRes.data?.data || summaryRes.data || { pending_count: 0, pending_amount: 0, approved_count: 0, approved_amount: 0, rejected_count: 0, rejected_amount: 0, total_count: 0, total_amount: 0 });
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to load expense claims');
     } finally {

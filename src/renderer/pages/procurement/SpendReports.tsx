@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { DollarSign, TrendingUp, Building2, Loader2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../../api/client';
 
 interface SpendSummary {
@@ -45,8 +46,9 @@ export function SpendReports() {
       setSummary(data.summary || { totalSpend: 0, totalPOs: 0, totalBills: 0, outstandingBills: 0 });
       setVendorSpend(data.vendorSpend || []);
       setMonthlySpend(data.monthlySpend || []);
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error('Spend report error:', err);
+      toast.error('Failed to load spend report');
     } finally {
       setLoading(false);
     }
