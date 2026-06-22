@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, CheckCircle, XCircle, Loader2, ExternalLink, Zap, Shield, Clock, AlertTriangle, Lock, Wallet, Users, FolderKanban, Briefcase, Factory, ShoppingBag, MapPin, BarChart3, Crown, Package } from 'lucide-react';
+import { CreditCard, CheckCircle, XCircle, Loader2, ExternalLink, Zap, Shield, Clock, AlertTriangle, Lock, Wallet, Users, FolderKanban, Briefcase, Factory, ShoppingBag, MapPin, BarChart3, Crown, Package, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import api from '../../api/client';
@@ -83,7 +83,7 @@ const BUNDLES = [
 
 const PLAN_NAMES: Record<string, string> = { starter: 'Starter', business: 'Business', professional: 'Professional', enterprise: 'Enterprise', free: 'Starter', growth: 'Business' };
 
-type Tab = 'plans' | 'modules' | 'bundles';
+type Tab = 'plans' | 'modules' | 'bundles' | 'compare';
 
 export function Billing() {
   const tenantId = useAuthStore((s) => s.tenantId);
@@ -91,6 +91,9 @@ export function Billing() {
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [activeTab, setActiveTab] = useState<Tab>('plans');
+  const [switching, setSwitching] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>('');
+  const [selectedModules, setSelectedModules] = useState<string[]>([]);
 
   useEffect(() => {
     if (!tenantId) return;
@@ -134,6 +137,29 @@ export function Billing() {
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to initialize payment');
     }
+  };
+
+  const switchPlan = async (plan: string, modules: string[]) => {
+    setSwitching(true);
+    try {
+      await api.post('/billing/dev/switch-plan', { plan, modules });
+      toast.success(`Switched to ${plan} plan`);
+      // Refresh subscription data
+      const { data } = await api.get('/billing/subscription');
+      setSub(data);
+      setSelectedPlan(plan);
+      setSelectedModules(modules);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to switch plan');
+    } finally {
+      setSwitching(false);
+    }
+  };
+
+  const toggleModule = (moduleId: string) => {
+    setSelectedModules((prev) =>
+      prev.includes(moduleId) ? prev.filter((m) => m !== moduleId) : [...prev, moduleId]
+    );
   };
 
   const currentPlan = sub?.plan || 'starter';
@@ -213,6 +239,7 @@ export function Billing() {
             { key: 'plans', label: 'Core Plans', icon: Package },
             { key: 'modules', label: 'Individual Modules', icon: Zap },
             { key: 'bundles', label: 'Bundles', icon: Crown },
+            { key: 'compare', label: 'Compare Plans', icon: ArrowRight },
           ] as const).map(({ key, label, icon: Icon }) => (
             <button key={key} onClick={() => setActiveTab(key)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === key ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}>
               <Icon className="w-4 h-4" /> {label}
@@ -395,6 +422,276 @@ export function Billing() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* COMPARE PLANS TAB */}
+      {activeTab === 'compare' && (
+        <div className="space-y-6">
+          {/* Dev Plan Switcher */}
+          <div className="card border-2 border-dashed border-amber-300 bg-amber-50">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="w-4 h-4 text-amber-600" />
+              <h3 className="text-sm font-semibold text-amber-800">Dev Plan Switcher</h3>
+              <span className="text-[10px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">Testing Only</span>
+            </div>
+            <p className="text-xs text-amber-700 mb-4">Switch your tenant's plan and modules to test feature gating. Changes take effect immediately.</p>
+
+            {/* Plan Buttons */}
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-gray-600 mb-2">Core Plan</p>
+              <div className="flex gap-2 flex-wrap">
+                {CORE_PLANS.map((plan) => (
+                  <button
+                    key={plan.key}
+                    disabled={switching}
+                    onClick={() => setSelectedPlan(plan.key)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                      (selectedPlan || currentPlan) === plan.key
+                        ? 'border-primary-500 bg-primary-50 text-primary-700 ring-2 ring-primary-200'
+                        : 'border-gray-200 text-gray-600 hover:border-primary-300'
+                    } ${switching ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {plan.name}
+                    {plan.monthlyPrice > 0 && <span className="text-[10px] text-gray-400 ml-1">₦{plan.monthlyPrice.toLocaleString()}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Module Toggles */}
+            <div className="mb-4">
+              <p className="text-xs font-semibold text-gray-600 mb-2">Active Modules</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {MODULES.map((mod) => {
+                  const isActive = selectedModules.includes(mod.id) || sub?.modules?.includes(mod.id);
+                  return (
+                    <button
+                      key={mod.id}
+                      disabled={switching}
+                      onClick={() => toggleModule(mod.id)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium border-2 transition-all text-left ${
+                        isActive
+                          ? 'border-green-400 bg-green-50 text-green-800'
+                          : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      } ${switching ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {isActive ? <CheckCircle className="w-3 h-3 text-green-500" /> : <XCircle className="w-3 h-3 text-gray-300" />}
+                        {mod.name}
+                      </div>
+                      <div className="text-[10px] text-gray-400 mt-0.5">₦{mod.monthly.toLocaleString()}/mo</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Apply Button */}
+            <button
+              disabled={switching || (!selectedPlan && selectedModules.length === 0)}
+              onClick={() => switchPlan(selectedPlan || currentPlan, selectedModules)}
+              className="px-6 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {switching ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Switching...</>
+              ) : (
+                <><Zap className="w-4 h-4" /> Apply Changes</>
+              )}
+            </button>
+          </div>
+
+          {/* Plan Toggle for Preview */}
+          <div className="card">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Preview Plan — Toggle to see what each plan includes</h3>
+            <div className="flex gap-2 flex-wrap">
+              {CORE_PLANS.map((plan) => (
+                <button
+                  key={plan.key}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                    currentPlan === plan.key
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
+                      : 'border-gray-200 text-gray-600 hover:border-primary-300'
+                  }`}
+                >
+                  {plan.name}
+                  {currentPlan === plan.key && <span className="ml-1.5 text-[10px] bg-primary-600 text-white px-1.5 py-0.5 rounded-full">Current</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Full Comparison Matrix */}
+          <div className="card overflow-x-auto">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Plan Comparison Matrix</h3>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-3 text-xs font-semibold text-gray-500 w-64">Feature</th>
+                  {CORE_PLANS.map((plan) => (
+                    <th key={plan.key} className={`text-center py-3 px-3 text-xs font-semibold ${currentPlan === plan.key ? 'text-primary-700 bg-primary-50 rounded-t-lg' : 'text-gray-500'}`}>
+                      {plan.name}
+                      {plan.popular && <div className="text-[10px] text-primary-600 font-medium">Popular</div>}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {/* Limits Section */}
+                <tr className="border-b border-gray-100">
+                  <td colSpan={5} className="py-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50">Limits</td>
+                </tr>
+                {[
+                  { label: 'Users', key: 'max_users' },
+                  { label: 'Products', key: 'max_products' },
+                  { label: 'Transactions/mo', key: 'max_transactions' },
+                  { label: 'Locations', key: 'max_locations' },
+                  { label: 'Storage (MB)', key: 'max_storage_mb' },
+                  { label: 'Data Retention (days)', key: 'data_retention_days' },
+                  { label: 'Currencies', key: 'currencies' },
+                ].map(({ label, key }) => (
+                  <tr key={key} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="py-2.5 px-3 text-xs text-gray-700 font-medium">{label}</td>
+                    {CORE_PLANS.map((plan) => {
+                      const limits = PLAN_LIMITS[plan.key] || PLAN_LIMITS.starter;
+                      const val = limits[key];
+                      const display = val === -1 ? 'Unlimited' : val === 0 ? '—' : val?.toLocaleString();
+                      return (
+                        <td key={plan.key} className={`text-center py-2.5 px-3 text-xs ${currentPlan === plan.key ? 'bg-primary-50' : ''} ${val === -1 ? 'text-green-600 font-semibold' : val === 0 ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {display}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+
+                {/* Core Features Section */}
+                <tr className="border-b border-gray-100">
+                  <td colSpan={5} className="py-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50">Core Features</td>
+                </tr>
+                {[
+                  { label: 'POS & Sales', feature: 'pos' },
+                  { label: 'Inventory Management', feature: 'inventory' },
+                  { label: 'Quotes & Invoices', feature: 'quotes' },
+                  { label: 'Customers', feature: 'customers' },
+                  { label: 'Basic Reports', feature: 'basic_reports' },
+                  { label: 'Sales Orders', feature: 'sales_orders' },
+                  { label: 'Advanced Reports', feature: 'advanced_reports' },
+                  { label: 'CSV/PDF Export', feature: 'export' },
+                  { label: 'Phone Support', feature: 'phone_support' },
+                  { label: 'API Access', feature: 'api_access' },
+                  { label: 'Priority Support', feature: 'priority_support' },
+                  { label: 'Custom Integrations', feature: 'custom_integrations' },
+                ].map(({ label, feature }) => (
+                  <tr key={feature} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="py-2.5 px-3 text-xs text-gray-700 font-medium">{label}</td>
+                    {CORE_PLANS.map((plan) => {
+                      const features = PLAN_FEATURES[plan.key] || PLAN_FEATURES.starter;
+                      const has = features.includes(feature);
+                      return (
+                        <td key={plan.key} className={`text-center py-2.5 px-3 ${currentPlan === plan.key ? 'bg-primary-50' : ''}`}>
+                          {has ? (
+                            <CheckCircle className="w-4 h-4 text-green-500 mx-auto" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-gray-200 mx-auto" />
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+
+                {/* Modules Section */}
+                <tr className="border-b border-gray-100">
+                  <td colSpan={5} className="py-2 px-3 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-50">Modules (Add-on purchases)</td>
+                </tr>
+                {MODULES.map((mod) => (
+                  <tr key={mod.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="py-2.5 px-3 text-xs text-gray-700 font-medium">
+                      {mod.name}
+                      <div className="text-[10px] text-gray-400 font-normal">{mod.description.split(',')[0]}</div>
+                    </td>
+                    {CORE_PLANS.map((plan) => {
+                      const isSubscribed = sub?.modules?.includes(mod.id);
+                      return (
+                        <td key={plan.key} className={`text-center py-2.5 px-3 ${currentPlan === plan.key ? 'bg-primary-50' : ''}`}>
+                          {isSubscribed ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                              <CheckCircle className="w-3 h-3" /> Active
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400">₦{mod.monthly.toLocaleString()}/mo</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+
+                {/* Pricing Row */}
+                <tr className="border-t-2 border-gray-200 bg-gray-50">
+                  <td className="py-3 px-3 text-xs font-bold text-gray-900">Monthly Price</td>
+                  {CORE_PLANS.map((plan) => (
+                    <td key={plan.key} className={`text-center py-3 px-3 ${currentPlan === plan.key ? 'bg-primary-50' : ''}`}>
+                      <span className="text-sm font-bold text-gray-900">
+                        {plan.monthlyPrice === 0 ? 'Free' : `₦${plan.monthlyPrice.toLocaleString()}`}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+                <tr className="bg-gray-50">
+                  <td className="py-3 px-3 text-xs font-bold text-gray-900">Annual Price (per mo)</td>
+                  {CORE_PLANS.map((plan) => (
+                    <td key={plan.key} className={`text-center py-3 px-3 ${currentPlan === plan.key ? 'bg-primary-50' : ''}`}>
+                      <span className="text-sm font-bold text-green-700">
+                        {plan.annualPrice === 0 ? 'Free' : `₦${plan.annualPrice.toLocaleString()}`}
+                      </span>
+                      {plan.annualPrice > 0 && <div className="text-[10px] text-green-600">Save 20%</div>}
+                    </td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Quick Module Pricing */}
+          <div className="card">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Module Add-on Pricing (per module, per month)</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {MODULES.map((mod) => (
+                <div key={mod.id} className="p-3 rounded-lg border border-gray-200 hover:border-primary-200 transition-colors">
+                  <p className="text-xs font-semibold text-gray-900">{mod.name}</p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">₦{mod.monthly.toLocaleString()}<span className="text-xs text-gray-400 font-normal">/mo</span></p>
+                  <p className="text-[10px] text-green-600">Annual: ₦{mod.annual.toLocaleString()}/mo</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bundle Savings */}
+          <div className="card">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Bundle Savings</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {BUNDLES.filter(b => b.id !== 'enterprise_suite').map((bundle) => {
+                const savings = getBundleSavings(bundle);
+                return (
+                  <div key={bundle.id} className="p-3 rounded-lg border border-gray-200">
+                    <p className="text-xs font-semibold text-gray-900">{bundle.name}</p>
+                    <p className="text-[10px] text-gray-500 mb-2">{bundle.description}</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-bold text-gray-900">₦{bundle.monthly.toLocaleString()}</span>
+                      <span className="text-[10px] text-gray-400 line-through">₦{savings.individual.toLocaleString()}</span>
+                    </div>
+                    {savings.percent > 0 && (
+                      <span className="text-[10px] font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full mt-1 inline-block">
+                        Save {savings.percent}% (₦{savings.saved.toLocaleString()}/mo)
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
