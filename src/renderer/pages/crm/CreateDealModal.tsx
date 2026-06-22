@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -6,6 +6,12 @@ import toast from 'react-hot-toast';
 interface DealStage {
   id: string;
   name: string;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  company?: string;
 }
 
 interface Props {
@@ -17,6 +23,7 @@ interface Props {
 export function CreateDealModal({ stages, onClose, onCreate }: Props) {
   const [form, setForm] = useState({
     title: '',
+    customerId: '',
     stageId: stages[0]?.id || '',
     value: '',
     probability: '',
@@ -25,7 +32,15 @@ export function CreateDealModal({ stages, onClose, onCreate }: Props) {
     type: '',
     notes: '',
   });
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    api.get('/customers').then(({ data }) => {
+      const items = data?.items || data || [];
+      setCustomers(Array.isArray(items) ? items : []);
+    }).catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +50,7 @@ export function CreateDealModal({ stages, onClose, onCreate }: Props) {
       setLoading(true);
       await api.post('/crm/deals', {
         title: form.title,
+        customerId: form.customerId || undefined,
         stageId: form.stageId || undefined,
         value: form.value ? Number(form.value) : undefined,
         probability: form.probability ? Number(form.probability) : undefined,
@@ -72,6 +88,20 @@ export function CreateDealModal({ stages, onClose, onCreate }: Props) {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
               placeholder="Deal title"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+            <select
+              value={form.customerId}
+              onChange={(e) => setForm({ ...form, customerId: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
+            >
+              <option value="">Select customer</option>
+              {customers.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}{c.company ? ` (${c.company})` : ''}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -298,6 +298,9 @@ export function CRM() {
                         <p className="text-sm font-semibold text-primary-700 mt-1">
                           {formatCurrency(deal.value)}
                         </p>
+                        {deal.customer_name && (
+                          <p className="text-xs text-gray-600 mt-1 font-medium">{deal.customer_name}</p>
+                        )}
                         <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
                           {deal.expected_close_date && (
                             <span className="flex items-center gap-1">

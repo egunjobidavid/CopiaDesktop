@@ -9,6 +9,7 @@ interface Deal {
   dealNumber: string;
   title: string;
   customerId: string;
+  customer_name?: string;
   stageId: string;
   value: number;
   currency: string;
@@ -396,6 +397,10 @@ export default function DealDetailModal({ dealId, stages, onClose, onUpdate }: D
                     )}
                     <span className="text-sm font-medium text-gray-900">{deal.stage?.name || '\u2014'}</span>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide">Customer</label>
+                  <p className="mt-1 text-sm text-gray-900">{deal.customer_name || '\u2014'}</p>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide">Probability</label>

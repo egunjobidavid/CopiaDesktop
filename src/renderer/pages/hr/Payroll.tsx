@@ -17,6 +17,7 @@ interface PayrollRun {
 
 interface PayrollLine {
   id: string;
+  employee_id: string;
   employee_name: string;
   employee_code: string;
   base_salary: number;
@@ -275,6 +276,7 @@ export function Payroll() {
                       <th className="text-right py-2 text-xs font-medium text-gray-500">Allowances</th>
                       <th className="text-right py-2 text-xs font-medium text-gray-500">Deductions</th>
                       <th className="text-right py-2 text-xs font-medium text-gray-500">Net Pay</th>
+                      <th className="text-right py-2 text-xs font-medium text-gray-500">Payslip</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -288,6 +290,17 @@ export function Payroll() {
                         <td className="py-2 text-xs text-right text-green-600">{formatCurrency(line.allowances)}</td>
                         <td className="py-2 text-xs text-right text-red-600">{formatCurrency(line.deductions)}</td>
                         <td className="py-2 text-xs text-right font-medium">{formatCurrency(line.net_pay)}</td>
+                        <td className="py-2 text-right">
+                          <button
+                            onClick={() => {
+                              const url = `${api.defaults.baseURL}/hr/payroll/runs/${selectedRun?.id}/payslip/${line.employee_id}`;
+                              window.open(url, '_blank');
+                            }}
+                            className="text-xs text-primary-600 hover:text-primary-800 font-medium"
+                          >
+                            View Payslip
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

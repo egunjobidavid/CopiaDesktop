@@ -53,6 +53,7 @@ const CRM = lazy(() => import('./pages/crm/CRM').then((m) => ({ default: m.CRM }
 const Employees = lazy(() => import('./pages/hr/Employees').then((m) => ({ default: m.Employees })));
 const Attendance = lazy(() => import('./pages/hr/Attendance').then((m) => ({ default: m.Attendance })));
 const Payroll = lazy(() => import('./pages/hr/Payroll').then((m) => ({ default: m.Payroll })));
+const Leave = lazy(() => import('./pages/hr/Leave').then((m) => ({ default: m.Leave })));
 
 function PageLoader() {
   return (
@@ -142,6 +143,7 @@ export function App() {
               <Route path="/hr/employees" element={<LazyPage><Employees /></LazyPage>} />
               <Route path="/hr/attendance" element={<LazyPage><Attendance /></LazyPage>} />
               <Route path="/hr/payroll" element={<LazyPage><Payroll /></LazyPage>} />
+              <Route path="/hr/leave" element={<LazyPage><Leave /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" />}>
               <Route path="/settings" element={<LazyPage><Settings /></LazyPage>} />

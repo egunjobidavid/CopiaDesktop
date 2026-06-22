@@ -40,6 +40,7 @@ import {
   BarChart2,
   Users2,
   Clock,
+  Calendar,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -109,6 +110,7 @@ const navSections: NavSection[] = [
       { path: '/hr/employees', label: 'Employees', icon: Users, minRole: 'Manager', feature: 'hr' },
       { path: '/hr/attendance', label: 'Attendance', icon: Clock, minRole: 'Manager', feature: 'hr' },
       { path: '/hr/payroll', label: 'Payroll', icon: Banknote, minRole: 'Manager', feature: 'hr' },
+      { path: '/hr/leave', label: 'Leave', icon: Calendar, minRole: 'Manager', feature: 'hr' },
     ],
   },
   {
