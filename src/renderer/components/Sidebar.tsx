@@ -46,6 +46,7 @@ import {
   Repeat,
   Mail,
   Calculator,
+  Gantt,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
