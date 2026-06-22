@@ -41,6 +41,7 @@ import {
   Users2,
   Clock,
   Calendar,
+  UserCheck,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -83,6 +84,7 @@ const navSections: NavSection[] = [
       { path: '/vendors', label: 'Vendors', icon: ShoppingBag, minRole: 'Accountant', feature: 'procurement' },
       { path: '/procurement', label: 'Purchase Orders', icon: ClipboardList, minRole: 'Manager', feature: 'procurement' },
       { path: '/procurement/payments', label: 'Bill Payments', icon: Banknote, minRole: 'Manager', feature: 'procurement' },
+      { path: '/procurement/reports', label: 'Spend Reports', icon: BarChart3, minRole: 'Manager', feature: 'procurement' },
     ],
   },
   {
@@ -96,12 +98,14 @@ const navSections: NavSection[] = [
     items: [
       { path: '/projects', label: 'Project Management', icon: FolderKanban, minRole: 'Staff', feature: 'projects' },
       { path: '/projects/reports/overview', label: 'Project Reports', icon: BarChart2, minRole: 'Staff', feature: 'projects' },
+      { path: '/projects/gantt', label: 'Timeline (Gantt)', icon: Gantt, minRole: 'Staff', feature: 'projects' },
     ],
   },
   {
     label: 'CRM',
     items: [
       { path: '/crm', label: 'Pipeline', icon: Users2, minRole: 'Sales Rep', feature: 'crm' },
+      { path: '/crm/reports', label: 'Pipeline Reports', icon: BarChart3, minRole: 'Sales Rep', feature: 'crm' },
     ],
   },
   {
@@ -111,6 +115,8 @@ const navSections: NavSection[] = [
       { path: '/hr/attendance', label: 'Attendance', icon: Clock, minRole: 'Manager', feature: 'hr' },
       { path: '/hr/payroll', label: 'Payroll', icon: Banknote, minRole: 'Manager', feature: 'hr' },
       { path: '/hr/leave', label: 'Leave', icon: Calendar, minRole: 'Manager', feature: 'hr' },
+      { path: '/hr/deductions', label: 'Deductions', icon: Settings, minRole: 'Manager', feature: 'hr' },
+      { path: '/hr/onboarding', label: 'Onboarding', icon: UserCheck, minRole: 'Manager', feature: 'hr' },
     ],
   },
   {
@@ -122,6 +128,7 @@ const navSections: NavSection[] = [
       { path: '/accounting/trial-balance', label: 'Trial Balance', icon: Scale, minRole: 'Accountant', feature: 'accounting' },
       { path: '/accounting/tax-config', label: 'Tax Config', icon: Percent, minRole: 'Accountant', feature: 'accounting' },
       { path: '/accounting/bank-reconciliation', label: 'Bank Reconciliation', icon: Building, minRole: 'Accountant', feature: 'accounting' },
+      { path: '/accounting/fiscal-periods', label: 'Fiscal Periods', icon: Calendar, minRole: 'Accountant', feature: 'accounting' },
       { path: '/approvals', label: 'Approvals', icon: CheckSquare, minRole: 'Accountant', feature: 'approvals' },
       { path: '/reports', label: 'Reports', icon: BarChart3, minRole: 'Accountant' },
     ],

@@ -27,6 +27,7 @@ const SalesOrders = lazy(() => import('./pages/sales/SalesOrders').then((m) => (
 const Quotes = lazy(() => import('./pages/sales/Quotes').then((m) => ({ default: m.Quotes })));
 const VendorList = lazy(() => import('./pages/vendors/VendorList').then((m) => ({ default: m.VendorList })));
 const VendorBillPayment = lazy(() => import('./pages/procurement/VendorBillPayment').then((m) => ({ default: m.VendorBillPayment })));
+const SpendReports = lazy(() => import('./pages/procurement/SpendReports').then((m) => ({ default: m.SpendReports })));
 const Production = lazy(() => import('./pages/production/Production').then((m) => ({ default: m.Production })));
 const Expenses = lazy(() => import('./pages/expenses/Expenses').then((m) => ({ default: m.Expenses })));
 const Settings = lazy(() => import('./pages/settings/Settings').then((m) => ({ default: m.Settings })));
@@ -44,16 +45,21 @@ const GeneralLedger = lazy(() => import('./pages/accounting/GeneralLedger').then
 const TrialBalance = lazy(() => import('./pages/accounting/TrialBalance').then((m) => ({ default: m.TrialBalance })));
 const TaxConfig = lazy(() => import('./pages/accounting/TaxConfig').then((m) => ({ default: m.TaxConfig })));
 const BankReconciliation = lazy(() => import('./pages/accounting/BankReconciliation').then((m) => ({ default: m.BankReconciliation })));
+const FiscalPeriods = lazy(() => import('./pages/accounting/FiscalPeriods').then((m) => ({ default: m.FiscalPeriods })));
 const Projects = lazy(() => import('./pages/projects/Projects').then((m) => ({ default: m.Projects })));
 const ProjectDetail = lazy(() => import('./pages/projects/ProjectDetail').then((m) => ({ default: m.ProjectDetail })));
 const ProjectReports = lazy(() => import('./pages/projects/ProjectReports').then((m) => ({ default: m.ProjectReports })));
 const Help = lazy(() => import('./pages/Help').then((m) => ({ default: m.Help })));
 const OnboardingWizard = lazy(() => import('./pages/Onboarding').then((m) => ({ default: m.OnboardingWizard })));
 const CRM = lazy(() => import('./pages/crm/CRM').then((m) => ({ default: m.CRM })));
+const PipelineReports = lazy(() => import('./pages/crm/PipelineReports').then((m) => ({ default: m.PipelineReports })));
+const GanttView = lazy(() => import('./pages/projects/GanttView').then((m) => ({ default: m.GanttView })));
 const Employees = lazy(() => import('./pages/hr/Employees').then((m) => ({ default: m.Employees })));
 const Attendance = lazy(() => import('./pages/hr/Attendance').then((m) => ({ default: m.Attendance })));
 const Payroll = lazy(() => import('./pages/hr/Payroll').then((m) => ({ default: m.Payroll })));
 const Leave = lazy(() => import('./pages/hr/Leave').then((m) => ({ default: m.Leave })));
+const Deductions = lazy(() => import('./pages/hr/Deductions').then((m) => ({ default: m.Deductions })));
+const Onboarding = lazy(() => import('./pages/hr/Onboarding').then((m) => ({ default: m.Onboarding })));
 
 function PageLoader() {
   return (
@@ -121,29 +127,35 @@ export function App() {
               <Route path="/accounting/trial-balance" element={<LazyPage><TrialBalance /></LazyPage>} />
               <Route path="/accounting/tax-config" element={<LazyPage><TaxConfig /></LazyPage>} />
               <Route path="/accounting/bank-reconciliation" element={<LazyPage><BankReconciliation /></LazyPage>} />
+              <Route path="/accounting/fiscal-periods" element={<LazyPage><FiscalPeriods /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="procurement" />}>
               <Route path="/procurement" element={<LazyPage><POList /></LazyPage>} />
               <Route path="/procurement/new" element={<LazyPage><POForm /></LazyPage>} />
               <Route path="/procurement/:id" element={<LazyPage><PODetail /></LazyPage>} />
               <Route path="/procurement/payments" element={<LazyPage><VendorBillPayment /></LazyPage>} />
+              <Route path="/procurement/reports" element={<LazyPage><SpendReports /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Staff" feature="projects" />}>
               <Route path="/projects" element={<LazyPage><Projects /></LazyPage>} />
               <Route path="/projects/:id" element={<LazyPage><ProjectDetail /></LazyPage>} />
               <Route path="/projects/reports/overview" element={<LazyPage><ProjectReports /></LazyPage>} />
+              <Route path="/projects/gantt" element={<LazyPage><GanttView /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
               <Route path="/production" element={<LazyPage><Production /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="crm" />}>
               <Route path="/crm" element={<LazyPage><CRM /></LazyPage>} />
+              <Route path="/crm/reports" element={<LazyPage><PipelineReports /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" feature="hr" />}>
               <Route path="/hr/employees" element={<LazyPage><Employees /></LazyPage>} />
               <Route path="/hr/attendance" element={<LazyPage><Attendance /></LazyPage>} />
               <Route path="/hr/payroll" element={<LazyPage><Payroll /></LazyPage>} />
               <Route path="/hr/leave" element={<LazyPage><Leave /></LazyPage>} />
+              <Route path="/hr/deductions" element={<LazyPage><Deductions /></LazyPage>} />
+              <Route path="/hr/onboarding" element={<LazyPage><Onboarding /></LazyPage>} />
             </Route>
             <Route element={<ProtectedRoute minRole="Manager" />}>
               <Route path="/settings" element={<LazyPage><Settings /></LazyPage>} />

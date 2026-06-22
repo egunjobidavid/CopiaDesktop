@@ -12,6 +12,11 @@ interface TaskDetail {
   activity: { id: string; userId: string; action: string; field: string; oldValue: string; newValue: string; createdAt: string }[];
 }
 
+interface Attachment {
+  id: string; fileName: string; fileSize: number; fileType: string; fileUrl: string;
+  uploadedAt: string; uploadedBy?: string;
+}
+
 interface Props {
   taskId: string;
   projectId: string;
@@ -40,8 +45,11 @@ export function TaskDetailModal({ taskId, projectId, onClose }: Props) {
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState('');
   const [subtaskTitle, setSubtaskTitle] = useState('');
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [uploadForm, setUploadForm] = useState({ fileName: '', fileUrl: '', fileSize: '', fileType: '' });
+  const [showUpload, setShowUpload] = useState(false);
 
-  useEffect(() => { loadTask(); }, [taskId]);
+  useEffect(() => { loadTask(); loadAttachments(); }, [taskId]);
 
   const loadTask = async () => {
     try {
@@ -75,6 +83,60 @@ export function TaskDetailModal({ taskId, projectId, onClose }: Props) {
       setSubtaskTitle('');
       loadTask();
     } catch { toast.error('Failed to add subtask'); }
+  };
+
+  const loadAttachments = async () => {
+    try {
+      const res = await api.get(`/projects/tasks/${taskId}/attachments`);
+      setAttachments(res.data?.data || res.data || []);
+    } catch { /* endpoint may not exist yet */ }
+  };
+
+  const handleUploadAttachment = async () => {
+    if (!uploadForm.fileName.trim() || !uploadForm.fileUrl.trim()) return;
+    try {
+      await api.post(`/projects/tasks/${taskId}/attachments`, {
+        fileName: uploadForm.fileName,
+        fileSize: Number(uploadForm.fileSize) || 0,
+        fileType: uploadForm.fileType || 'application/octet-stream',
+        fileUrl: uploadForm.fileUrl,
+      });
+      toast.success('Attachment uploaded');
+      setUploadForm({ fileName: '', fileUrl: '', fileSize: '', fileType: '' });
+      setShowUpload(false);
+      loadAttachments();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to upload attachment');
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    if (!confirm('Delete this attachment?')) return;
+    try {
+      await api.delete(`/projects/tasks/${taskId}/attachments/${attachmentId}`);
+      toast.success('Attachment deleted');
+      loadAttachments();
+    } catch { toast.error('Failed to delete attachment'); }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType.startsWith('image/')) return '🖼';
+    if (fileType.includes('pdf')) return '📄';
+    if (fileType.includes('spreadsheet') || fileType.includes('excel') || fileType.includes('csv')) return '📊';
+    if (fileType.includes('word') || fileType.includes('document')) return '📝';
+    if (fileType.includes('presentation') || fileType.includes('powerpoint')) return '📽';
+    if (fileType.startsWith('video/')) return '🎬';
+    if (fileType.startsWith('audio/')) return '🎵';
+    if (fileType.includes('zip') || fileType.includes('archive') || fileType.includes('rar')) return '📦';
+    return '📎';
   };
 
   const handleSubtaskToggle = async (subtaskId: string, currentStatus: string) => {
@@ -174,6 +236,58 @@ export function TaskDetailModal({ taskId, projectId, onClose }: Props) {
                 </div>
               </div>
             )}
+
+            {/* Attachments */}
+            <div>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-gray-500 uppercase">Attachments ({attachments.length})</label>
+                <button onClick={() => setShowUpload(!showUpload)} className="text-primary-600 text-sm font-medium hover:underline">
+                  {showUpload ? 'Cancel' : '+ Add'}
+                </button>
+              </div>
+
+              {showUpload && (
+                <div className="mt-2 bg-gray-50 rounded-lg p-3 space-y-2">
+                  <input type="text" value={uploadForm.fileName} onChange={(e) => setUploadForm({ ...uploadForm, fileName: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500" placeholder="File name (e.g. design.png)" />
+                  <input type="text" value={uploadForm.fileUrl} onChange={(e) => setUploadForm({ ...uploadForm, fileUrl: e.target.value })}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500" placeholder="File URL" />
+                  <div className="flex gap-2">
+                    <input type="text" value={uploadForm.fileType} onChange={(e) => setUploadForm({ ...uploadForm, fileType: e.target.value })}
+                      className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500" placeholder="MIME type (optional)" />
+                    <input type="number" value={uploadForm.fileSize} onChange={(e) => setUploadForm({ ...uploadForm, fileSize: e.target.value })}
+                      className="w-28 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-primary-500" placeholder="Size (bytes)" />
+                  </div>
+                  <button onClick={handleUploadAttachment} className="w-full px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 font-medium">Upload</button>
+                </div>
+              )}
+
+              {attachments.length === 0 && !showUpload && (
+                <p className="text-xs text-gray-400 mt-2">No attachments yet</p>
+              )}
+
+              {attachments.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {attachments.map((att) => (
+                    <div key={att.id} className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-gray-50 group">
+                      <span className="text-lg">{getFileIcon(att.fileType)}</span>
+                      <div className="flex-1 min-w-0">
+                        <a href={att.fileUrl} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary-600 hover:underline truncate block">
+                          {att.fileName}
+                        </a>
+                        <p className="text-xs text-gray-400">
+                          {formatFileSize(att.fileSize)} &middot; {new Date(att.uploadedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button onClick={() => handleDeleteAttachment(att.id)}
+                        className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded hover:bg-red-50 transition-opacity">
+                        Delete
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Sidebar */}
