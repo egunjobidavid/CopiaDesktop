@@ -46,7 +46,7 @@ import {
   Repeat,
   Mail,
   Calculator,
-  Gantt,
+  GanttChart,
 } from 'lucide-react';
 import logo from '../assets/logo.svg';
 
@@ -105,7 +105,7 @@ const navSections: NavSection[] = [
     items: [
       { path: '/projects', label: 'Project Management', icon: FolderKanban, minRole: 'Staff', feature: 'projects' },
       { path: '/projects/reports/overview', label: 'Project Reports', icon: BarChart2, minRole: 'Staff', feature: 'projects' },
-      { path: '/projects/gantt', label: 'Timeline (Gantt)', icon: Gantt, minRole: 'Staff', feature: 'projects' },
+      { path: '/projects/gantt', label: 'Timeline (Gantt)', icon: GanttChart, minRole: 'Staff', feature: 'projects' },
       { path: '/projects/recurring', label: 'Recurring Tasks', icon: Repeat, minRole: 'Staff', feature: 'projects' },
     ],
   },
