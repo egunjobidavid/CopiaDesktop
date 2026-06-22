@@ -79,22 +79,22 @@ const navSections: NavSection[] = [
   {
     label: 'Procurement',
     items: [
-      { path: '/vendors', label: 'Vendors', icon: ShoppingBag, minRole: 'Accountant' },
-      { path: '/procurement', label: 'Purchase Orders', icon: ClipboardList, minRole: 'Manager' },
-      { path: '/procurement/payments', label: 'Bill Payments', icon: Banknote, minRole: 'Manager' },
+      { path: '/vendors', label: 'Vendors', icon: ShoppingBag, minRole: 'Accountant', feature: 'procurement' },
+      { path: '/procurement', label: 'Purchase Orders', icon: ClipboardList, minRole: 'Manager', feature: 'procurement' },
+      { path: '/procurement/payments', label: 'Bill Payments', icon: Banknote, minRole: 'Manager', feature: 'procurement' },
     ],
   },
   {
     label: 'Production',
     items: [
-      { path: '/production', label: 'Production', icon: Factory, minRole: 'Manager' },
+      { path: '/production', label: 'Production', icon: Factory, minRole: 'Manager', feature: 'production' },
     ],
   },
   {
     label: 'Projects',
     items: [
-      { path: '/projects', label: 'Project Management', icon: FolderKanban, minRole: 'Staff' },
-      { path: '/projects/reports/overview', label: 'Project Reports', icon: BarChart2, minRole: 'Staff' },
+      { path: '/projects', label: 'Project Management', icon: FolderKanban, minRole: 'Staff', feature: 'projects' },
+      { path: '/projects/reports/overview', label: 'Project Reports', icon: BarChart2, minRole: 'Staff', feature: 'projects' },
     ],
   },
   {
@@ -115,11 +115,11 @@ const navSections: NavSection[] = [
     label: 'Finance',
     items: [
       { path: '/expenses', label: 'Expenses', icon: Wallet, minRole: 'Accountant' },
-      { path: '/accounting/chart-of-accounts', label: 'Chart of Accounts', icon: Landmark, minRole: 'Accountant' },
-      { path: '/accounting/general-ledger', label: 'General Ledger', icon: BookOpen, minRole: 'Accountant' },
-      { path: '/accounting/trial-balance', label: 'Trial Balance', icon: Scale, minRole: 'Accountant' },
-      { path: '/accounting/tax-config', label: 'Tax Config', icon: Percent, minRole: 'Accountant' },
-      { path: '/accounting/bank-reconciliation', label: 'Bank Reconciliation', icon: Building, minRole: 'Accountant' },
+      { path: '/accounting/chart-of-accounts', label: 'Chart of Accounts', icon: Landmark, minRole: 'Accountant', feature: 'accounting' },
+      { path: '/accounting/general-ledger', label: 'General Ledger', icon: BookOpen, minRole: 'Accountant', feature: 'accounting' },
+      { path: '/accounting/trial-balance', label: 'Trial Balance', icon: Scale, minRole: 'Accountant', feature: 'accounting' },
+      { path: '/accounting/tax-config', label: 'Tax Config', icon: Percent, minRole: 'Accountant', feature: 'accounting' },
+      { path: '/accounting/bank-reconciliation', label: 'Bank Reconciliation', icon: Building, minRole: 'Accountant', feature: 'accounting' },
       { path: '/approvals', label: 'Approvals', icon: CheckSquare, minRole: 'Accountant', feature: 'approvals' },
       { path: '/reports', label: 'Reports', icon: BarChart3, minRole: 'Accountant' },
     ],

@@ -107,7 +107,7 @@ export function App() {
               <Route path="/sales" element={<LazyPage><SalesOrders /></LazyPage>} />
               <Route path="/quotes" element={<LazyPage><Quotes /></LazyPage>} />
             </Route>
-            <Route element={<ProtectedRoute minRole="Accountant" />}>
+            <Route element={<ProtectedRoute minRole="Accountant" feature="accounting" />}>
               <Route path="/invoices" element={<LazyPage><Invoices /></LazyPage>} />
               <Route path="/vendors" element={<LazyPage><VendorList /></LazyPage>} />
               <Route path="/expenses" element={<LazyPage><Expenses /></LazyPage>} />
@@ -121,13 +121,13 @@ export function App() {
               <Route path="/accounting/tax-config" element={<LazyPage><TaxConfig /></LazyPage>} />
               <Route path="/accounting/bank-reconciliation" element={<LazyPage><BankReconciliation /></LazyPage>} />
             </Route>
-            <Route element={<ProtectedRoute minRole="Manager" />}>
+            <Route element={<ProtectedRoute minRole="Manager" feature="procurement" />}>
               <Route path="/procurement" element={<LazyPage><POList /></LazyPage>} />
               <Route path="/procurement/new" element={<LazyPage><POForm /></LazyPage>} />
               <Route path="/procurement/:id" element={<LazyPage><PODetail /></LazyPage>} />
               <Route path="/procurement/payments" element={<LazyPage><VendorBillPayment /></LazyPage>} />
             </Route>
-            <Route element={<ProtectedRoute minRole="Staff" />}>
+            <Route element={<ProtectedRoute minRole="Staff" feature="projects" />}>
               <Route path="/projects" element={<LazyPage><Projects /></LazyPage>} />
               <Route path="/projects/:id" element={<LazyPage><ProjectDetail /></LazyPage>} />
               <Route path="/projects/reports/overview" element={<LazyPage><ProjectReports /></LazyPage>} />
