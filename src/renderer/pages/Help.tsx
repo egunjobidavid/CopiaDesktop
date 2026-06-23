@@ -28,6 +28,12 @@ import {
   Send,
   Handshake,
   Briefcase,
+  Calendar,
+  Download,
+  BarChart,
+  Scissors,
+  Clock,
+  Repeat,
 } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 
@@ -150,13 +156,14 @@ const sections: Section[] = [
             <p>Navigate to <strong>Point of Sale</strong> in the sidebar:</p>
             <ol className="list-decimal list-inside space-y-1 text-sm">
               <li>Click <strong>Open Drawer</strong> to start a session (enter opening cash balance)</li>
-              <li>Search for products by name or <strong>scan barcode</strong></li>
+              <li>Search for products by name, SKU, or <strong>scan barcode</strong> with your device camera</li>
               <li>Adjust quantities as needed</li>
               <li>Click <strong>Checkout</strong> and select payment method (Cash, Card, Transfer)</li>
               <li>Supports <strong>split payments</strong> (e.g., part cash, part card)</li>
               <li>Click <strong>Complete Sale</strong> to finalize</li>
             </ol>
             <p>At end of day, click <strong>Z-Report</strong> to close the drawer with cash count breakdown.</p>
+            <p><strong>Barcode Scanning:</strong> Products with barcodes set up in inventory can be scanned directly at POS using your device camera or a connected barcode scanner.</p>
           </div>
         ),
       },
@@ -168,7 +175,8 @@ const sections: Section[] = [
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li><strong>Custom Items:</strong> Add products from inventory OR type custom item names for non-standard work</li>
               <li><strong>Document Types:</strong> Choose General, Contract, Project, or Supply quote templates</li>
-              <li><strong>Send to Client:</strong> Click the email icon to send a professional branded quote</li>
+              <li><strong>Send to Client:</strong> Click the email icon to send a professional branded quote via email</li>
+              <li><strong>Email Templates:</strong> Choose from pre-configured email templates (General, Contract, Project, Supply)</li>
               <li><strong>PDF Download:</strong> Download as PDF for printing</li>
               <li><strong>Version Control:</strong> Quotes auto-version when edited</li>
               <li><strong>Convert:</strong> Convert accepted quotes to Sales Orders or Invoices</li>
@@ -186,6 +194,7 @@ const sections: Section[] = [
               <li><strong>From Quote:</strong> Convert a quote directly into an invoice</li>
               <li><strong>From Sales Order:</strong> Auto-generate invoice when order is fulfilled</li>
               <li><strong>Send via Email:</strong> Click the email icon, choose a template (General/Contract/Project/Supply), and send</li>
+              <li><strong>Email Templates:</strong> Professional pre-built templates for different document types</li>
               <li><strong>PDF Download:</strong> Download professional invoice PDF</li>
               <li><strong>Credit Memo:</strong> Issue credit memos for returns or adjustments</li>
               <li><strong>Void:</strong> Void invoices that were issued in error</li>
@@ -236,7 +245,7 @@ const sections: Section[] = [
             <p>Go to <strong>Products</strong> and click "Add Product":</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>Enter SKU (auto-generated if left blank), name, description</li>
-              <li>Set <strong>barcode</strong> for POS scanning</li>
+              <li>Set <strong>barcode</strong> for POS scanning (use a barcode scanner or generate codes)</li>
               <li>Select product type and category</li>
               <li>Set unit of measure (piece, kg, litre, etc.)</li>
               <li>Set selling price and cost price</li>
@@ -289,6 +298,20 @@ const sections: Section[] = [
           </div>
         ),
       },
+      {
+        title: 'Product Variants',
+        content: (
+          <div className="space-y-2">
+            <p>Create products with different sizes, colors, or other attributes:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>When adding a product, click <strong>"Add Variant"</strong> to create variants</li>
+              <li>Each variant gets its own SKU, price, and barcode</li>
+              <li>Stock is tracked per variant (e.g., Size M in Blue vs Size L in Red)</li>
+              <li>Variants appear as selectable options at POS and on quotes/invoices</li>
+            </ul>
+          </div>
+        ),
+      },
     ],
   },
   {
@@ -308,7 +331,37 @@ const sections: Section[] = [
               <li><strong>Activities:</strong> Log calls, meetings, emails, and tasks against deals</li>
               <li><strong>Notes:</strong> Add internal notes visible to your team</li>
               <li><strong>Tags:</strong> Categorize deals with color-coded tags</li>
+              <li><strong>Customer Link:</strong> Link deals to existing customers for a unified view</li>
               <li><strong>Convert:</strong> Won deals can be converted to quotes or invoices</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Pipeline Reports & Forecasting',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>CRM &gt; Reports</strong> to analyze your pipeline:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Pipeline Report:</strong> View deal values by stage, conversion rates, and win/loss ratios</li>
+              <li><strong>Revenue Forecast:</strong> See projected revenue from open deals weighted by probability</li>
+              <li><strong>Activity Reports:</strong> Track team activity levels and deal velocity</li>
+              <li>Filter by date range, assignee, or deal value</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Email Templates for Deals',
+        content: (
+          <div className="space-y-2">
+            <p>Create reusable email templates for consistent client communication:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Go to <strong>CRM &gt; Email Templates</strong> to manage templates</li>
+              <li>Create templates with placeholders (e.g., {customerName}, {dealValue})</li>
+              <li>Use the <strong>Preview</strong> button to see how the email will look</li>
+              <li>Send emails directly from deal detail views</li>
+              <li>Supports HTML formatting for professional-looking emails</li>
             </ul>
           </div>
         ),
@@ -392,7 +445,23 @@ const sections: Section[] = [
               <li><strong>Project Members:</strong> Add team members to projects with Lead, Member, or Viewer roles</li>
               <li><strong>Assignees:</strong> Assign tasks to specific team members</li>
               <li><strong>Comments:</strong> Discuss tasks in real-time with threaded comments</li>
+              <li><strong>File Attachments:</strong> Attach files directly to tasks (documents, images, PDFs)</li>
               <li><strong>Activity Feed:</strong> Stay updated on all project changes</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Recurring Tasks',
+        content: (
+          <div className="space-y-2">
+            <p>Automate repetitive work with recurring tasks:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>Go to <strong>Projects &gt; Recurring Tasks</strong> to view all recurring tasks</li>
+              <li>Set a task to repeat daily, weekly, monthly, or on a custom schedule</li>
+              <li>Each recurrence automatically creates a new task instance</li>
+              <li>Track which recurring tasks are active and when the next one is due</li>
+              <li>Great for weekly reports, monthly reviews, daily standups, etc.</li>
             </ul>
           </div>
         ),
@@ -517,6 +586,21 @@ const sections: Section[] = [
         ),
       },
       {
+        title: 'Fiscal Year & Period Management',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>Accounting &gt; Fiscal Periods</strong> to manage your financial periods:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Create Periods:</strong> Define fiscal year start/end dates (e.g., Jan 1 - Dec 31)</li>
+              <li><strong>Close Period:</strong> Lock a period to prevent further journal entries (end-of-month/year closing)</li>
+              <li><strong>Reopen Period:</strong> Reopen a closed period if corrections are needed (admin only)</li>
+              <li>Closed periods ensure historical financial data integrity</li>
+            </ul>
+            <p><strong>Tip:</strong> Close periods monthly for clean financial reporting. Only MD or Director roles can close/reopen periods.</p>
+          </div>
+        ),
+      },
+      {
         title: 'Approvals',
         content: (
           <div className="space-y-2">
@@ -618,6 +702,20 @@ const sections: Section[] = [
         ),
       },
       {
+        title: 'Employee Onboarding',
+        content: (
+          <div className="space-y-2">
+            <p>Streamline new hire setup with the onboarding workflow:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>After creating an employee, go to <strong>HR &gt; Onboarding</strong></li>
+              <li>Track onboarding progress per employee (documents, equipment, training, etc.)</li>
+              <li>Mark items as completed and see overall completion percentage</li>
+              <li>View onboarding status for all new employees in one place</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
         title: 'Attendance & Time Tracking',
         content: (
           <div className="space-y-2">
@@ -628,6 +726,21 @@ const sections: Section[] = [
               <li><strong>Date Range:</strong> Set a date range to view attendance history</li>
               <li><strong>Hours Tracking:</strong> Total hours worked are calculated automatically</li>
               <li><strong>Attendance Log:</strong> View all clock-in/out records with timestamps</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Leave Management',
+        content: (
+          <div className="space-y-2">
+            <p>Go to <strong>HR &gt; Leave</strong> to manage time-off requests:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Leave Types:</strong> Admins configure leave types (Annual, Sick, Maternity, etc.) with default days per year</li>
+              <li><strong>Request Leave:</strong> Employees submit leave requests with start/end dates and reason</li>
+              <li><strong>Approve/Reject:</strong> Managers review and approve or reject requests with notes</li>
+              <li><strong>Leave Balances:</strong> View remaining leave days per employee per leave type</li>
+              <li><strong>Leave History:</strong> Track all past and upcoming leave for each employee</li>
             </ul>
           </div>
         ),
@@ -657,17 +770,45 @@ const sections: Section[] = [
         ),
       },
       {
-        title: 'Payroll Line Items',
+        title: 'Configurable Deductions',
         content: (
           <div className="space-y-2">
-            <p>Each payroll run contains individual lines for each employee:</p>
+            <p>Go to <strong>HR &gt; Deductions</strong> to set up payroll deductions:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li><strong>Base Salary:</strong> The employee's configured salary amount</li>
-              <li><strong>Allowances:</strong> Additional payments (housing, transport, etc.)</li>
-              <li><strong>Deductions:</strong> Subtractions (tax, loans, etc.)</li>
-              <li><strong>Net Pay:</strong> Base + Allowances - Deductions</li>
+              <li><strong>Create Deduction Types:</strong> Define deductions (Tax, Pension, Health Insurance, Loan, etc.)</li>
+              <li><strong>Fixed or Percentage:</strong> Set as a fixed amount or percentage of gross pay</li>
+              <li><strong>Auto-Apply:</strong> Enabled deductions are automatically applied during payroll processing</li>
+              <li><strong>Employee-Level:</strong> Override deduction amounts per employee when needed</li>
             </ul>
-            <p>Click the eye icon on any payroll run to see the detailed breakdown per employee.</p>
+          </div>
+        ),
+      },
+      {
+        title: 'Payslips',
+        content: (
+          <div className="space-y-2">
+            <p>Generate and distribute payslips after payroll processing:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li>After approving a payroll run, click the <strong>download icon</strong> on any payroll line</li>
+              <li>A professional payslip opens in a new window — ready to print or save as PDF</li>
+              <li>Payslips show: employee info, gross pay, all deductions breakdown, and net pay</li>
+              <li>Payslips include the company name and pay period for record-keeping</li>
+            </ul>
+          </div>
+        ),
+      },
+      {
+        title: 'Expense Claims',
+        content: (
+          <div className="space-y-2">
+            <p>Employees can submit out-of-pocket expenses for reimbursement:</p>
+            <ul className="list-disc list-inside space-y-1 text-sm">
+              <li><strong>Submit Claim:</strong> Go to <strong>HR &gt; Expense Claims</strong>, enter category, amount, date, and description</li>
+              <li><strong>Attach Receipt:</strong> Upload a receipt image or PDF for verification</li>
+              <li><strong>Approval Workflow:</strong> Managers approve or reject claims with notes</li>
+              <li><strong>Track Status:</strong> View all claims by status (Pending, Approved, Rejected, Paid)</li>
+              <li><strong>Summary Report:</strong> See total claims by category and employee</li>
+            </ul>
           </div>
         ),
       },
@@ -756,10 +897,12 @@ const sections: Section[] = [
           <div className="space-y-2">
             <p>Go to <strong>Settings &gt; Billing</strong> to manage your subscription:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>View your current plan and limits</li>
-              <li>Upgrade to Growth, Professional, or Enterprise plan via Paystack</li>
-              <li>Annual billing saves 2 months compared to monthly</li>
-              <li>Manage payment methods and view invoices</li>
+              <li><strong>Compare Plans:</strong> Switch to the Compare Plans tab to see all plan features side-by-side</li>
+              <li><strong>Core Plans:</strong> Choose Starter (free), Business, Professional, or Enterprise based on team size</li>
+              <li><strong>Module Add-ons:</strong> Enable modules like Accounting, HR, Projects, CRM, Production, Procurement individually</li>
+              <li><strong>Bundles:</strong> Save 14-38% by bundling related modules together</li>
+              <li>Payment is via Paystack (card, bank transfer, USSD)</li>
+              <li>Annual billing saves 20% on all plans and modules</li>
             </ul>
           </div>
         ),
