@@ -46,10 +46,10 @@ export function ProfitAndLoss() {
     }
   };
 
-  const revenue = data?.revenue || [];
-  const expenses = data?.expenses || [];
-  const totalRevenue = data?.totalRevenue ?? (Array.isArray(revenue) ? revenue : []).reduce((s, r) => s + r.net, 0);
-  const totalExpenses = data?.totalExpenses ?? (Array.isArray(expenses) ? expenses : []).reduce((s, r) => s + r.net, 0);
+  const revenue = Array.isArray(data?.revenue) ? data.revenue : data?.revenue?.accounts || [];
+  const expenses = Array.isArray(data?.expenses) ? data.expenses : data?.expenses?.accounts || [];
+  const totalRevenue = data?.totalRevenue ?? data?.revenue?.total ?? (Array.isArray(revenue) ? revenue : []).reduce((s: number, r: any) => s + Number(r.net || 0), 0);
+  const totalExpenses = data?.totalExpenses ?? data?.expenses?.total ?? (Array.isArray(expenses) ? expenses : []).reduce((s: number, r: any) => s + Number(r.net || 0), 0);
   const netProfit = data?.netProfit ?? totalRevenue - totalExpenses;
   const isProfit = netProfit >= 0;
 
