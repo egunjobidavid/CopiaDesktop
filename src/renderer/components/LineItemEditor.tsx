@@ -26,7 +26,7 @@ export function LineItemEditor({ items, onChange, currency = 'NGN' }: LineItemEd
 
   useEffect(() => {
     api.get('/inventory/products?limit=200').then(({ data }) => {
-      setProducts(Array.isArray(data) ? data : data?.rows || []);
+      setProducts(Array.isArray(data) ? data : data?.data || data?.rows || []);
     }).catch(() => {});
   }, []);
 

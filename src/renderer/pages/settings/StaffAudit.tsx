@@ -173,7 +173,7 @@ export function StaffAudit() {
       if (filterFrom) params.set('from', filterFrom);
       if (filterTo) params.set('to', filterTo);
       const { data } = await api.get(`/audit?${params.toString()}`);
-      setAuditLogs(data.rows || []);
+      setAuditLogs(data.data || data.rows || []);
       setAuditTotal(data.total || 0);
       setAuditPage(data.page || 1);
     } catch {

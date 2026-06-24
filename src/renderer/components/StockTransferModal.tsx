@@ -33,7 +33,7 @@ export function StockTransferModal({ onClose }: { onClose: () => void }) {
     try {
       const { default: api } = await import('../api/client');
       const { data } = await api.get('/inventory/warehouses');
-      const list = Array.isArray(data) ? data : data?.rows || [];
+      const list = Array.isArray(data) ? data : data?.data || data?.rows || [];
       setWarehouses(list);
       if (list.length > 0 && !fromWarehouse) {
         setFromWarehouse(list[0].id);

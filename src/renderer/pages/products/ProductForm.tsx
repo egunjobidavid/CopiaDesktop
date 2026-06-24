@@ -28,7 +28,7 @@ export function ProductForm({ product, onClose, onSaved }: ProductFormProps) {
     try {
       const { default: api } = await import('../../api/client');
       const { data } = await api.get('/inventory/categories');
-      setCategories(Array.isArray(data) ? data : data?.rows || []);
+      setCategories(Array.isArray(data) ? data : data?.data || data?.rows || []);
     } catch {
       setCategories([]);
     }

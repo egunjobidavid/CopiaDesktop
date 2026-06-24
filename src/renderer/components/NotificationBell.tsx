@@ -41,7 +41,7 @@ export function NotificationBell() {
         api.get('/notifications/unread-count'),
       ]);
       const data = notiRes.data;
-      setNotifications(data?.rows || []);
+      setNotifications(data?.data || data?.rows || []);
       setUnreadCount(countRes.data?.unread || 0);
     } catch {}
   }

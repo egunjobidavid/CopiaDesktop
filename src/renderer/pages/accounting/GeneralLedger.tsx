@@ -57,7 +57,7 @@ export function GeneralLedger() {
     try {
       setLoading(true);
       const res = await api.get('/accounting/journal', { params: { page, limit: 20 } });
-      setEntries(res.data?.rows || []);
+      setEntries(res.data?.data || res.data?.rows || []);
       setTotalPages(res.data?.totalPages || 1);
     } catch (err: any) {
       toast.error('Failed to load journal entries');
