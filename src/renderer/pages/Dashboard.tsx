@@ -33,9 +33,9 @@ interface ActivityItem {
   created_at: string;
 }
 
-function StatCard({ title, value, icon: Icon, trend, trendUp, color, subtitle }: { title: string; value: string; icon: any; trend?: string; trendUp?: boolean; color: string; subtitle?: string }) {
+function StatCard({ title, value, icon: Icon, trend, trendUp, color, subtitle, onClick }: { title: string; value: string; icon: any; trend?: string; trendUp?: boolean; color: string; subtitle?: string; onClick?: () => void }) {
   return (
-    <div className="card flex items-center justify-between hover:shadow-md transition-shadow">
+    <div onClick={onClick} className={`card flex items-center justify-between hover:shadow-md transition-shadow ${onClick ? 'cursor-pointer' : ''}`}>
       <div>
         <p className="text-sm font-medium text-gray-500">{title}</p>
         <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
@@ -190,16 +190,16 @@ export function Dashboard() {
           <StatCard title="Low Stock Alerts" value={metrics.lowStockCount.toString()} icon={AlertTriangle} color="bg-red-600" />
         )}
         {metrics.overdueInvoices > 0 && (
-          <StatCard title="Overdue Invoices" value={metrics.overdueInvoices.toString()} icon={AlertOctagon} color="bg-orange-600" />
+          <StatCard title="Overdue Invoices" value={metrics.overdueInvoices.toString()} icon={AlertOctagon} color="bg-orange-600" onClick={() => navigate('/invoices')} />
         )}
         {metrics.outstandingInvoices > 0 && (
-          <StatCard title="Outstanding Invoices" value={metrics.outstandingInvoices.toString()} icon={FileText} color="bg-amber-600" />
+          <StatCard title="Outstanding Invoices" value={metrics.outstandingInvoices.toString()} icon={FileText} color="bg-amber-600" onClick={() => navigate('/invoices')} />
         )}
         {metrics.activeSalesOrders > 0 && (
           <StatCard title="Active Orders" value={metrics.activeSalesOrders.toString()} icon={ShoppingCart} color="bg-blue-600" />
         )}
         {pendingTotal > 0 && (
-          <StatCard title="Pending Approvals" value={pendingTotal.toString()} icon={ClipboardList} color="bg-indigo-600" />
+          <StatCard title="Pending Approvals" value={pendingTotal.toString()} icon={ClipboardList} color="bg-indigo-600" onClick={() => navigate('/approvals')} />
         )}
       </div>
 

@@ -188,7 +188,7 @@ export function App() {
               <Route path="/help" element={<LazyPage><Help /></LazyPage>} />
               <Route path="/onboarding" element={<LazyPage><OnboardingWizard /></LazyPage>} />
             </Route>
-            <Route element={<ProtectedRoute minRole="Accountant" feature="approvals" />}>
+            <Route element={<ProtectedRoute minRole="Accountant" />}>
               <Route path="/approvals" element={<LazyPage><Approvals /></LazyPage>} />
             </Route>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
