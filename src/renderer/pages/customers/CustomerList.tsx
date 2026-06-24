@@ -36,7 +36,7 @@ export function CustomerList() {
     try {
       const params = q ? `?search=${encodeURIComponent(q)}&limit=50` : '?limit=50';
       const { data } = await api.get(`/customers${params}`);
-      setCustomers(Array.isArray(data) ? data : []);
+      setCustomers(data?.data ?? (Array.isArray(data) ? data : []));
     } catch { setCustomers([]); } finally { setIsLoading(false); }
   }
 

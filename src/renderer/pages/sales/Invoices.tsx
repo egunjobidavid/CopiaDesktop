@@ -47,22 +47,28 @@ export function Invoices() {
 
   useEffect(() => { fetchInvoices(); }, []);
 
-  async function fetchInvoices() {
+  async function fetchInvoices(statusFilter?: string, searchQuery?: string) {
     setIsLoading(true);
     try {
-      const { data } = await api.get('/sales/invoices?limit=100');
-      setInvoices(Array.isArray(data) ? data : data?.rows || []);
+      const params = new URLSearchParams({ limit: '100' });
+      if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+      if (searchQuery) params.set('search', searchQuery);
+      const { data } = await api.get(`/sales/invoices?${params.toString()}`);
+      setInvoices(data?.data ?? (Array.isArray(data) ? data : data?.rows || []));
     } catch { setInvoices([]); } finally { setIsLoading(false); }
   }
 
-  const filtered = invoices.filter((inv) => {
-    if (filter !== 'all' && inv.status !== filter) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (inv.invoiceNumber || '').toLowerCase().includes(q) || (inv.customerName || '').toLowerCase().includes(q);
-    }
-    return true;
-  });
+  function handleFilterChange(newFilter: string) {
+    setFilter(newFilter);
+    fetchInvoices(newFilter, search);
+  }
+
+  function handleSearch(q: string) {
+    setSearch(q);
+    fetchInvoices(filter, q);
+  }
+
+  const filtered = invoices;
 
   const statusCounts = invoices.reduce((acc, inv) => { acc[inv.status] = (acc[inv.status] || 0) + 1; return acc; }, {} as Record<string, number>);
 
@@ -207,8 +213,10 @@ export function Invoices() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch(search)}
             placeholder="Search by invoice # or customer..." className="input pl-9" />
         </div>
+        <button onClick={() => handleSearch(search)} className="btn-secondary">Search</button>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
@@ -234,7 +242,7 @@ export function Invoices() {
 
       <div className="flex gap-2 overflow-x-auto">
         {['all', 'draft', 'sent', 'partial', 'paid', 'overdue', 'voided'].map((s) => (
-          <button key={s} onClick={() => setFilter(s)}
+          <button key={s} onClick={() => handleFilterChange(s)}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
               filter === s ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}>

@@ -23,7 +23,7 @@ export function useCache() {
       }
       try {
         const { data } = await api.get(`/inventory/products?search=${encodeURIComponent(query)}&limit=50`);
-        return Array.isArray(data) ? data : [];
+        return data?.data ?? (Array.isArray(data) ? data : []);
       } catch {
         return searchCachedProducts(query);
       }
@@ -38,7 +38,7 @@ export function useCache() {
       }
       try {
         const { data } = await api.get(`/customers?search=${encodeURIComponent(query)}&limit=20`);
-        return Array.isArray(data) ? data : [];
+        return data?.data ?? (Array.isArray(data) ? data : []);
       } catch {
         return searchCachedCustomers(query);
       }

@@ -41,7 +41,7 @@ export function useProcurement() {
     setIsLoading(true);
     try {
       const { data } = await api.get('/procurement/purchase-orders?limit=50');
-      setOrders(Array.isArray(data) ? data : []);
+      setOrders(data?.data ?? (Array.isArray(data) ? data : []));
     } catch {
       setOrders([]);
     } finally {
@@ -80,13 +80,13 @@ export function useProcurement() {
   const searchVendors = useCallback(async (q: string) => {
     if (!q.trim()) return [];
     const { data } = await api.get(`/vendors?search=${encodeURIComponent(q)}&limit=10`);
-    return Array.isArray(data) ? data : [];
+    return data?.data ?? (Array.isArray(data) ? data : []);
   }, []);
 
   const searchProducts = useCallback(async (q: string) => {
     if (!q.trim()) return [];
     const { data } = await api.get(`/inventory/products?search=${encodeURIComponent(q)}&limit=10`);
-    return Array.isArray(data) ? data : [];
+    return data?.data ?? (Array.isArray(data) ? data : []);
   }, []);
 
   return { orders, isLoading, fetchOrders, fetchOrder, createOrder, updateStatus, deleteOrder, createGRN, searchVendors, searchProducts };

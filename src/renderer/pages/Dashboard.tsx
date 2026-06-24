@@ -7,12 +7,14 @@ import { DashboardSkeleton } from '../components/Skeleton';
 import { TrendingUp, DollarSign, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, UserPlus, PackagePlus, PlusCircle, AlertTriangle, CheckCircle, ClipboardList, Receipt } from 'lucide-react';
 
 interface DashboardMetrics {
-  totalSales: number;
+  revenue: number;
+  receivables: number;
+  pendingApprovals: { leaveRequests: number; expenseClaims: number; purchaseOrders: number };
+  lowStockCount: number;
+  activeSalesOrders: number;
+  outstandingInvoices: number;
   totalCustomers: number;
   totalProducts: number;
-  inventoryValue: number;
-  pendingOrders: number;
-  lowStockItems: number;
 }
 
 interface ActivityItem {
@@ -85,52 +87,38 @@ export function Dashboard() {
   const locationId = useAuthStore((s) => s.locationId);
   const locationName = useAuthStore((s) => s.locationName);
   const userRole = user?.role ?? 'Staff';
-  const [metrics, setMetrics] = useState<DashboardMetrics>({ totalSales: 0, totalCustomers: 0, totalProducts: 0, inventoryValue: 0, pendingOrders: 0, lowStockItems: 0 });
+  const [metrics, setMetrics] = useState<DashboardMetrics>({ revenue: 0, receivables: 0, pendingApprovals: { leaveRequests: 0, expenseClaims: 0, purchaseOrders: 0 }, lowStockCount: 0, activeSalesOrders: 0, outstandingInvoices: 0, totalCustomers: 0, totalProducts: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
     async function loadMetrics() {
       try {
-        const locParam = locationId ? `&locationId=${locationId}` : '';
-        const [analyticsRes, productsRes, customersRes, stockRes, activityRes] = await Promise.allSettled([
-          api.get(`/analytics/sales?days=30${locParam}`),
-          api.get('/inventory/products'),
-          api.get('/customers'),
-          api.get(`/inventory/stock${locParam ? `?locationId=${locParam.slice(1)}` : ''}`),
+        const [dashRes, productsRes, customersRes, activityRes] = await Promise.allSettled([
+          api.get('/analytics/dashboard'),
+          api.get('/inventory/products?limit=1'),
+          api.get('/customers?limit=1'),
           api.get('/activity?limit=10'),
         ]);
 
-        const salesData = analyticsRes.status === 'fulfilled' ? analyticsRes.value.data : [];
-        const productsData = productsRes.status === 'fulfilled' ? productsRes.value.data : [];
-        const customersData = customersRes.status === 'fulfilled' ? customersRes.value.data : [];
-        const stockData = stockRes.status === 'fulfilled' ? stockRes.value.data : [];
+        if (dashRes.status === 'fulfilled') {
+          const d = dashRes.value.data;
+          setMetrics({
+            revenue: Number(d?.revenue ?? 0),
+            receivables: Number(d?.receivables ?? 0),
+            pendingApprovals: d?.pendingApprovals ?? { leaveRequests: 0, expenseClaims: 0, purchaseOrders: 0 },
+            lowStockCount: Number(d?.lowStockCount ?? 0),
+            activeSalesOrders: Number(d?.activeSalesOrders ?? 0),
+            outstandingInvoices: Number(d?.outstandingInvoices ?? 0),
+            totalCustomers: Number(customersRes.status === 'fulfilled' ? (customersRes.value.data?.total ?? 0) : 0),
+            totalProducts: Number(productsRes.status === 'fulfilled' ? (productsRes.value.data?.total ?? 0) : 0),
+          });
+        }
 
         if (activityRes.status === 'fulfilled') {
           const body = activityRes.value.data;
           setActivities(Array.isArray(body.data) ? body.data : Array.isArray(body) ? body : []);
         }
-
-        const totalSales = Array.isArray(salesData)
-          ? salesData.reduce((sum: number, s: any) => sum + Number(s.total || s.total_revenue || 0), 0)
-          : 0;
-
-        const inventoryValue = Array.isArray(stockData)
-          ? stockData.reduce((sum: number, s: any) => sum + Number(s.quantity || 0) * Number(s.unit_price || 0), 0)
-          : 0;
-
-        const lowStockItems = Array.isArray(stockData)
-          ? stockData.filter((s: any) => Number(s.quantity || 0) < 10).length
-          : 0;
-
-        setMetrics({
-          totalSales,
-          totalCustomers: Array.isArray(customersData) ? customersData.length : 0,
-          totalProducts: Array.isArray(productsData) ? productsData.length : 0,
-          inventoryValue,
-          pendingOrders: 0,
-          lowStockItems,
-        });
       } catch {
       } finally {
         setIsLoading(false);
@@ -160,14 +148,27 @@ export function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {(userRole === 'MD' || userRole === 'Manager' || userRole === 'Director') && (
           <>
-            <StatCard title="Sales (30d)" value={`₦${metrics.totalSales.toLocaleString()}`} icon={TrendingUp} color="bg-primary-600" />
-            <StatCard title="Inventory Value" value={`₦${metrics.inventoryValue.toLocaleString()}`} icon={DollarSign} color="bg-amber-600" />
+            <StatCard title="Revenue (Month)" value={`₦${metrics.revenue.toLocaleString()}`} icon={TrendingUp} color="bg-primary-600" />
+            <StatCard title="Receivables" value={`₦${metrics.receivables.toLocaleString()}`} icon={DollarSign} color="bg-amber-600" />
           </>
         )}
         <StatCard title="Products" value={metrics.totalProducts.toLocaleString()} icon={Package} color="bg-green-600" />
         <StatCard title="Customers" value={metrics.totalCustomers.toLocaleString()} icon={Users} color="bg-purple-600" />
-        {metrics.lowStockItems > 0 && (
-          <StatCard title="Low Stock Alerts" value={metrics.lowStockItems.toString()} icon={AlertTriangle} color="bg-red-600" />
+        {metrics.lowStockCount > 0 && (
+          <StatCard title="Low Stock Alerts" value={metrics.lowStockCount.toString()} icon={AlertTriangle} color="bg-red-600" />
+        )}
+        {(userRole === 'MD' || userRole === 'Manager' || userRole === 'Accountant') && (
+          <>
+            {metrics.outstandingInvoices > 0 && (
+              <StatCard title="Outstanding Invoices" value={metrics.outstandingInvoices.toString()} icon={FileText} color="bg-orange-600" />
+            )}
+            {metrics.activeSalesOrders > 0 && (
+              <StatCard title="Active Orders" value={metrics.activeSalesOrders.toString()} icon={ShoppingCart} color="bg-blue-600" />
+            )}
+          </>
+        )}
+        {(metrics.pendingApprovals.leaveRequests + metrics.pendingApprovals.expenseClaims + metrics.pendingApprovals.purchaseOrders) > 0 && (
+          <StatCard title="Pending Approvals" value={(metrics.pendingApprovals.leaveRequests + metrics.pendingApprovals.expenseClaims + metrics.pendingApprovals.purchaseOrders).toString()} icon={ClipboardList} color="bg-indigo-600" />
         )}
       </div>
 

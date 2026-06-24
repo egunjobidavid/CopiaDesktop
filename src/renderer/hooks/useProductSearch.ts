@@ -37,7 +37,7 @@ export function useProductSearch(query: string) {
           { signal: controller.signal },
         );
         if (!controller.signal.aborted) {
-          setResults(Array.isArray(data) ? data : []);
+          setResults(data?.data ?? (Array.isArray(data) ? data : []));
         }
       } catch (err: any) {
         if (err?.name !== 'CanceledError' && !controller.signal.aborted) {

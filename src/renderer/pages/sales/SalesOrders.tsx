@@ -45,22 +45,28 @@ export function SalesOrders() {
 
   useEffect(() => { fetchOrders(); }, []);
 
-  async function fetchOrders() {
+  async function fetchOrders(statusFilter?: string, searchQuery?: string) {
     setIsLoading(true);
     try {
-      const { data } = await api.get('/sales/orders?limit=100');
-      setOrders(Array.isArray(data) ? data : []);
+      const params = new URLSearchParams({ limit: '100' });
+      if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+      if (searchQuery) params.set('search', searchQuery);
+      const { data } = await api.get(`/sales/orders?${params.toString()}`);
+      setOrders(data?.data ?? (Array.isArray(data) ? data : []));
     } catch { setOrders([]); } finally { setIsLoading(false); }
   }
 
-  const filtered = orders.filter((o) => {
-    if (filter !== 'all' && o.status !== filter) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      return (o.orderNumber || '').toLowerCase().includes(q) || (o.customerName || '').toLowerCase().includes(q);
-    }
-    return true;
-  });
+  function handleFilterChange(newFilter: string) {
+    setFilter(newFilter);
+    fetchOrders(newFilter, search);
+  }
+
+  function handleSearch(q: string) {
+    setSearch(q);
+    fetchOrders(filter, q);
+  }
+
+  const filtered = orders;
   const statusCounts = orders.reduce((acc, o) => { acc[o.status] = (acc[o.status] || 0) + 1; return acc; }, {} as Record<string, number>);
 
   const columns: ColumnDef<SalesOrder, any>[] = [
@@ -161,8 +167,10 @@ export function SalesOrders() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by order # or customer..." className="input pl-9" />
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch(search)}
+            placeholder="Search by order #..." className="input pl-9" />
         </div>
+        <button onClick={() => handleSearch(search)} className="btn-secondary">Search</button>
       </div>
 
       <div className="grid grid-cols-4 gap-4">
@@ -190,7 +198,7 @@ export function SalesOrders() {
 
       <div className="flex gap-2 overflow-x-auto">
         {['all', 'draft', 'confirmed', 'processing', 'shipped', 'delivered', 'invoiced', 'cancelled'].map((s) => (
-          <button key={s} onClick={() => setFilter(s)}
+          <button key={s} onClick={() => handleFilterChange(s)}
             className={`px-4 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
               filter === s ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}>

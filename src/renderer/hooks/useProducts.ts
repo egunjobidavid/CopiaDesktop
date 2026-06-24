@@ -27,7 +27,7 @@ export function useProducts() {
     try {
       const params = search ? `?search=${encodeURIComponent(search)}&limit=100` : '?limit=100';
       const { data } = await api.get(`/inventory/products${params}`);
-      setProducts(Array.isArray(data) ? data : []);
+      setProducts(data?.data ?? (Array.isArray(data) ? data : []));
     } catch {
       toast.error('Failed to load products');
     } finally {

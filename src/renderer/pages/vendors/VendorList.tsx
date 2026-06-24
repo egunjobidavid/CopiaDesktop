@@ -30,7 +30,7 @@ export function VendorList() {
     try {
       const params = q ? `?search=${encodeURIComponent(q)}&limit=50` : '?limit=50';
       const { data } = await api.get(`/vendors${params}`);
-      setVendors(Array.isArray(data) ? data : []);
+      setVendors(data?.data ?? (Array.isArray(data) ? data : []));
     } catch { setVendors([]); } finally { setIsLoading(false); }
   }
 
