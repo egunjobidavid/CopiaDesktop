@@ -1,201 +1,314 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, Loader2, Plus, ThumbsUp, ThumbsDown, Settings2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Loader2, Filter, FileText, Receipt, ShoppingCart, CreditCard, UserCheck, ClipboardCheck } from 'lucide-react';
 import api from '../../api/client';
 import { useAuthStore } from '../../store/auth.store';
 import toast from 'react-hot-toast';
 
-const ROLE_HIERARCHY: Record<string, number> = { MD: 100, admin: 60, Director: 80, Manager: 60, Accountant: 40, 'Sales Rep': 30, member: 30, Staff: 10, viewer: 5 };
-
-function hasMinRole(userRole: string, minRole: string) {
-  return (ROLE_HIERARCHY[userRole] ?? 0) >= (ROLE_HIERARCHY[minRole] ?? 0);
+interface ApprovalItem {
+  id: string;
+  type: string;
+  typeName: string;
+  icon: any;
+  title: string;
+  subtitle: string;
+  amount?: number;
+  status: string;
+  date: string;
+  data: any;
 }
+
+const TYPE_ICONS: Record<string, any> = {
+  leave_request: UserCheck,
+  expense_claim: Receipt,
+  purchase_order: ShoppingCart,
+  credit_memo: CreditCard,
+  stock_transfer: FileText,
+  journal_entry: ClipboardCheck,
+};
+
+const TYPE_COLORS: Record<string, string> = {
+  leave_request: 'bg-blue-100 text-blue-700',
+  expense_claim: 'bg-amber-100 text-amber-700',
+  purchase_order: 'bg-green-100 text-green-700',
+  credit_memo: 'bg-purple-100 text-purple-700',
+  stock_transfer: 'bg-indigo-100 text-indigo-700',
+  journal_entry: 'bg-gray-100 text-gray-700',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: 'bg-amber-100 text-amber-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-700',
+  posted: 'bg-green-100 text-green-700',
+  draft: 'bg-gray-100 text-gray-600',
+};
 
 export function Approvals() {
   const user = useAuthStore((s) => s.user);
   const userRole = user?.role ?? 'Staff';
-  const canApprove = hasMinRole(userRole, 'Manager');
-  const canManageRules = hasMinRole(userRole, 'Director');
-
-  const [requests, setRequests] = useState<any[]>([]);
+  const [items, setItems] = useState<ApprovalItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('pending');
-  const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ entityType: 'purchase_order', amount: 0, reason: '' });
-  const [submitting, setSubmitting] = useState(false);
-  const [rules, setRules] = useState<any[]>([]);
-  const [showRules, setShowRules] = useState(false);
-  const [ruleForm, setRuleForm] = useState({ entityType: 'purchase_order', minAmount: 0, requiredApprovers: 1 });
+  const [filter, setFilter] = useState<string>('all');
+  const [processing, setProcessing] = useState<string | null>(null);
 
-  const loadRequests = () => {
+  useEffect(() => {
+    loadAllPending();
+  }, []);
+
+  async function loadAllPending() {
     setLoading(true);
-    api.get(`/approvals?status=${filter}`).then(({ data }) => {
-      const items = data?.data ? (Array.isArray(data.data) ? data.data : []) : (Array.isArray(data) ? data : []);
-      setRequests(items);
-    }).catch(() => { toast.error('Failed to load approval requests'); }).finally(() => setLoading(false));
-  };
-
-  const loadRules = () => {
-    api.get('/approvals/rules').then(({ data }) => {
-      setRules(Array.isArray(data) ? data : []);
-    }).catch(() => { toast.error('Failed to load approval rules'); });
-  };
-
-  useEffect(() => { loadRequests(); }, [filter]);
-
-  const handleVote = async (id: string, decision: string) => {
     try {
-      const { data } = await api.patch(`/approvals/${id}/vote`, { decision });
-      toast.success(data.message);
-      loadRequests();
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Vote failed');
-    }
-  };
+      const results = await Promise.allSettled([
+        api.get('/hr/leave/requests?status=pending'),
+        api.get('/hr/expense-claims?status=pending'),
+        api.get('/procurement/purchase-orders?status=pending'),
+        api.get('/credit-memos?status=posted'),
+        api.get('/accounting/journal?search=pending'),
+      ]);
 
-  const handleCreate = async () => {
-    if (!form.amount || !form.reason) { toast.error('Amount and reason required'); return; }
-    setSubmitting(true);
-    try {
-      await api.post('/approvals', form);
-      toast.success('Approval request created');
-      setShowCreate(false);
-      setForm({ entityType: 'purchase_order', amount: 0, reason: '' });
-      loadRequests();
+      const allItems: ApprovalItem[] = [];
+
+      // Leave Requests
+      if (results[0].status === 'fulfilled') {
+        const d = results[0].value.data;
+        const rows = d?.data ?? (Array.isArray(d) ? d : []);
+        for (const r of rows) {
+          allItems.push({
+            id: r.id, type: 'leave_request', typeName: 'Leave Request',
+            icon: UserCheck, title: `Leave Request`,
+            subtitle: `${r.employee_name || r.employeeId} — ${r.leave_type || r.leaveType || 'Leave'}`,
+            status: r.status, date: r.created_at || r.createdAt,
+            data: r,
+          });
+        }
+      }
+
+      // Expense Claims
+      if (results[1].status === 'fulfilled') {
+        const d = results[1].value.data;
+        const rows = d?.data ?? (Array.isArray(d) ? d : []);
+        for (const r of rows) {
+          allItems.push({
+            id: r.id, type: 'expense_claim', typeName: 'Expense Claim',
+            icon: Receipt, title: r.category || 'Expense Claim',
+            subtitle: `${r.employee_name || r.employeeId} — ₦${Number(r.amount).toLocaleString()}`,
+            amount: Number(r.amount), status: r.status, date: r.created_at || r.createdAt,
+            data: r,
+          });
+        }
+      }
+
+      // Purchase Orders
+      if (results[2].status === 'fulfilled') {
+        const d = results[2].value.data;
+        const rows = d?.data ?? (Array.isArray(d) ? d : []);
+        for (const r of rows) {
+          allItems.push({
+            id: r.id, type: 'purchase_order', typeName: 'Purchase Order',
+            icon: ShoppingCart, title: r.po_number || r.poNumber || 'PO',
+            subtitle: `${r.vendor_name || r.vendorId || 'Vendor'} — ₦${Number(r.total).toLocaleString()}`,
+            amount: Number(r.total), status: r.status, date: r.created_at || r.createdAt,
+            data: r,
+          });
+        }
+      }
+
+      // Credit Memos (posted = ready to apply)
+      if (results[3].status === 'fulfilled') {
+        const d = results[3].value.data;
+        const rows = d?.data ?? (Array.isArray(d) ? d : []);
+        for (const r of rows) {
+          allItems.push({
+            id: r.id, type: 'credit_memo', typeName: 'Credit Memo',
+            icon: CreditCard, title: r.memo_number || r.memoNumber || 'CM',
+            subtitle: `₦${Number(r.total).toLocaleString()} — ${r.reason || 'No reason'}`,
+            amount: Number(r.total), status: r.status, date: r.created_at || r.createdAt,
+            data: r,
+          });
+        }
+      }
+
+      // Journal Entries (pending)
+      if (results[4].status === 'fulfilled') {
+        const d = results[4].value.data;
+        const rows = d?.data ?? (Array.isArray(d) ? d : []);
+        for (const r of rows) {
+          if (r.status === 'pending') {
+            allItems.push({
+              id: r.id, type: 'journal_entry', typeName: 'Journal Entry',
+              icon: ClipboardCheck, title: r.journal_number || r.journalNumber || 'JE',
+              subtitle: r.description || 'No description',
+              status: r.status, date: r.created_at || r.createdAt,
+              data: r,
+            });
+          }
+        }
+      }
+
+      // Sort by date descending
+      allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setItems(allItems);
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to create request');
+      toast.error('Failed to load approvals');
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
-  };
+  }
 
-  const handleRuleSave = async () => {
+  async function approveItem(item: ApprovalItem) {
+    setProcessing(item.id);
     try {
-      await api.post('/approvals/rules', ruleForm);
-      toast.success('Rule saved');
-      loadRules();
+      switch (item.type) {
+        case 'leave_request':
+          await api.patch(`/hr/leave/requests/${item.id}/approve`);
+          break;
+        case 'expense_claim':
+          await api.post(`/hr/expense-claims/${item.id}/approve`);
+          break;
+        case 'purchase_order':
+          await api.post(`/procurement/purchase-orders/${item.id}/approve`);
+          break;
+        case 'credit_memo':
+          await api.post(`/credit-memos/${item.id}/approve`);
+          break;
+        case 'journal_entry':
+          await api.post(`/accounting/journal/${item.id}/approve`);
+          break;
+        default:
+          toast.error('Unknown approval type');
+          return;
+      }
+      toast.success(`${item.typeName} approved`);
+      loadAllPending();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to save rule');
+      toast.error(err?.response?.data?.message || 'Approval failed');
+    } finally {
+      setProcessing(null);
     }
-  };
+  }
 
-  const statusBadge = (status: string) => {
-    const s: Record<string, string> = { pending: 'bg-amber-100 text-amber-700', approved: 'bg-green-100 text-green-700', rejected: 'bg-red-100 text-red-700' };
-    return <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${s[status] || ''}`}>{status}</span>;
-  };
+  async function rejectItem(item: ApprovalItem, reason?: string) {
+    setProcessing(item.id);
+    try {
+      switch (item.type) {
+        case 'leave_request':
+          await api.patch(`/hr/leave/requests/${item.id}/reject`, { rejectionReason: reason || 'Rejected by manager' });
+          break;
+        case 'expense_claim':
+          await api.post(`/hr/expense-claims/${item.id}/reject`, { reason: reason || 'Rejected' });
+          break;
+        case 'purchase_order':
+          await api.post(`/procurement/purchase-orders/${item.id}/reject`, { reason: reason || 'Rejected' });
+          break;
+        case 'credit_memo':
+          await api.post(`/credit-memos/${item.id}/reject`, { reason: reason || 'Rejected' });
+          break;
+        case 'journal_entry':
+          await api.post(`/accounting/journal/${item.id}/reject`, { reason: reason || 'Rejected' });
+          break;
+        default:
+          return;
+      }
+      toast.success(`${item.typeName} rejected`);
+      loadAllPending();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Rejection failed');
+    } finally {
+      setProcessing(null);
+    }
+  }
+
+  const filtered = filter === 'all' ? items : items.filter((i) => i.type === filter);
+  const typeCounts = items.reduce((acc, i) => { acc[i.type] = (acc[i.type] || 0) + 1; return acc; }, {} as Record<string, number>);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Approvals</h1>
-          <p className="text-gray-500 mt-1">Manage approval requests for purchases, payments, and expenses</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowRules(!showRules)} className="btn-secondary text-sm flex items-center gap-2">
-            <Settings2 className="w-4 h-4" /> Rules
-          </button>
-          <button onClick={() => setShowCreate(true)} className="btn-primary text-sm flex items-center gap-2">
-            <Plus className="w-4 h-4" /> New Request
-          </button>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Approvals</h1>
+        <p className="text-gray-500 mt-1">Review and approve pending items across all modules</p>
       </div>
 
-      {/* Rules Panel */}
-      {showRules && (
-        <div className="card">
-          <h2 className="text-lg font-semibold mb-4">Approval Rules</h2>
-          <div className="space-y-4">
-            {['purchase_order', 'payment', 'expense'].map((et) => {
-              const existing = rules.find((r) => r.entity_type === et);
-              return (
-                <div key={et} className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-                  <span className="text-sm font-medium capitalize min-w-[140px]">{et.replace('_', ' ')}</span>
-                  <input type="number" placeholder="Min amount" className="input text-sm flex-1"
-                    defaultValue={existing?.min_amount || 0}
-                    onBlur={(e) => setRuleForm({ ...ruleForm, entityType: et, minAmount: Number(e.target.value) })} />
-                  <input type="number" placeholder="Required approvers" className="input text-sm w-24"
-                    defaultValue={existing?.required_approvers || 1}
-                    onBlur={(e) => setRuleForm({ ...ruleForm, entityType: et, requiredApprovers: Number(e.target.value) })} />
-                </div>
-              );
-            })}
-            <button onClick={handleRuleSave} className="btn-primary text-sm">Save Rules</button>
-          </div>
-        </div>
-      )}
-
-      {/* Create Form */}
-      {showCreate && (
-        <div className="card">
-          <h2 className="text-lg font-semibold mb-4">New Approval Request</h2>
-          <div className="space-y-3 max-w-md">
-            <select className="input w-full text-sm" value={form.entityType} onChange={(e) => setForm({ ...form, entityType: e.target.value })}>
-              <option value="purchase_order">Purchase Order</option>
-              <option value="payment">Payment</option>
-              <option value="expense">Expense</option>
-            </select>
-            <input type="number" placeholder="Amount *" className="input w-full text-sm" value={form.amount || ''} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} />
-            <textarea placeholder="Reason for approval *" className="input w-full text-sm min-h-[80px]" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />
-            <div className="flex gap-2">
-              <button onClick={handleCreate} disabled={submitting} className="btn-primary text-sm flex items-center gap-2 disabled:opacity-50">
-                {submitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</> : 'Submit Request'}
-              </button>
-              <button onClick={() => setShowCreate(false)} className="btn-secondary text-sm">Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Filter tabs */}
-      <div className="flex gap-2">
-        {['pending', 'approved', 'rejected'].map((s) => (
-          <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filter === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{s.charAt(0).toUpperCase() + s.slice(1)}</button>
-        ))}
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <button onClick={() => setFilter('all')}
+          className={`card text-left p-3 transition-all ${filter === 'all' ? 'ring-2 ring-primary-500 border-primary-300' : 'hover:border-gray-300'}`}>
+          <p className="text-2xl font-bold text-gray-900">{items.length}</p>
+          <p className="text-xs text-gray-500">All Pending</p>
+        </button>
+        {Object.entries(typeCounts).map(([type, count]) => {
+          const Icon = TYPE_ICONS[type] || FileText;
+          return (
+            <button key={type} onClick={() => setFilter(type)}
+              className={`card text-left p-3 transition-all ${filter === type ? 'ring-2 ring-primary-500 border-primary-300' : 'hover:border-gray-300'}`}>
+              <div className="flex items-center gap-2">
+                <Icon className="w-4 h-4 text-gray-500" />
+                <p className="text-2xl font-bold text-gray-900">{count}</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</p>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Requests list */}
+      {/* Items List */}
       {loading ? (
-        <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /></div>
-      ) : requests.length === 0 ? (
-        <div className="card text-center text-gray-400 py-12">No {filter} requests</div>
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <CheckCircle className="w-12 h-12 text-green-400 mx-auto mb-3" />
+          <p className="text-gray-500">No pending approvals</p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {requests.map((r) => (
-            <div key={r.id} className="card">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    {r.status === 'pending' ? <Clock className="w-5 h-5 text-blue-600" /> : r.status === 'approved' ? <CheckCircle className="w-5 h-5 text-green-600" /> : <XCircle className="w-5 h-5 text-red-600" />}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 capitalize">{r.entity_type.replace(/_/g, ' ')}</p>
-                    <p className="text-xs text-gray-500">{r.reason || 'No reason provided'}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <p className="text-sm font-semibold">₦{Number(r.amount).toLocaleString()}</p>
-                  {statusBadge(r.status)}
-                  <p className="text-xs text-gray-400">{new Date(r.created_at).toLocaleDateString('en-GB')}</p>
-                  {r.status === 'pending' && canApprove && (
-                    <div className="flex gap-1">
-                      <button onClick={() => handleVote(r.id, 'approved')} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="Approve"><ThumbsUp className="w-4 h-4" /></button>
-                      <button onClick={() => handleVote(r.id, 'rejected')} className="p-1.5 text-red-600 hover:bg-red-50 rounded" title="Reject"><ThumbsDown className="w-4 h-4" /></button>
+          {filtered.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.id} className="card p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${TYPE_COLORS[item.type] || 'bg-gray-100'}`}>
+                      <Icon className="w-5 h-5" />
                     </div>
-                  )}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-900">{item.title}</span>
+                        <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${TYPE_COLORS[item.type]}`}>
+                          {item.typeName}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-0.5">{item.subtitle}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {item.amount && (
+                      <span className="text-lg font-bold text-gray-900">₦{item.amount.toLocaleString()}</span>
+                    )}
+                    <button
+                      onClick={() => approveItem(item)}
+                      disabled={processing === item.id}
+                      className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {processing === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                      Approve
+                    </button>
+                    <button
+                      onClick={() => rejectItem(item)}
+                      disabled={processing === item.id}
+                      className="px-3 py-1.5 bg-red-50 text-red-600 text-sm font-medium rounded-lg hover:bg-red-100 disabled:opacity-50 flex items-center gap-1 border border-red-200"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      Reject
+                    </button>
+                  </div>
                 </div>
               </div>
-              {r.votes?.length > 0 && (
-                <div className="mt-2 pl-[52px] flex gap-2">
-                  {r.votes.map((v: any) => (
-                    <span key={v.id} className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${v.decision === 'approved' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                      {v.decision === 'approved' ? <ThumbsUp className="w-3 h-3" /> : <ThumbsDown className="w-3 h-3" />}
-                      Vote
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
