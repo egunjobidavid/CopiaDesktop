@@ -4,7 +4,7 @@ import api from '../api/client';
 import { useAuthStore } from '../store/auth.store';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { DashboardSkeleton } from '../components/Skeleton';
-import { TrendingUp, DollarSign, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, UserPlus, PackagePlus, PlusCircle, AlertTriangle, CheckCircle, ClipboardList, Receipt } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, UserPlus, PackagePlus, PlusCircle, AlertTriangle, CheckCircle, ClipboardList, Receipt, BarChart3, Banknote, Building2, Star, AlertOctagon } from 'lucide-react';
 
 interface DashboardMetrics {
   revenue: number;
@@ -15,6 +15,13 @@ interface DashboardMetrics {
   outstandingInvoices: number;
   totalCustomers: number;
   totalProducts: number;
+  totalStaff: number;
+  monthlyExpenses: number;
+  monthlyPurchases: number;
+  topProducts: { name: string; total_sold: number }[];
+  monthlySalesCount: number;
+  overdueInvoices: number;
+  collectedPayments: number;
 }
 
 interface ActivityItem {
@@ -26,12 +33,13 @@ interface ActivityItem {
   created_at: string;
 }
 
-function StatCard({ title, value, icon: Icon, trend, trendUp, color }: { title: string; value: string; icon: any; trend?: string; trendUp?: boolean; color: string }) {
+function StatCard({ title, value, icon: Icon, trend, trendUp, color, subtitle }: { title: string; value: string; icon: any; trend?: string; trendUp?: boolean; color: string; subtitle?: string }) {
   return (
-    <div className="card flex items-center justify-between">
+    <div className="card flex items-center justify-between hover:shadow-md transition-shadow">
       <div>
         <p className="text-sm font-medium text-gray-500">{title}</p>
         <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
         {trend && (
           <div className={`flex items-center gap-1 mt-2 text-sm ${trendUp ? 'text-green-600' : 'text-red-600'}`}>
             {trendUp ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
@@ -87,17 +95,22 @@ export function Dashboard() {
   const locationId = useAuthStore((s) => s.locationId);
   const locationName = useAuthStore((s) => s.locationName);
   const userRole = user?.role ?? 'Staff';
-  const [metrics, setMetrics] = useState<DashboardMetrics>({ revenue: 0, receivables: 0, pendingApprovals: { leaveRequests: 0, expenseClaims: 0, purchaseOrders: 0 }, lowStockCount: 0, activeSalesOrders: 0, outstandingInvoices: 0, totalCustomers: 0, totalProducts: 0 });
+  const isExecutive = ['MD', 'Director', 'Manager', 'admin'].includes(userRole);
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    revenue: 0, receivables: 0, pendingApprovals: { leaveRequests: 0, expenseClaims: 0, purchaseOrders: 0 },
+    lowStockCount: 0, activeSalesOrders: 0, outstandingInvoices: 0,
+    totalCustomers: 0, totalProducts: 0, totalStaff: 0,
+    monthlyExpenses: 0, monthlyPurchases: 0, topProducts: [],
+    monthlySalesCount: 0, overdueInvoices: 0, collectedPayments: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
     async function loadMetrics() {
       try {
-        const [dashRes, productsRes, customersRes, activityRes] = await Promise.allSettled([
+        const [dashRes, activityRes] = await Promise.allSettled([
           api.get('/analytics/dashboard'),
-          api.get('/inventory/products?limit=1'),
-          api.get('/customers?limit=1'),
           api.get('/activity?limit=10'),
         ]);
 
@@ -110,8 +123,15 @@ export function Dashboard() {
             lowStockCount: Number(d?.lowStockCount ?? 0),
             activeSalesOrders: Number(d?.activeSalesOrders ?? 0),
             outstandingInvoices: Number(d?.outstandingInvoices ?? 0),
-            totalCustomers: Number(customersRes.status === 'fulfilled' ? (customersRes.value.data?.total ?? 0) : 0),
-            totalProducts: Number(productsRes.status === 'fulfilled' ? (productsRes.value.data?.total ?? 0) : 0),
+            totalCustomers: Number(d?.totalCustomers ?? 0),
+            totalProducts: Number(d?.totalProducts ?? 0),
+            totalStaff: Number(d?.totalStaff ?? 0),
+            monthlyExpenses: Number(d?.monthlyExpenses ?? 0),
+            monthlyPurchases: Number(d?.monthlyPurchases ?? 0),
+            topProducts: d?.topProducts ?? [],
+            monthlySalesCount: Number(d?.monthlySalesCount ?? 0),
+            overdueInvoices: Number(d?.overdueInvoices ?? 0),
+            collectedPayments: Number(d?.collectedPayments ?? 0),
           });
         }
 
@@ -131,12 +151,17 @@ export function Dashboard() {
     return <DashboardSkeleton />;
   }
 
+  const netProfit = metrics.revenue - metrics.monthlyExpenses;
+  const pendingTotal = metrics.pendingApprovals.leaveRequests + metrics.pendingApprovals.expenseClaims + metrics.pendingApprovals.purchaseOrders;
+
   return (
     <div className="space-y-6">
       <Breadcrumbs />
       <div className="page-header">
         <div>
-          <h1 className="page-title">Dashboard</h1>
+          <h1 className="page-title">
+            {isExecutive ? 'Executive Dashboard' : 'Dashboard'}
+          </h1>
           <p className="page-subtitle">
             Welcome back, {user?.fullName || 'User'}
             {locationName && <span className="text-primary-600 font-medium"> · {locationName}</span>}
@@ -144,57 +169,93 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* Executive KPI Row */}
+      {isExecutive && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard title="Revenue (Month)" value={`₦${metrics.revenue.toLocaleString()}`} icon={TrendingUp} color="bg-primary-600" subtitle={`${metrics.monthlySalesCount} sales`} />
+          <StatCard title="Expenses (Month)" value={`₦${metrics.monthlyExpenses.toLocaleString()}`} icon={TrendingDown} color="bg-red-500" subtitle={`${metrics.monthlyPurchases.toLocaleString()} in purchases`} />
+          <StatCard title="Net Profit" value={`₦${netProfit.toLocaleString()}`} icon={netProfit >= 0 ? TrendingUp : TrendingDown} color={netProfit >= 0 ? 'bg-green-600' : 'bg-red-600'} subtitle={netProfit >= 0 ? 'Profitable' : 'Loss'} />
+          <StatCard title="Cash Collected" value={`₦${metrics.collectedPayments.toLocaleString()}`} icon={Banknote} color="bg-emerald-600" subtitle="Total payments received" />
+        </div>
+      )}
+
+      {/* Operations Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {(userRole === 'MD' || userRole === 'Manager' || userRole === 'Director') && (
-          <>
-            <StatCard title="Revenue (Month)" value={`₦${metrics.revenue.toLocaleString()}`} icon={TrendingUp} color="bg-primary-600" />
-            <StatCard title="Receivables" value={`₦${metrics.receivables.toLocaleString()}`} icon={DollarSign} color="bg-amber-600" />
-          </>
-        )}
         <StatCard title="Products" value={metrics.totalProducts.toLocaleString()} icon={Package} color="bg-green-600" />
         <StatCard title="Customers" value={metrics.totalCustomers.toLocaleString()} icon={Users} color="bg-purple-600" />
+        {isExecutive && (
+          <StatCard title="Active Staff" value={metrics.totalStaff.toLocaleString()} icon={Building2} color="bg-blue-600" />
+        )}
         {metrics.lowStockCount > 0 && (
           <StatCard title="Low Stock Alerts" value={metrics.lowStockCount.toString()} icon={AlertTriangle} color="bg-red-600" />
         )}
-        {(userRole === 'MD' || userRole === 'Manager' || userRole === 'Accountant') && (
-          <>
-            {metrics.outstandingInvoices > 0 && (
-              <StatCard title="Outstanding Invoices" value={metrics.outstandingInvoices.toString()} icon={FileText} color="bg-orange-600" />
-            )}
-            {metrics.activeSalesOrders > 0 && (
-              <StatCard title="Active Orders" value={metrics.activeSalesOrders.toString()} icon={ShoppingCart} color="bg-blue-600" />
-            )}
-          </>
+        {metrics.overdueInvoices > 0 && (
+          <StatCard title="Overdue Invoices" value={metrics.overdueInvoices.toString()} icon={AlertOctagon} color="bg-orange-600" />
         )}
-        {(metrics.pendingApprovals.leaveRequests + metrics.pendingApprovals.expenseClaims + metrics.pendingApprovals.purchaseOrders) > 0 && (
-          <StatCard title="Pending Approvals" value={(metrics.pendingApprovals.leaveRequests + metrics.pendingApprovals.expenseClaims + metrics.pendingApprovals.purchaseOrders).toString()} icon={ClipboardList} color="bg-indigo-600" />
+        {metrics.outstandingInvoices > 0 && (
+          <StatCard title="Outstanding Invoices" value={metrics.outstandingInvoices.toString()} icon={FileText} color="bg-amber-600" />
+        )}
+        {metrics.activeSalesOrders > 0 && (
+          <StatCard title="Active Orders" value={metrics.activeSalesOrders.toString()} icon={ShoppingCart} color="bg-blue-600" />
+        )}
+        {pendingTotal > 0 && (
+          <StatCard title="Pending Approvals" value={pendingTotal.toString()} icon={ClipboardList} color="bg-indigo-600" />
         )}
       </div>
 
-      {/* Quick Actions + Activity Feed */}
+      {/* Executive Summary + Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick Actions */}
-        <div className="lg:col-span-2 card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {(userRole === 'Sales Rep' || userRole === 'MD' || userRole === 'Manager') && (
-              <QuickActionButton label="New Sale" onClick={() => navigate('/pos')} color="bg-primary-600" icon={ShoppingCart} />
-            )}
-            <QuickActionButton label="Invoice" onClick={() => navigate('/invoices')} color="bg-green-600" icon={FileText} />
-            {(userRole === 'MD' || userRole === 'Manager' || userRole === 'Director') && (
-              <>
-                <QuickActionButton label="Add Product" onClick={() => navigate('/products')} color="bg-purple-600" icon={PackagePlus} />
-                <QuickActionButton label="Purchase" onClick={() => navigate('/procurement')} color="bg-amber-600" icon={PlusCircle} />
-              </>
-            )}
-            {(userRole === 'Accountant' || userRole === 'MD' || userRole === 'Manager') && (
-              <>
-                <QuickActionButton label="Quotes" onClick={() => navigate('/quotes')} color="bg-indigo-600" icon={ClipboardList} />
-                <QuickActionButton label="Expenses" onClick={() => navigate('/expenses')} color="bg-rose-600" icon={Receipt} />
-              </>
-            )}
+        {/* Quick Actions + Top Products */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quick Actions */}
+          <div className="card">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {(userRole === 'Sales Rep' || userRole === 'MD' || userRole === 'Manager') && (
+                <QuickActionButton label="New Sale" onClick={() => navigate('/pos')} color="bg-primary-600" icon={ShoppingCart} />
+              )}
+              <QuickActionButton label="Invoice" onClick={() => navigate('/invoices')} color="bg-green-600" icon={FileText} />
+              {(userRole === 'MD' || userRole === 'Manager' || userRole === 'Director') && (
+                <>
+                  <QuickActionButton label="Add Product" onClick={() => navigate('/products')} color="bg-purple-600" icon={PackagePlus} />
+                  <QuickActionButton label="Purchase" onClick={() => navigate('/procurement')} color="bg-amber-600" icon={PlusCircle} />
+                </>
+              )}
+              {(userRole === 'Accountant' || userRole === 'MD' || userRole === 'Manager') && (
+                <>
+                  <QuickActionButton label="Quotes" onClick={() => navigate('/quotes')} color="bg-indigo-600" icon={ClipboardList} />
+                  <QuickActionButton label="Expenses" onClick={() => navigate('/expenses')} color="bg-rose-600" icon={Receipt} />
+                </>
+              )}
+              {(userRole === 'MD' || userRole === 'Director' || userRole === 'Manager') && (
+                <>
+                  <QuickActionButton label="Reports" onClick={() => navigate('/reports')} color="bg-teal-600" icon={BarChart3} />
+                  <QuickActionButton label="Approvals" onClick={() => navigate('/approvals')} color="bg-orange-600" icon={CheckCircle} />
+                </>
+              )}
+            </div>
           </div>
+
+          {/* Top Products (Executive only) */}
+          {isExecutive && metrics.topProducts.length > 0 && (
+            <div className="card">
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="w-5 h-5 text-amber-500" />
+                <h2 className="text-lg font-semibold text-gray-900">Top Products This Month</h2>
+              </div>
+              <div className="space-y-3">
+                {metrics.topProducts.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-gray-400 w-6">{i + 1}</span>
+                      <span className="text-sm font-medium text-gray-900">{p.name}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-primary-600">{p.total_sold} sold</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Activity Feed */}
