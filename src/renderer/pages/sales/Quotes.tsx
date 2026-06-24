@@ -39,24 +39,24 @@ export function Quotes() {
   const [emailQuote, setEmailQuote] = useState<Quote | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
-  useEffect(() => { fetchQuotes(); }, []);
+  useEffect(() => { fetchQuotes(); }, [filter]);
+  useEffect(() => {
+    const t = setTimeout(() => fetchQuotes(), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   async function fetchQuotes() {
     setIsLoading(true);
     try {
-      const { data } = await api.get('/quotes?limit=100');
-      setQuotes(data?.rows || []);
+      const params = new URLSearchParams({ limit: '100' });
+      if (search) params.set('search', search);
+      if (filter !== 'all') params.set('status', filter);
+      const { data } = await api.get(`/quotes?${params.toString()}`);
+      setQuotes(data?.data || []);
     } catch { setQuotes([]); } finally { setIsLoading(false); }
   }
 
-  const filtered = quotes.filter((q) => {
-    if (filter !== 'all' && q.status !== filter) return false;
-    if (search) {
-      const s = search.toLowerCase();
-      return (q.quoteNumber || '').toLowerCase().includes(s);
-    }
-    return true;
-  });
+  const filtered = quotes;
 
   const statusCounts = quotes.reduce((acc, q) => { acc[q.status] = (acc[q.status] || 0) + 1; return acc; }, {} as Record<string, number>);
 
