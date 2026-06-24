@@ -34,7 +34,16 @@ export function BalanceSheet() {
       const res = await api.get('/accounting/reports/balance-sheet', {
         params: { asOfDate },
       });
-      setData(res.data?.data || res.data || null);
+      const raw = res.data?.data || res.data || null;
+      if (!raw) { setData(null); return; }
+      setData({
+        assets: raw.assets?.accounts || raw.assets || [],
+        liabilities: raw.liabilities?.accounts || raw.liabilities || [],
+        equity: raw.equity?.accounts || raw.equity || [],
+        totalAssets: raw.assets?.total ?? raw.totalAssets ?? 0,
+        totalLiabilities: raw.liabilities?.total ?? raw.totalLiabilities ?? 0,
+        totalEquity: raw.equity?.total ?? raw.totalEquity ?? 0,
+      });
     } catch {
       toast.error('Failed to load balance sheet');
     } finally {

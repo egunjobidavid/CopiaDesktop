@@ -47,8 +47,8 @@ export function Payroll() {
     try {
       setLoading(true);
       const res = await api.get('/hr/payroll/runs');
-      const data = res.data?.data || res.data || [];
-      setRuns(Array.isArray(data) ? data : []);
+      const payload = res.data?.data || res.data || {};
+      setRuns(Array.isArray(payload) ? payload : payload.data || []);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to load payroll runs');
     } finally {
@@ -78,8 +78,8 @@ export function Payroll() {
     setLoadingDetails(true);
     try {
       const res = await api.get(`/hr/payroll/runs/${run.id}`);
-      const data = res.data?.lines || res.data?.data || [];
-      setRunDetails(Array.isArray(data) ? data : []);
+      const runData = res.data?.data || res.data || {};
+      setRunDetails(runData.lines || []);
     } catch (err: any) {
       toast.error('Failed to load payroll details');
     } finally {
