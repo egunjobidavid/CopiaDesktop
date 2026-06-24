@@ -148,7 +148,7 @@ const navSections: NavSection[] = [
   {
     label: 'Settings',
     items: [
-      { path: '/settings', label: 'General', icon: Settings, minRole: 'Manager' },
+      { path: '/settings', label: 'General', icon: Settings, minRole: 'Staff' },
       { path: '/settings/roles', label: 'Roles', icon: Shield, minRole: 'Staff', module: 'hr' },
       { path: '/settings/departments', label: 'Departments', icon: Building2, minRole: 'Staff', module: 'hr' },
       { path: '/settings/locations', label: 'Locations', icon: MapPin, minRole: 'Staff', module: 'hr', feature: 'locations' },

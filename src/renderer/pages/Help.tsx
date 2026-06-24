@@ -358,7 +358,7 @@ const sections: Section[] = [
             <p>Create reusable email templates for consistent client communication:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>Go to <strong>CRM &gt; Email Templates</strong> to manage templates</li>
-              <li>Create templates with placeholders (e.g., {customerName}, {dealValue})</li>
+              <li>Create templates with placeholders (e.g., {'{'}customerName{'}'}, {'{'}dealValue{'}'})</li>
               <li>Use the <strong>Preview</strong> button to see how the email will look</li>
               <li>Send emails directly from deal detail views</li>
               <li>Supports HTML formatting for professional-looking emails</li>
