@@ -31,13 +31,13 @@ export function Approvals() {
     api.get(`/approvals?status=${filter}`).then(({ data }) => {
       const items = data?.data ? (Array.isArray(data.data) ? data.data : []) : (Array.isArray(data) ? data : []);
       setRequests(items);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch(() => { toast.error('Failed to load approval requests'); }).finally(() => setLoading(false));
   };
 
   const loadRules = () => {
     api.get('/approvals/rules').then(({ data }) => {
       setRules(Array.isArray(data) ? data : []);
-    }).catch(() => {});
+    }).catch(() => { toast.error('Failed to load approval rules'); });
   };
 
   useEffect(() => { loadRequests(); }, [filter]);

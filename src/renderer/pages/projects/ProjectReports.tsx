@@ -200,7 +200,7 @@ function TeamWorkloadReport() {
   useEffect(() => {
     api.get('/projects/reports/team-workload')
       .then((res) => setData(res.data))
-      .catch(() => {})
+      .catch(() => { toast.error('Failed to load team workload'); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -269,7 +269,7 @@ function TimeTrackingReport() {
   useEffect(() => {
     api.get('/projects/reports/time-tracking')
       .then((res) => setData(res.data))
-      .catch(() => {})
+      .catch(() => { toast.error('Failed to load time tracking'); })
       .finally(() => setLoading(false));
   }, []);
 

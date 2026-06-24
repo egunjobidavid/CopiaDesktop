@@ -23,7 +23,7 @@ export function Support() {
   const loadTickets = () => {
     api.get('/support').then(({ data }) => {
       setTickets(Array.isArray(data) ? data : []);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).catch(() => { toast.error('Failed to load support tickets'); }).finally(() => setLoading(false));
   };
 
   useEffect(() => { loadTickets(); }, []);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useInventory } from '../../hooks/useInventory';
 import { Search, Warehouse, Loader2, Filter } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../../api/client';
 
 interface ProductCategory {
@@ -24,13 +25,13 @@ export function StockView() {
     fetchBalances();
     api.get('/inventory/categories').then((res) => {
       setCategories(res.data?.data || res.data || []);
-    }).catch(() => {});
+    }).catch(() => { toast.error('Failed to load categories'); });
     api.get('/inventory/products').then((res) => {
       const products: Product[] = res.data?.data || res.data || [];
       const map: Record<string, string> = {};
       products.forEach(p => { if (p.categoryId) map[p.id] = p.categoryId; });
       setProductCategories(map);
-    }).catch(() => {});
+    }).catch(() => { toast.error('Failed to load products'); });
   }, [fetchBalances]);
 
   const filtered = balances.filter((b) => {

@@ -39,7 +39,7 @@ export function CreateDealModal({ stages, onClose, onCreate }: Props) {
     api.get('/customers').then(({ data }) => {
       const items = data?.items || data || [];
       setCustomers(Array.isArray(items) ? items : []);
-    }).catch(() => {});
+    }).catch(() => { toast.error('Failed to load customers'); });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

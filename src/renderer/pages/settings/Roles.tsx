@@ -28,7 +28,7 @@ export function Roles() {
 
   const loadRoles = () => {
     setLoading(true);
-    rolesApi.list().then(({ data }) => setRoles(data || [])).catch(() => {}).finally(() => setLoading(false));
+    rolesApi.list().then(({ data }) => setRoles(data || [])).catch(() => { toast.error('Failed to load roles'); }).finally(() => setLoading(false));
   };
 
   useEffect(() => { loadRoles(); }, []);

@@ -113,7 +113,7 @@ export function Billing() {
     if (!tenantId) return;
     api.get('/billing/subscription')
       .then((res) => setSub(res.data))
-      .catch(() => {})
+      .catch(() => { toast.error('Failed to load subscription info'); })
       .finally(() => setLoading(false));
 
     const params = new URLSearchParams(window.location.search);

@@ -81,7 +81,7 @@ export function Settings() {
         const t = data.tenants.find((t: any) => t.id === tenantId);
         if (t) setOrgName(t.name);
       }
-    }).catch(() => {});
+    }).catch(() => { toast.error('Failed to load organization info'); });
     loadMembers();
     loadInvites();
     loadOrphans();
@@ -91,20 +91,20 @@ export function Settings() {
     setLoadingMembers(true);
     api.get(`/tenants/members?tenantId=${tenantId}`).then(({ data }) => {
       setMembers(Array.isArray(data) ? data : []);
-    }).catch(() => {}).finally(() => setLoadingMembers(false));
+    }).catch(() => { toast.error('Failed to load team members'); }).finally(() => setLoadingMembers(false));
   };
 
   const loadInvites = () => {
     api.get(`/invites?tenantId=${tenantId}`).then(({ data }) => {
       setInvites(Array.isArray(data) ? data : []);
-    }).catch(() => {});
+    }).catch(() => { toast.error('Failed to load invites'); });
   };
 
   const loadOrphans = () => {
     setLoadingOrphans(true);
     api.get('/tenants/orphan-users').then(({ data }) => {
       setOrphanUsers(Array.isArray(data) ? data : []);
-    }).catch(() => {}).finally(() => setLoadingOrphans(false));
+    }).catch(() => { toast.error('Failed to load unassigned users'); }).finally(() => setLoadingOrphans(false));
   };
 
   const addOrphan = async (email: string) => {
