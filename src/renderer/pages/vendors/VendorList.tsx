@@ -75,8 +75,17 @@ export function VendorList() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 py-3 border-b border-gray-100">
+                <div className="w-10 h-10 rounded-full bg-gray-100 animate-pulse" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-1/3 bg-gray-100 rounded animate-pulse" />
+                  <div className="h-3 w-1/2 bg-gray-100 rounded animate-pulse" />
+                </div>
+                <div className="h-4 w-16 bg-gray-100 rounded animate-pulse" />
+              </div>
+            ))}
           </div>
         ) : vendors.length === 0 ? (
           <div className="text-center py-16 text-gray-400">

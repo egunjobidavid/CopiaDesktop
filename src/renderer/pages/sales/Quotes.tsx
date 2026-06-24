@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Loader2, Search, ArrowRight, Trash2, Download, Mail, Clock, Hash, Plus } from 'lucide-react';
+import { FileText, Loader2, Search, ArrowRight, Trash2, Download, Mail, Clock, Hash, Plus, MessageCircle } from 'lucide-react';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { EmailSendModal } from '../../components/EmailSendModal';
@@ -231,6 +231,16 @@ export function Quotes() {
                           title="Send Email"
                         >
                           <Mail className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            const msg = `Hello! 👋\n\nYour quote *${q.quoteNumber}* is ready.\n\n💰 Amount: *₦${Number(q.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}*\n📅 Valid until: ${q.validUntil ? new Date(q.validUntil).toLocaleDateString('en-GB') : 'N/A'}\n\nThank you! 🙏`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                          }}
+                          className="btn-ghost text-xs text-green-600 hover:text-green-700"
+                          title="Share on WhatsApp"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
                         </button>
                         {q.status === 'draft' || q.status === 'sent' ? (
                           <>

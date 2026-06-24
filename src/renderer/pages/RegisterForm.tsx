@@ -42,6 +42,29 @@ export function RegisterForm({ onBack }: Props) {
   });
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateField = (name: string, value: string) => {
+    const errs: Record<string, string> = { ...errors };
+    delete errs[name];
+    if (name === 'email' && (!value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))) errs.email = 'Enter a valid email';
+    if (name === 'password' && (!value || value.length < 6)) errs.password = 'Password must be at least 6 characters';
+    if (name === 'fullName' && !value.trim()) errs.fullName = 'Full name is required';
+    if (name === 'tenantName' && !value.trim()) errs.tenantName = 'Organization name is required';
+    setErrors(errs);
+  };
+
+  const validateStep = (s: number) => {
+    const errs: Record<string, string> = {};
+    if (s === 1 && !inviteToken) {
+      if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Enter a valid email';
+      if (!form.password || form.password.length < 6) errs.password = 'Password must be at least 6 characters';
+      if (!form.fullName.trim()) errs.fullName = 'Full name is required';
+      if (!form.tenantName.trim()) errs.tenantName = 'Organization name is required';
+    }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   useEffect(() => {
     if (inviteToken) {
@@ -197,12 +220,15 @@ export function RegisterForm({ onBack }: Props) {
               <p className="text-xs text-gray-500">Create your admin account</p>
             </div>
           </div>
-          <input className={inputClass} type="text" placeholder="Your full name *" value={form.fullName}
-            onChange={(e) => update('fullName', e.target.value)} />
-          <input className={inputClass} type="email" placeholder="Email address *" value={form.email}
-            onChange={(e) => update('email', e.target.value)} />
-          <input className={inputClass} type="password" placeholder="Password (min 6 chars) *" value={form.password}
-            onChange={(e) => update('password', e.target.value)} />
+          <input className={`${inputClass} ${errors.fullName ? 'border-red-500' : ''}`} type="text" placeholder="Your full name *" value={form.fullName}
+            onChange={(e) => { update('fullName', e.target.value); validateField('fullName', e.target.value); }} />
+          {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName}</p>}
+          <input className={`${inputClass} ${errors.email ? 'border-red-500' : ''}`} type="email" placeholder="Email address *" value={form.email}
+            onChange={(e) => { update('email', e.target.value); validateField('email', e.target.value); }} />
+          {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
+          <input className={`${inputClass} ${errors.password ? 'border-red-500' : ''}`} type="password" placeholder="Password (min 6 chars) *" value={form.password}
+            onChange={(e) => { update('password', e.target.value); validateField('password', e.target.value); }} />
+          {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
           <hr className="border-gray-200" />
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -213,8 +239,9 @@ export function RegisterForm({ onBack }: Props) {
               <p className="text-xs text-gray-500">Tell us about your business</p>
             </div>
           </div>
-          <input className={inputClass} type="text" placeholder="Organization name *" value={form.tenantName}
-            onChange={(e) => update('tenantName', e.target.value)} />
+          <input className={`${inputClass} ${errors.tenantName ? 'border-red-500' : ''}`} type="text" placeholder="Organization name *" value={form.tenantName}
+            onChange={(e) => { update('tenantName', e.target.value); validateField('tenantName', e.target.value); }} />
+          {errors.tenantName && <p className="text-red-500 text-xs">{errors.tenantName}</p>}
           <input className={inputClass} type="tel" placeholder="Phone number" value={form.tenantPhone}
             onChange={(e) => update('tenantPhone', e.target.value)} />
         </div>
@@ -305,7 +332,7 @@ export function RegisterForm({ onBack }: Props) {
           </button>
         )}
         {step < 3 ? (
-          <button onClick={() => setStep(step + 1)} disabled={!canProceed(step)}
+          <button onClick={() => { if (validateStep(step)) setStep(step + 1); }} disabled={!canProceed(step)}
             className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50">
             Next <ArrowRight className="w-4 h-4" />
           </button>

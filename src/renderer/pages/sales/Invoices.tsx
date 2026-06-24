@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Loader2, Search, Mail, CreditCard, AlertCircle, X, Ban, Plus } from 'lucide-react';
+import { FileText, Loader2, Search, Mail, CreditCard, AlertCircle, X, Ban, Plus, MessageCircle } from 'lucide-react';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { DataTable } from '../../components/DataTable';
@@ -81,6 +81,13 @@ export function Invoices() {
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to void invoice');
     }
+  }
+
+  function shareWhatsApp(inv: Invoice) {
+    const phone = inv.customerPhone || '';
+    const msg = `Hello! 👋\n\nYour invoice *${inv.invoiceNumber}* is ready.\n\n💰 Amount: *₦${Number(inv.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}*\n📅 Date: ${new Date(inv.invoiceDate || inv.createdAt).toLocaleDateString('en-GB')}\n\nThank you for your business! 🙏`;
+    const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+    window.open(url, '_blank');
   }
 
   async function createCreditMemo() {
@@ -171,6 +178,13 @@ export function Invoices() {
               title="Send Email"
             >
               <Mail className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => shareWhatsApp(inv)}
+              className="btn-ghost text-xs text-green-600 hover:text-green-700"
+              title="Share on WhatsApp"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
             </button>
             {inv.status !== 'voided' && inv.status !== 'paid' && (
               <>

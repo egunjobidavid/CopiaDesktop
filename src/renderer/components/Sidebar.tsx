@@ -258,7 +258,9 @@ export function Sidebar() {
                 <div className="space-y-0.5">
                   {visibleItems.map((item) => {
                     const Icon = item.icon;
-                    const isActive = location.pathname === item.path;
+                    const isActive = item.path === '/dashboard'
+                      ? location.pathname === '/dashboard'
+                      : location.pathname === item.path || location.pathname.startsWith(item.path + '/');
                     const isSubItem = section.label === 'Settings' && item.path !== '/settings';
 
                     return (
@@ -267,8 +269,8 @@ export function Sidebar() {
                         onClick={() => navigate(item.path)}
                         className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
                           isActive
-                            ? 'bg-primary-50 text-primary-700 shadow-sm'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            ? 'bg-primary-50 text-primary-700 shadow-sm border-l-2 border-primary-600'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-2 border-transparent'
                         } ${isSubItem ? 'pl-9' : ''}`}
                       >
                         <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-primary-600' : 'text-gray-400'}`} />

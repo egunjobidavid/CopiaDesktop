@@ -1,5 +1,6 @@
 import { Component, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, Copy } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Props {
   children: ReactNode;
@@ -29,6 +30,19 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({ hasError: false, error: null });
   };
 
+  handleGoHome = () => {
+    window.location.href = '/dashboard';
+  };
+
+  handleCopyError = () => {
+    const info = `${this.state.error?.name}: ${this.state.error?.message}\n${this.state.error?.stack}`;
+    navigator.clipboard.writeText(info).then(() => {
+      toast.success('Error details copied to clipboard');
+    }).catch(() => {
+      toast.error('Failed to copy error details');
+    });
+  };
+
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
@@ -42,10 +56,19 @@ export class ErrorBoundary extends Component<Props, State> {
           <p className="text-sm text-gray-500 mb-4 max-w-md">
             {this.state.error?.message || 'An unexpected error occurred while loading this page.'}
           </p>
-          <button onClick={this.handleRetry} className="btn-primary gap-2">
-            <RefreshCw className="w-4 h-4" />
-            Try Again
-          </button>
+          <div className="flex gap-2">
+            <button onClick={this.handleRetry} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+            <button onClick={this.handleGoHome} className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors flex items-center gap-2">
+              <Home className="w-4 h-4" />
+              Go to Dashboard
+            </button>
+            <button onClick={this.handleCopyError} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2" title="Copy error details for support">
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       );
     }
