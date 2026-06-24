@@ -4,6 +4,7 @@ import api from '../../api/client';
 import { PageHeader } from '../../components/PageHeader';
 import { exportToCsv } from '../../utils/helpers';
 import toast from 'react-hot-toast';
+import { Search } from 'lucide-react';
 
 interface Project {
   id: string;
@@ -41,14 +42,19 @@ export function Projects() {
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
+  const [search, setSearch] = useState('');
   const [form, setForm] = useState({ name: '', description: '', priority: 'medium', dueDate: '', color: '#2563eb' });
 
-  useEffect(() => { loadProjects(); }, []);
+  useEffect(() => { loadProjects(); }, [statusFilter, search]);
 
   const loadProjects = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/projects');
+      const params = new URLSearchParams();
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (search) params.set('search', search);
+      const qs = params.toString();
+      const res = await api.get(`/projects${qs ? '?' + qs : ''}`);
       setProjects(res.data?.data || res.data || []);
     } catch {
       toast.error('Failed to load projects');
@@ -76,7 +82,7 @@ export function Projects() {
     }
   };
 
-  const filtered = statusFilter === 'all' ? projects : projects.filter((p) => p.status === statusFilter);
+  const filtered = projects;
 
   const getProgress = (p: Project) => {
     if (p.taskCount === 0) return 0;
@@ -112,14 +118,22 @@ export function Projects() {
       </PageHeader>
 
       {/* Filters */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search projects..."
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
+          </div>
+          <div className="flex gap-2">
           {['all', 'active', 'on_hold', 'completed', 'archived'].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === s ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
               {s === 'all' ? 'All' : s.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
             </button>
           ))}
+          </div>
         </div>
         <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
           <button onClick={() => setView('grid')} className={`px-3 py-1 rounded text-sm ${view === 'grid' ? 'bg-white shadow text-gray-900' : 'text-gray-500'}`}>Grid</button>

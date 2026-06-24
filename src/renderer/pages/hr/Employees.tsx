@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { PageHeader } from '../../components/PageHeader';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, X, Loader2, Users } from 'lucide-react';
+import { Plus, Edit2, X, Loader2, Users, Search } from 'lucide-react';
 
 interface Employee {
   id: string;
@@ -27,6 +27,7 @@ export function Employees() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Employee | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState('');
 
   const [form, setForm] = useState({
     employeeCode: '',
@@ -41,13 +42,14 @@ export function Employees() {
     taxId: '',
   });
 
-  useEffect(() => { loadEmployees(); }, [page, filter]);
+  useEffect(() => { loadEmployees(); }, [page, filter, search]);
 
   const loadEmployees = async () => {
     try {
       setLoading(true);
       const params: any = { page, limit: 20 };
       if (filter !== 'all') params.status = filter;
+      if (search) params.search = search;
       const res = await api.get('/hr/employees', { params });
       setEmployees(res.data?.data || res.data || []);
       setTotal(res.data?.total || 0);
@@ -147,14 +149,22 @@ export function Employees() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-2">
+      {/* Search & Filter */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name, code..."
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
+        </div>
+        <div className="flex gap-2">
         {['all', 'active', 'inactive', 'terminated'].map((f) => (
           <button key={f} onClick={() => { setFilter(f); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filter === f ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
             {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
+        </div>
       </div>
 
       {/* Table */}
