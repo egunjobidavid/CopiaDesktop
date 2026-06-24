@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProcurement, PurchaseOrder } from '../../hooks/useProcurement';
-import { Plus, ClipboardList, Loader2, Eye } from 'lucide-react';
+import { Plus, ClipboardList, Loader2, Eye, Search } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-gray-100 text-gray-600',
@@ -15,10 +15,11 @@ export function POList() {
   const navigate = useNavigate();
   const { orders, isLoading, fetchOrders, deleteOrder } = useProcurement();
   const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+    fetchOrders(search || undefined);
+  }, [fetchOrders, search]);
 
   const filtered = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
 
@@ -63,8 +64,15 @@ export function POList() {
         </div>
       </div>
 
-      {/* Status filter tabs */}
-      <div className="flex gap-2 overflow-x-auto">
+      {/* Search & Status filter */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search PO number..."
+            className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
+        </div>
+        <div className="flex gap-2 overflow-x-auto">
         {['all', 'draft', 'sent', 'confirmed', 'received', 'cancelled'].map((s) => (
           <button
             key={s}
@@ -81,6 +89,7 @@ export function POList() {
             )}
           </button>
         ))}
+        </div>
       </div>
 
       {/* Table */}

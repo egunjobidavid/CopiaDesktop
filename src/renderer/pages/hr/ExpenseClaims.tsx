@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { PageHeader } from '../../components/PageHeader';
 import toast from 'react-hot-toast';
-import { Receipt, Plus, CheckCircle, XCircle, Loader2, X } from 'lucide-react';
+import { Receipt, Plus, CheckCircle, XCircle, Loader2, X, Search } from 'lucide-react';
 
 interface ExpenseClaim {
   id: string;
@@ -37,6 +37,7 @@ export function ExpenseClaims() {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   const [form, setForm] = useState({
     employeeId: '',
@@ -47,13 +48,14 @@ export function ExpenseClaims() {
     receiptUrl: '',
   });
 
-  useEffect(() => { loadClaims(); }, []);
+  useEffect(() => { loadClaims(); }, [search]);
 
   const loadClaims = async () => {
     try {
       setLoading(true);
+      const params = search ? `?search=${encodeURIComponent(search)}` : '';
       const [claimsRes, summaryRes] = await Promise.all([
-        api.get('/hr/expense-claims'),
+        api.get(`/hr/expense-claims${params}`),
         api.get('/hr/expense-claims/summary'),
       ]);
       const claimsPayload = claimsRes.data?.data || claimsRes.data || {};
@@ -126,6 +128,13 @@ export function ExpenseClaims() {
           <p className="text-xs text-gray-500">Total Amount</p>
           <p className="text-lg font-bold text-gray-900">{formatCurrency(summary.total_amount)}</p>
         </div>
+      </div>
+
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by employee, category..."
+          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
       </div>
 
       {/* Table */}

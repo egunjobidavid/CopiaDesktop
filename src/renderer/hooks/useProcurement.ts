@@ -37,10 +37,12 @@ export function useProcurement() {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (search?: string) => {
     setIsLoading(true);
     try {
-      const { data } = await api.get('/procurement/purchase-orders?limit=50');
+      const params = new URLSearchParams({ limit: '50' });
+      if (search) params.set('search', search);
+      const { data } = await api.get(`/procurement/purchase-orders?${params.toString()}`);
       setOrders(data?.data ?? (Array.isArray(data) ? data : []));
     } catch {
       setOrders([]);

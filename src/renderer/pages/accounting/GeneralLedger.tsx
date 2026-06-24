@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { PageHeader } from '../../components/PageHeader';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, X, Loader2, BookOpen, Eye } from 'lucide-react';
+import { Plus, Trash2, X, Loader2, BookOpen, Eye, Search } from 'lucide-react';
 
 interface Account {
   id: string;
@@ -40,6 +40,7 @@ export function GeneralLedger() {
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState('');
 
   const [description, setDescription] = useState('');
   const [referenceType, setReferenceType] = useState('');
@@ -50,13 +51,18 @@ export function GeneralLedger() {
 
   useEffect(() => {
     loadEntries();
+  }, [page, search]);
+
+  useEffect(() => {
     loadAccounts();
-  }, [page]);
+  }, []);
 
   const loadEntries = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/accounting/journal', { params: { page, limit: 20 } });
+      const params: any = { page, limit: 20 };
+      if (search) params.search = search;
+      const res = await api.get('/accounting/journal', { params });
       setEntries(res.data?.data || res.data?.rows || []);
       setTotalPages(res.data?.totalPages || 1);
     } catch (err: any) {
@@ -165,6 +171,13 @@ export function GeneralLedger() {
           <p className="text-xs text-gray-500">Journal Entries</p>
           <p className="text-lg font-bold text-gray-900">{entries.length} this page</p>
         </div>
+      </div>
+
+      <div className="relative max-w-sm mb-4">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          placeholder="Search by description or entry #..."
+          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500" />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
