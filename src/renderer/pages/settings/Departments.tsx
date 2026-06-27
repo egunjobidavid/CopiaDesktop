@@ -37,7 +37,7 @@ export function Departments() {
       const [dRes, sRes] = await Promise.all([departmentsApi.list(), staffApi.list()]);
       setDepartments(dRes.data || []);
       setStaffList(sRes.data || []);
-    } catch (_) {} finally { setLoading(false); }
+    } catch (error) { console.error('[Departments]', error); } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);

@@ -141,7 +141,7 @@ export function RegisterForm({ onBack }: Props) {
             useAuthStore.setState({ permissions: current.permissions });
           }
         }
-      } catch (_) {}
+      } catch (error) { console.error('[RegisterForm]', error); }
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Registration failed';

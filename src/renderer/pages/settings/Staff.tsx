@@ -59,7 +59,7 @@ export function Staff() {
       setStaff(sRes.data || []);
       setDepartments(dRes.data || []);
       setLocations(Array.isArray(lRes.data) ? lRes.data : []);
-    } catch (_) {} finally { setLoading(false); }
+    } catch (error) { console.error('[Staff]', error); } finally { setLoading(false); }
   };
 
   useEffect(() => { load(); }, []);

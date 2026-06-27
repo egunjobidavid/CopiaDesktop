@@ -76,7 +76,7 @@ export function GeneralLedger() {
     try {
       const res = await api.get('/accounting/accounts');
       setAccounts(res.data?.data || res.data || []);
-    } catch (_) {}
+    } catch (error) { console.error('[GeneralLedger]', error); }
   };
 
   const getAccountName = (code: string) => {

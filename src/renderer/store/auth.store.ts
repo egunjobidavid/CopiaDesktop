@@ -77,7 +77,7 @@ export const useAuthStore = create<AuthState>()(
               set({ plan: current.plan });
             }
           }
-        } catch (_) {}
+        } catch (error) { console.error('[AuthStore]', error); }
         // Auto-select default location
         try {
           const { data } = await api.get('/locations');
@@ -90,7 +90,7 @@ export const useAuthStore = create<AuthState>()(
             const def = locs.find((l: any) => l.isDefault) || locs[0];
             set({ locationId: def.id, locationName: def.name });
           }
-        } catch (_) {}
+        } catch (error) { console.error('[AuthStore]', error); }
       },
 
       setPermissions: (perms: string[]) => { set({ permissions: perms }); },
