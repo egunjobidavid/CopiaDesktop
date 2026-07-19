@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../../api/client';
 import { PageHeader } from '../../components/PageHeader';
 import toast from 'react-hot-toast';
-import { Calendar, CheckCircle, XCircle, Plus, Loader2, Lock, Unlock } from 'lucide-react';
+import { CheckCircle, XCircle, Plus, Loader2, Lock, Unlock } from 'lucide-react';
 
 interface FiscalPeriod {
   id: string;

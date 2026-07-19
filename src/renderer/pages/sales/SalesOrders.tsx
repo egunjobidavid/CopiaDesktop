@@ -116,8 +116,14 @@ export function SalesOrders() {
     {
       id: 'actions',
       header: 'Actions',
-      cell: () => (
-        <button className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1">
+      cell: ({ row }) => (
+        <button
+          onClick={() => {
+            const o = row.original;
+            toast(`Order ${o.orderNumber}\nCustomer: ${o.customerName || 'N/A'}\nTotal: ₦${Number(o.total).toLocaleString()}\nStatus: ${o.status}`, { icon: '📋' });
+          }}
+          className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1"
+        >
           <Eye className="w-3.5 h-3.5" /> View
         </button>
       ),

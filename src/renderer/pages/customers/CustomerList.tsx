@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Plus, Search, Users, Loader2, Mail, Phone, MapPin, Upload, Download } from 'lucide-react';
+import { Plus, Search, Users, Mail, Phone, MapPin, Upload, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
 import { CsvImport } from '../../components/CsvImport';

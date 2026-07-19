@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, CheckCircle, XCircle, Loader2, ExternalLink, Zap, Shield, Clock, AlertTriangle, Lock, Wallet, Users, FolderKanban, Briefcase, Factory, ShoppingBag, MapPin, BarChart3, Crown, Package, ArrowRight } from 'lucide-react';
+import { CreditCard, CheckCircle, XCircle, Loader2, ExternalLink, Zap, Shield, Clock, AlertTriangle, Wallet, Users, FolderKanban, Briefcase, Factory, ShoppingBag, MapPin, BarChart3, Crown, Package, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import api from '../../api/client';

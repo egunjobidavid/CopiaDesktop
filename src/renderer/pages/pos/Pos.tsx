@@ -7,7 +7,7 @@ import { Cart } from './Cart';
 import { CustomerSelect } from './CustomerSelect';
 import { CheckoutModal } from './CheckoutModal';
 import { ZReportModal } from '../../components/ZReportModal';
-import { Search, X, ShoppingCart, User, DollarSign, TrendingUp, Clock, AlertCircle } from 'lucide-react';
+import { X, ShoppingCart, DollarSign, TrendingUp, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface SessionInfo {
@@ -55,16 +55,17 @@ export function Pos() {
       try {
         const api = (await import('../../api/client')).default;
         const { data } = await api.get(`/inventory/products?sku=${barcodeInput.trim()}`);
-        if (Array.isArray(data) && data.length > 0) {
+        const products = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+        if (products.length > 0) {
           addItem({
-            productId: data[0].id,
-            sku: data[0].sku,
-            name: data[0].name,
+            productId: products[0].id,
+            sku: products[0].sku,
+            name: products[0].name,
             quantity: 1,
-            unitPrice: Number(data[0].unitPrice),
-            lineTotal: Number(data[0].unitPrice),
+            unitPrice: Number(products[0].unitPrice),
+            lineTotal: Number(products[0].unitPrice),
           });
-          toast.success(`${data[0].name} added`);
+          toast.success(`${products[0].name} added`);
           setBarcodeInput('');
         } else {
           toast.error('Product not found for this barcode');

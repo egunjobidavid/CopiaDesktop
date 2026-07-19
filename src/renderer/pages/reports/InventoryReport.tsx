@@ -13,7 +13,7 @@ export function InventoryReport() {
       try {
         const [prodRes, balRes] = await Promise.allSettled([
           api.get('/inventory/products?limit=200'),
-          api.get('/inventory/balances'),
+          api.get('/inventory/stock'),
         ]);
         const prodData = prodRes.status === 'fulfilled' ? prodRes.value.data : [];
         const balData = balRes.status === 'fulfilled' ? balRes.value.data : [];

@@ -47,16 +47,19 @@ export function Expenses() {
         api.get('/expenses/categories'),
       ]);
       if (expRes.status === 'fulfilled') {
-        const items = Array.isArray(expRes.value.data) ? expRes.value.data : [];
+        const raw = expRes.value.data;
+        const items = Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []);
         setExpenses(items);
-        if (items.length === limit) {
-          setTotalPages(Math.max(p + 1, totalPages));
-        } else if (p === 1) {
-          setTotalPages(1);
-        }
-        setTotal(items.length);
+        if (raw?.totalPages != null) setTotalPages(raw.totalPages);
+        else if (items.length === limit) setTotalPages(Math.max(p + 1, totalPages));
+        else if (p === 1) setTotalPages(1);
+        if (raw?.total != null) setTotal(raw.total);
+        else setTotal(items.length);
       }
-      if (catRes.status === 'fulfilled') setCategories(Array.isArray(catRes.value.data) ? catRes.value.data : []);
+      if (catRes.status === 'fulfilled') {
+        const raw = catRes.value.data;
+        setCategories(Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []));
+      }
     } catch { /* ignore */ } finally { setIsLoading(false); }
   }, [page, totalPages, limit]);
 

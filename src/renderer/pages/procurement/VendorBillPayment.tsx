@@ -35,7 +35,7 @@ export function VendorBillPayment() {
     setIsLoading(true);
     try {
       const { data } = await api.get('/procurement/payables');
-      setPayables(Array.isArray(data) ? data : []);
+      setPayables(Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []));
     } catch { setPayables([]); } finally { setIsLoading(false); }
   }
 

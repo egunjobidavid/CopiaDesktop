@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { FileText, Loader2, Search, Mail, CreditCard, AlertCircle, X, Ban, Plus, MessageCircle } from 'lucide-react';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
@@ -33,7 +32,6 @@ const statusColors: Record<string, string> = {
 };
 
 export function Invoices() {
-  const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -75,7 +73,7 @@ export function Invoices() {
   async function voidInvoice(invoiceId: string) {
     if (!confirm('Are you sure you want to void this invoice? This action cannot be undone.')) return;
     try {
-      await api.patch(`/sales/invoices/${invoiceId}/void`);
+      await api.post(`/sales/invoices/${invoiceId}/void`);
       toast.success('Invoice voided');
       fetchInvoices();
     } catch (err: any) {
@@ -84,9 +82,8 @@ export function Invoices() {
   }
 
   function shareWhatsApp(inv: Invoice) {
-    const phone = inv.customerPhone || '';
-    const msg = `Hello! 👋\n\nYour invoice *${inv.invoiceNumber}* is ready.\n\n💰 Amount: *₦${Number(inv.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}*\n📅 Date: ${new Date(inv.invoiceDate || inv.createdAt).toLocaleDateString('en-GB')}\n\nThank you for your business! 🙏`;
-    const url = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(msg)}`;
+    const msg = `Hello! 👋\n\nYour invoice *${inv.invoiceNumber}* is ready.\n\n💰 Amount: *₦${Number(inv.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}*\n📅 Date: ${new Date(inv.createdAt).toLocaleDateString('en-GB')}\n\nThank you for your business! 🙏`;
+    const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
   }
 

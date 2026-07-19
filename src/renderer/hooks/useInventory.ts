@@ -33,7 +33,7 @@ export function useInventory() {
     setIsLoading(true);
     try {
       const params = productId ? `?productId=${productId}` : '';
-      const { data } = await api.get(`/inventory/balances${params}`);
+      const { data } = await api.get(`/inventory/stock${params}`);
       setBalances(Array.isArray(data) ? data : []);
     } catch {
       setBalances([]);

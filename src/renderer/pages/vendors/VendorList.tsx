@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Search, ShoppingBag, Loader2, Mail, Phone, Upload } from 'lucide-react';
+import { Plus, Search, ShoppingBag, Mail, Phone, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../api/client';
 import { CsvImport } from '../../components/CsvImport';

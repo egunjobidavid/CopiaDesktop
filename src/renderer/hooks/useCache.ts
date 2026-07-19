@@ -51,7 +51,7 @@ export function useCache() {
       return getCachedStockBalance(productId);
     }
     try {
-      const { data } = await api.get(`/inventory/balances?productId=${productId}`);
+      const { data } = await api.get(`/inventory/stock?productId=${productId}`);
       const balances = Array.isArray(data) ? data : [];
       return balances.reduce((sum: number, b: any) => sum + Number(b.quantity || 0), 0);
     } catch {

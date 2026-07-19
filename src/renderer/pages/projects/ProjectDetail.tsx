@@ -153,10 +153,10 @@ export function ProjectDetail() {
           <div key={status} className={`rounded-xl p-4 border border-gray-100 ${config.bg}`}>
             <p className="text-xs font-medium text-gray-500 uppercase">{config.label}</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">
-              {status === 'todo' ? project.taskCounts.todo :
-               status === 'in_progress' ? project.taskCounts.inProgress :
-               status === 'in_review' ? project.taskCounts.inReview :
-               project.taskCounts.done}
+              {status === 'todo' ? (project.taskCounts?.todo ?? 0) :
+               status === 'in_progress' ? (project.taskCounts?.inProgress ?? 0) :
+               status === 'in_review' ? (project.taskCounts?.inReview ?? 0) :
+               (project.taskCounts?.done ?? 0)}
             </p>
           </div>
         ))}

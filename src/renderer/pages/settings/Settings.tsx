@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, User, Shield, Building2, Copy, CheckCircle2, Mail, Plus, X, Loader2, Users, Clock, CheckCircle, Ban, Trash2, ChevronDown } from 'lucide-react';
+import { Settings as SettingsIcon, User, Shield, Building2, Copy, CheckCircle2, Mail, Plus, X, Loader2, Users, Clock, CheckCircle, Ban, Trash2 } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import api from '../../api/client';

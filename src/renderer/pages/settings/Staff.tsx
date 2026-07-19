@@ -56,9 +56,9 @@ export function Staff() {
     setLoading(true);
     try {
       const [sRes, dRes, lRes] = await Promise.all([staffApi.list(), departmentsApi.list(), locationsApi.list()]);
-      setStaff(sRes.data || []);
-      setDepartments(dRes.data || []);
-      setLocations(Array.isArray(lRes.data) ? lRes.data : []);
+      setStaff(Array.isArray(sRes.data) ? sRes.data : sRes.data?.data || []);
+      setDepartments(Array.isArray(dRes.data) ? dRes.data : dRes.data?.data || []);
+      setLocations(Array.isArray(lRes.data) ? lRes.data : lRes.data?.data || []);
     } catch (error) { console.error('[Staff]', error); } finally { setLoading(false); }
   };
 

@@ -56,8 +56,14 @@ export function Production() {
         api.get('/production/work-orders?limit=50'),
         api.get('/production/boms?limit=50'),
       ]);
-      if (woRes.status === 'fulfilled') setWorkOrders(Array.isArray(woRes.value.data) ? woRes.value.data : []);
-      if (bomRes.status === 'fulfilled') setBoms(Array.isArray(bomRes.value.data) ? bomRes.value.data : []);
+      if (woRes.status === 'fulfilled') {
+        const raw = woRes.value.data;
+        setWorkOrders(Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []));
+      }
+      if (bomRes.status === 'fulfilled') {
+        const raw = bomRes.value.data;
+        setBoms(Array.isArray(raw?.data) ? raw.data : (Array.isArray(raw) ? raw : []));
+      }
     } catch { /* ignore */ } finally { setIsLoading(false); }
   };
 

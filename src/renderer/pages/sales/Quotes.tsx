@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FileText, Loader2, Search, ArrowRight, Trash2, Download, Mail, Clock, Hash, Plus, MessageCircle } from 'lucide-react';
+import { FileText, Loader2, Search, ArrowRight, Trash2, Download, Mail, Plus, MessageCircle } from 'lucide-react';
 import api from '../../api/client';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
 import { EmailSendModal } from '../../components/EmailSendModal';
@@ -31,7 +30,6 @@ const statusColors: Record<string, string> = {
 };
 
 export function Quotes() {
-  const navigate = useNavigate();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');

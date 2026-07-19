@@ -3,7 +3,7 @@ import api from '../../api/client';
 import { useAuthStore } from '../../store/auth.store';
 import toast from 'react-hot-toast';
 import { Breadcrumbs } from '../../components/Breadcrumbs';
-import { Activity, Search, Filter, Clock, User, FileText, ChevronLeft, ChevronRight, RefreshCw, Download, Shield, ShoppingCart, CreditCard, Package, Users, Trash2, Edit3, PlusCircle, Eye } from 'lucide-react';
+import { Activity, Filter, Clock, User, FileText, ChevronLeft, ChevronRight, Shield, ShoppingCart, CreditCard, Package, Users, Trash2, Edit3, PlusCircle, Eye } from 'lucide-react';
 
 interface ActivityItem {
   id: string;

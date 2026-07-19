@@ -25,12 +25,13 @@ export function PipelineReports() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [pipelineRes, forecastRes] = await Promise.all([
-        api.get('/crm/reports/pipeline'),
-        api.get('/crm/reports/forecast'),
+      const [pipelineRes] = await Promise.allSettled([
+        api.get('/crm/pipeline'),
       ]);
-      setReport(pipelineRes.data?.data || pipelineRes.data || {});
-      setForecast(forecastRes.data);
+      if (pipelineRes.status === 'fulfilled') {
+        const raw = pipelineRes.value.data;
+        setReport(Array.isArray(raw?.data) ? { dealsByStage: raw.data } : (Array.isArray(raw) ? { dealsByStage: raw } : raw || {}));
+      }
     } catch {
       toast.error('Failed to load pipeline reports');
     } finally {
@@ -79,7 +80,7 @@ export function PipelineReports() {
             </div>
             <span className="text-sm text-gray-500">Pipeline Value</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">${report.pipelineValue.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-900">₦{report.pipelineValue.toLocaleString()}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-3 mb-2">
@@ -97,7 +98,7 @@ export function PipelineReports() {
             </div>
             <span className="text-sm text-gray-500">Avg Deal Value</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">${report.avgDealValue.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-900">₦{report.avgDealValue.toLocaleString()}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-5">
           <div className="flex items-center gap-3 mb-2">
@@ -106,7 +107,7 @@ export function PipelineReports() {
             </div>
             <span className="text-sm text-gray-500">Expected Revenue</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">${report.expectedRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-900">₦{report.expectedRevenue.toLocaleString()}</p>
         </div>
       </div>
 
@@ -127,7 +128,7 @@ export function PipelineReports() {
                 />
               </div>
               <span className="text-sm font-medium text-gray-700 w-16 text-right">{stage.count}</span>
-              <span className="text-sm text-gray-500 w-24 text-right">${stage.value.toLocaleString()}</span>
+              <span className="text-sm text-gray-500 w-24 text-right">₦{stage.value.toLocaleString()}</span>
             </div>
           ))}
           {(report.dealsByStage || []).length === 0 && (
@@ -153,7 +154,7 @@ export function PipelineReports() {
                 <tr key={src.source} className="border-b border-gray-50">
                   <td className="py-2.5 text-gray-700">{src.source || 'Unknown'}</td>
                   <td className="py-2.5 text-right text-gray-600">{src.count}</td>
-                  <td className="py-2.5 text-right text-gray-600">${src.value.toLocaleString()}</td>
+                  <td className="py-2.5 text-right text-gray-600">₦{src.value.toLocaleString()}</td>
                 </tr>
               ))}
               {(report.dealsBySource || []).length === 0 && (

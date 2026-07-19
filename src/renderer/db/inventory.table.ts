@@ -3,7 +3,7 @@ import api from '../api/client';
 
 export async function syncInventoryBalances(): Promise<void> {
   try {
-    const { data } = await api.get('/inventory/balances');
+    const { data } = await api.get('/inventory/stock');
     const balances: CachedInventory[] = (Array.isArray(data) ? data : []).map((b: any) => ({
       productId: b.productId,
       productName: b.productName || b.product?.name || '',

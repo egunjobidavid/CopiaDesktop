@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../api/client';
 import { PageHeader } from '../../components/PageHeader';
 import toast from 'react-hot-toast';
@@ -32,6 +33,7 @@ interface JournalEntry {
 }
 
 export function GeneralLedger() {
+  const navigate = useNavigate();
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,11 +161,11 @@ export function GeneralLedger() {
 
       {/* Quick stats */}
       <div className="grid grid-cols-3 gap-4">
-        <button onClick={() => window.location.href = '/accounting/chart-of-accounts'} className="card p-4 hover:border-primary-300 transition-colors text-left">
+        <button onClick={() => navigate('/accounting/chart-of-accounts')} className="card p-4 hover:border-primary-300 transition-colors text-left">
           <p className="text-xs text-gray-500">Chart of Accounts</p>
           <p className="text-lg font-bold text-gray-900">{accounts.length} accounts</p>
         </button>
-        <button onClick={() => window.location.href = '/accounting/trial-balance'} className="card p-4 hover:border-primary-300 transition-colors text-left">
+        <button onClick={() => navigate('/accounting/trial-balance')} className="card p-4 hover:border-primary-300 transition-colors text-left">
           <p className="text-xs text-gray-500">Trial Balance</p>
           <p className="text-lg font-bold text-gray-900">{totalDebit > 0 ? 'View' : 'No entries'}</p>
         </button>
