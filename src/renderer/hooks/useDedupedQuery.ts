@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { deduplicatedFetch, getCacheKey, invalidate } from '../api/requestCache';
+import { deduplicatedFetch, invalidate } from '../api/requestCache';
+
+export { getCacheKey } from '../api/requestCache';
+export { invalidate };
 
 interface UseDedupedQueryOptions {
   ttlMs?: number;
@@ -57,5 +60,3 @@ export function useDedupedQuery<T>(
 
   return { data, isLoading, error, refetch };
 }
-
-export { getCacheKey, invalidate } from '../api/requestCache';

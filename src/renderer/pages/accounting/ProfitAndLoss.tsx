@@ -13,8 +13,8 @@ interface PLLineItem {
 }
 
 interface PLData {
-  revenue: PLLineItem[];
-  expenses: PLLineItem[];
+  revenue: PLLineItem[] | { accounts: PLLineItem[]; total: number };
+  expenses: PLLineItem[] | { accounts: PLLineItem[]; total: number };
   totalRevenue: number;
   totalExpenses: number;
   netProfit: number;
@@ -46,10 +46,12 @@ export function ProfitAndLoss() {
     }
   };
 
-  const revenue = Array.isArray(data?.revenue) ? data.revenue : data?.revenue?.accounts || [];
-  const expenses = Array.isArray(data?.expenses) ? data.expenses : data?.expenses?.accounts || [];
-  const totalRevenue = data?.totalRevenue ?? data?.revenue?.total ?? (Array.isArray(revenue) ? revenue : []).reduce((s: number, r: any) => s + Number(r.net || 0), 0);
-  const totalExpenses = data?.totalExpenses ?? data?.expenses?.total ?? (Array.isArray(expenses) ? expenses : []).reduce((s: number, r: any) => s + Number(r.net || 0), 0);
+  const revenueArr = Array.isArray(data?.revenue) ? data.revenue : data?.revenue?.accounts || [];
+  const expensesArr = Array.isArray(data?.expenses) ? data.expenses : data?.expenses?.accounts || [];
+  const revenueObj = data?.revenue && !Array.isArray(data.revenue) ? data.revenue : null;
+  const expensesObj = data?.expenses && !Array.isArray(data.expenses) ? data.expenses : null;
+  const totalRevenue = data?.totalRevenue ?? revenueObj?.total ?? (Array.isArray(revenueArr) ? revenueArr : []).reduce((s: number, r: PLLineItem) => s + Number(r.net || 0), 0);
+  const totalExpenses = data?.totalExpenses ?? expensesObj?.total ?? (Array.isArray(expensesArr) ? expensesArr : []).reduce((s: number, r: PLLineItem) => s + Number(r.net || 0), 0);
   const netProfit = data?.netProfit ?? totalRevenue - totalExpenses;
   const isProfit = netProfit >= 0;
 
@@ -107,7 +109,7 @@ export function ProfitAndLoss() {
                 <TrendingUp className="h-4 w-4 text-green-600" /> Revenue
               </h3>
             </div>
-            {revenue.length === 0 ? (
+            {revenueArr.length === 0 ? (
               <div className="p-8 text-center text-gray-500 text-sm">No revenue accounts for this period</div>
             ) : (
               <table className="w-full">
@@ -121,7 +123,7 @@ export function ProfitAndLoss() {
                   </tr>
                 </thead>
                 <tbody>
-                  {revenue.map((r) => (
+                  {revenueArr.map((r) => (
                     <tr key={r.accountCode} className="border-b border-gray-50 hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-mono text-gray-900">{r.accountCode}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{r.accountName}</td>
@@ -147,7 +149,7 @@ export function ProfitAndLoss() {
                 <TrendingDown className="h-4 w-4 text-red-600" /> Expenses
               </h3>
             </div>
-            {expenses.length === 0 ? (
+            {expensesArr.length === 0 ? (
               <div className="p-8 text-center text-gray-500 text-sm">No expense accounts for this period</div>
             ) : (
               <table className="w-full">
@@ -161,7 +163,7 @@ export function ProfitAndLoss() {
                   </tr>
                 </thead>
                 <tbody>
-                  {expenses.map((r) => (
+                  {expensesArr.map((r) => (
                     <tr key={r.accountCode} className="border-b border-gray-50 hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-mono text-gray-900">{r.accountCode}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{r.accountName}</td>

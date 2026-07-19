@@ -315,7 +315,7 @@ export default function DealDetailModal({ dealId, stages, onClose, onUpdate }: D
 
   const formatCurrency = (amount: number) => `\u20A6${amount.toLocaleString()}`;
 
-  const formatDate = (date: string) =>
+  const formatDate = (date: string | null | undefined) =>
     date ? new Date(date).toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' }) : '\u2014';
 
   const tabs = [

@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
-import { useProductSearch } from '../../hooks/useProductSearch';
 import { ProductSearch } from './ProductSearch';
 import { Cart } from './Cart';
 import { CustomerSelect } from './CustomerSelect';

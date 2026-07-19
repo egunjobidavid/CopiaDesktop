@@ -1,10 +1,10 @@
-import { useState, useEffect, Suspense, lazy } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { useAuthStore } from '../store/auth.store';
 import { Breadcrumbs } from '../components/Breadcrumbs';
-import { DashboardSection, KpiSkeleton, StatCardSkeleton, ActivitySkeleton } from '../components/DashboardSection';
-import { TrendingUp, TrendingDown, DollarSign, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, UserPlus, PackagePlus, PlusCircle, AlertTriangle, CheckCircle, ClipboardList, Receipt, BarChart3, Banknote, Building2, Star, AlertOctagon } from 'lucide-react';
+import { DashboardSection, SectionSkeleton, KpiSkeleton, StatCardSkeleton, ActivitySkeleton } from '../components/DashboardSection';
+import { TrendingUp, TrendingDown, Package, Users, ArrowUp, ArrowDown, Activity, Clock, ShoppingCart, FileText, CreditCard, UserPlus, PackagePlus, PlusCircle, AlertTriangle, CheckCircle, ClipboardList, Receipt, BarChart3, Banknote, Building2, Star, AlertOctagon } from 'lucide-react';
 
 interface DashboardMetrics {
   revenue: number;
@@ -236,7 +236,6 @@ export function Dashboard() {
   });
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [kpiLoaded, setKpiLoaded] = useState(false);
-  const [activityLoaded, setActivityLoaded] = useState(false);
 
   // Progressive loading: KPIs first, then activity
   useEffect(() => {
@@ -273,7 +272,6 @@ export function Dashboard() {
         const { data: body } = await api.get('/activity?limit=10');
         setActivities(Array.isArray(body?.data) ? body.data : Array.isArray(body) ? body : []);
       } catch {}
-      setActivityLoaded(true);
     }
     loadActivity();
   }, [kpiLoaded]);

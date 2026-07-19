@@ -75,7 +75,6 @@ function ActivitySkeleton() {
 }
 
 export function DashboardSection({
-  title,
   fallback,
   children,
   className = '',
@@ -99,4 +98,4 @@ export function DashboardSection({
   );
 }
 
-export { SectionSkeleton, KpiSkeleton, StatCardSkeleton, ActivitySkeleton };
+export { KpiSkeleton, StatCardSkeleton, ActivitySkeleton };
