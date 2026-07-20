@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { startSync, stopSync } from './workers/sync.manager';
@@ -6,6 +6,9 @@ import { useAuthStore } from './store/auth.store';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { MaintenanceScreen } from './components/MaintenanceScreen';
+import { ForceUpdateDialog } from './components/ForceUpdateDialog';
+import { api } from './api/client';
 
 const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -88,6 +91,8 @@ function LazyPage({ children }: { children: React.ReactNode }) {
 
 export function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const [maintenance, setMaintenance] = useState<{ enabled: boolean; message: string } | null>(null);
+  const [forceUpdate, setForceUpdate] = useState<{ required: boolean; version: string; minVersion: string; changelog: string; downloadUrl: string } | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -95,6 +100,56 @@ export function App() {
       return () => stopSync();
     }
   }, [isAuthenticated]);
+
+  // Check maintenance mode and version on mount + periodically
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const m = await api.get('/system/maintenance') as any;
+        if (m?.enabled && m?.affectedPlatforms?.includes('desktop')) {
+          setMaintenance({ enabled: true, message: m.message });
+          return;
+        }
+        setMaintenance(null);
+      } catch {}
+
+      try {
+        const v = await api.get('/system/version/desktop') as any;
+        if (v?.forceUpdate) {
+          setForceUpdate({
+            required: true,
+            version: v.version,
+            minVersion: v.minVersion,
+            changelog: v.changelog || '',
+            downloadUrl: v.downloadUrl || '',
+          });
+        } else {
+          setForceUpdate(null);
+        }
+      } catch {}
+    };
+
+    check();
+    const interval = setInterval(check, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Show maintenance screen
+  if (maintenance?.enabled) {
+    return <MaintenanceScreen message={maintenance.message} onRetry={() => setMaintenance(null)} />;
+  }
+
+  // Show force update dialog
+  if (forceUpdate?.required) {
+    return (
+      <ForceUpdateDialog
+        currentVersion="1.0.0"
+        latestVersion={forceUpdate.version}
+        changelog={forceUpdate.changelog}
+        downloadUrl={forceUpdate.downloadUrl}
+      />
+    );
+  }
 
   return (
     <BrowserRouter>
