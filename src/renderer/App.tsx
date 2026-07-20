@@ -1,5 +1,5 @@
 import { useEffect, Suspense, lazy, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { startSync, stopSync } from './workers/sync.manager';
 import { useAuthStore } from './store/auth.store';
@@ -8,7 +8,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MaintenanceScreen } from './components/MaintenanceScreen';
 import { ForceUpdateDialog } from './components/ForceUpdateDialog';
-import { api } from './api/client';
+import api from './api/client';
 
 const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
 const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
@@ -87,6 +87,20 @@ function LazyPage({ children }: { children: React.ReactNode }) {
       </Suspense>
     </ErrorBoundary>
   );
+}
+
+function RouteTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    const isAuth = useAuthStore.getState().isAuthenticated;
+    if (!isAuth) return;
+    api.post('/system/analytics', {
+      platform: 'desktop',
+      eventType: 'screen_view',
+      eventData: { path: location.pathname },
+    }).catch(() => {});
+  }, [location.pathname]);
+  return null;
 }
 
 export function App() {
@@ -183,6 +197,7 @@ export function App() {
           style: { background: '#363636', color: '#fff' },
         }}
       />
+      <RouteTracker />
       <Routes>
         <Route path="/login" element={<LazyPage><Login /></LazyPage>} />
         <Route path="/register" element={<LazyPage><Login /></LazyPage>} />
