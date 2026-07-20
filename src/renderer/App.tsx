@@ -128,8 +128,25 @@ export function App() {
         }
       } catch {}
 
-      // Report active session (fire-and-forget)
-      api.post('/system/session', { platform: 'desktop', deviceInfo: navigator.userAgent }).catch(() => {});
+      // Report active session (fire-and-forget), save sessionId
+      api.post('/system/session', { platform: 'desktop', deviceInfo: navigator.userAgent })
+        .then((res: any) => {
+          if (res?.id) useAuthStore.getState().setSessionId(res.id);
+        })
+        .catch(() => {});
+
+      // Validate session is not revoked
+      const sid = useAuthStore.getState().sessionId;
+      if (sid) {
+        api.post('/system/session/validate', { sessionId: sid, platform: 'desktop' })
+          .then((res: any) => {
+            if (res?.valid === false) {
+              useAuthStore.getState().logout();
+              window.location.href = '/login';
+            }
+          })
+          .catch(() => {});
+      }
 
       // Fetch remote config (fire-and-forget)
       api.get('/system/config').catch(() => {});

@@ -19,6 +19,7 @@ interface AuthState {
   permissions: string[];
   locationId: string | null;
   locationName: string | null;
+  sessionId: string | null;
   isAuthenticated: boolean;
   isInitialized: boolean;
 
@@ -30,6 +31,7 @@ interface AuthState {
   setPlan: (plan: string) => void;
   setPermissions: (perms: string[]) => void;
   setLocation: (id: string | null, name: string | null) => void;
+  setSessionId: (id: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -43,6 +45,7 @@ export const useAuthStore = create<AuthState>()(
       permissions: [],
       locationId: null,
       locationName: null,
+      sessionId: null,
       isAuthenticated: false,
       isInitialized: true,
 
@@ -99,6 +102,8 @@ export const useAuthStore = create<AuthState>()(
 
       setLocation: (id: string | null, name: string | null) => { set({ locationId: id, locationName: name }); },
 
+      setSessionId: (id: string) => { set({ sessionId: id }); },
+
       logout: () => {
         set({
           accessToken: null,
@@ -143,6 +148,7 @@ export const useAuthStore = create<AuthState>()(
         permissions: state.permissions,
         locationId: state.locationId,
         locationName: state.locationName,
+        sessionId: state.sessionId,
         isAuthenticated: state.isAuthenticated,
       }),
     },
