@@ -17,7 +17,6 @@ interface PipelineReport {
 
 export function PipelineReports() {
   const [report, setReport] = useState<PipelineReport | null>(null);
-  const [forecast, setForecast] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { loadData(); }, []);
@@ -25,13 +24,9 @@ export function PipelineReports() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [pipelineRes] = await Promise.allSettled([
-        api.get('/crm/pipeline'),
-      ]);
-      if (pipelineRes.status === 'fulfilled') {
-        const raw = pipelineRes.value.data;
-        setReport(Array.isArray(raw?.data) ? { dealsByStage: raw.data } : (Array.isArray(raw) ? { dealsByStage: raw } : raw || {}));
-      }
+      const res = await api.get('/crm/reports/pipeline');
+      const raw = res.data;
+      setReport(raw || null);
     } catch {
       toast.error('Failed to load pipeline reports');
     } finally {
