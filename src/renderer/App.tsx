@@ -101,7 +101,7 @@ export function App() {
     }
   }, [isAuthenticated]);
 
-  // Check maintenance mode and version on mount + periodically
+  // Check maintenance mode, version, report session, and fetch config
   useEffect(() => {
     const check = async () => {
       try {
@@ -127,6 +127,12 @@ export function App() {
           setForceUpdate(null);
         }
       } catch {}
+
+      // Report active session (fire-and-forget)
+      api.post('/system/session', { platform: 'desktop', deviceInfo: navigator.userAgent }).catch(() => {});
+
+      // Fetch remote config (fire-and-forget)
+      api.get('/system/config').catch(() => {});
     };
 
     check();
