@@ -32,6 +32,14 @@ export function Login() {
     }
   }, [isAuthenticated, mode, navigate]);
 
+  if (isAuthenticated && mode === 'login') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+      </div>
+    );
+  }
+
   const validateFields = () => {
     const errs: { email?: string; password?: string } = {};
     if (!email.trim()) errs.email = 'Email is required';
