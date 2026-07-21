@@ -105,20 +105,18 @@ function RouteTracker() {
 
 export function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hydrated = useAuthStore((s) => s.hydrated);
   const [maintenance, setMaintenance] = useState<{ enabled: boolean; message: string } | null>(null);
   const [forceUpdate, setForceUpdate] = useState<{ required: boolean; version: string; minVersion: string; changelog: string; downloadUrl: string } | null>(null);
   const [authValidated, setAuthValidated] = useState(false);
 
-  // After hydration, validate token before rendering routes
+  // After mount, validate token before rendering routes
   useEffect(() => {
-    if (!hydrated) return;
     const state = useAuthStore.getState();
     if (!state.isAuthenticated || !state.accessToken) {
       setAuthValidated(true);
       return;
     }
-    // Use raw axios to avoid the 401 interceptor causing a hard reload
+    // Use raw fetch to avoid the 401 interceptor causing a hard reload
     const baseApi = import.meta.env.VITE_API_URL || 'https://copiaos-backend.onrender.com/api/v1';
     fetch(`${baseApi}/auth/me`, {
       headers: { Authorization: `Bearer ${state.accessToken}`, 'x-tenant-id': state.tenantId || '' },
@@ -133,7 +131,7 @@ export function App() {
       useAuthStore.getState().logout();
       setAuthValidated(true);
     });
-  }, [hydrated]);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -217,8 +215,8 @@ export function App() {
     );
   }
 
-  // Wait for Zustand persist hydration + auth validation before rendering routes
-  if (!hydrated || !authValidated) {
+  // Wait for auth validation before rendering routes
+  if (!authValidated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
         <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary-600 border-t-transparent" />

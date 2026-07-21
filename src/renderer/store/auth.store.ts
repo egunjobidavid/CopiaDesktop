@@ -22,7 +22,6 @@ interface AuthState {
   sessionId: string | null;
   isAuthenticated: boolean;
   isInitialized: boolean;
-  hydrated: boolean;
 
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -49,7 +48,6 @@ export const useAuthStore = create<AuthState>()(
       sessionId: null,
       isAuthenticated: false,
       isInitialized: true,
-      hydrated: false,
 
       login: async (email: string, password: string) => {
         const response = await apiLogin({ email, password });
@@ -153,11 +151,6 @@ export const useAuthStore = create<AuthState>()(
         sessionId: state.sessionId,
         isAuthenticated: state.isAuthenticated,
       }),
-      onRehydrateStorage: () => {
-        return (_state, _error) => {
-          useAuthStore.setState({ hydrated: true });
-        };
-      },
     },
   ),
 );

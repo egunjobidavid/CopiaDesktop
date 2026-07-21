@@ -1,0 +1,1 @@
+fix: app not loading - remove broken hydrated flag, use simple auth validation
