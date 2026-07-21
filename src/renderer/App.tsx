@@ -105,8 +105,35 @@ function RouteTracker() {
 
 export function App() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hydrated = useAuthStore((s) => s.hydrated);
   const [maintenance, setMaintenance] = useState<{ enabled: boolean; message: string } | null>(null);
   const [forceUpdate, setForceUpdate] = useState<{ required: boolean; version: string; minVersion: string; changelog: string; downloadUrl: string } | null>(null);
+  const [authValidated, setAuthValidated] = useState(false);
+
+  // After hydration, validate token before rendering routes
+  useEffect(() => {
+    if (!hydrated) return;
+    const state = useAuthStore.getState();
+    if (!state.isAuthenticated || !state.accessToken) {
+      setAuthValidated(true);
+      return;
+    }
+    // Use raw axios to avoid the 401 interceptor causing a hard reload
+    const baseApi = import.meta.env.VITE_API_URL || 'https://copiaos-backend.onrender.com/api/v1';
+    fetch(`${baseApi}/auth/me`, {
+      headers: { Authorization: `Bearer ${state.accessToken}`, 'x-tenant-id': state.tenantId || '' },
+    }).then((res) => {
+      if (res.ok) {
+        setAuthValidated(true);
+      } else {
+        useAuthStore.getState().logout();
+        setAuthValidated(true);
+      }
+    }).catch(() => {
+      useAuthStore.getState().logout();
+      setAuthValidated(true);
+    });
+  }, [hydrated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -117,6 +144,8 @@ export function App() {
 
   // Check maintenance mode, version, report session, and fetch config
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const check = async () => {
       try {
         const m = await api.get('/system/maintenance') as any;
@@ -156,7 +185,7 @@ export function App() {
           .then((res: any) => {
             if (res?.valid === false) {
               useAuthStore.getState().logout();
-              window.location.replace('/login');
+              // Let React Router handle redirect naturally
             }
           })
           .catch(() => {});
@@ -169,7 +198,7 @@ export function App() {
     check();
     const interval = setInterval(check, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated]);
 
   // Show maintenance screen
   if (maintenance?.enabled) {
@@ -185,6 +214,15 @@ export function App() {
         changelog={forceUpdate.changelog}
         downloadUrl={forceUpdate.downloadUrl}
       />
+    );
+  }
+
+  // Wait for Zustand persist hydration + auth validation before rendering routes
+  if (!hydrated || !authValidated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary-600 border-t-transparent" />
+      </div>
     );
   }
 
