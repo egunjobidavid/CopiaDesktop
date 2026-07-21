@@ -156,7 +156,7 @@ export function App() {
           .then((res: any) => {
             if (res?.valid === false) {
               useAuthStore.getState().logout();
-              window.location.href = '/login';
+              window.location.replace('/login');
             }
           })
           .catch(() => {});

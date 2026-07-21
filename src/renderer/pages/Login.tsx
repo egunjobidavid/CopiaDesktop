@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { RegisterForm } from './RegisterForm';
@@ -26,6 +26,12 @@ export function Login() {
   const [resetSent, setResetSent] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
+  useEffect(() => {
+    if (isAuthenticated && mode === 'login') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, mode, navigate]);
+
   const validateFields = () => {
     const errs: { email?: string; password?: string } = {};
     if (!email.trim()) errs.email = 'Email is required';
@@ -35,11 +41,6 @@ export function Login() {
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
-
-  if (isAuthenticated && mode === 'login') {
-    navigate('/dashboard', { replace: true });
-    return null;
-  }
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
