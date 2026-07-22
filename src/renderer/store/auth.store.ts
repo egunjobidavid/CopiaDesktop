@@ -68,11 +68,12 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           isInitialized: true,
         });
-        // Defer post-login API calls to avoid interfering with route transition.
+        // Defer post-login API calls until after the route transition completes.
         // Setting isAuthenticated triggers navigation to /dashboard which mounts
         // the entire Layout tree. Running additional set() calls during that mount
         // causes React reconciliation to encounter an undefined element type (#300).
-        setTimeout(async () => {
+        // Use double-rAF to ensure we are well past any React render cycle.
+        requestAnimationFrame(() => requestAnimationFrame(async () => {
           // Load permissions from /auth/me (skip 401 interceptor to avoid undoing login)
           try {
             const { data } = await api.get('/auth/me', { _skipAuth: true } as any);
@@ -99,7 +100,7 @@ export const useAuthStore = create<AuthState>()(
               set({ locationId: def.id, locationName: def.name });
             }
           } catch (error) { console.error('[AuthStore]', error); }
-        }, 0);
+        }));
       },
 
       setPermissions: (perms: string[]) => { set({ permissions: perms }); },

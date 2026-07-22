@@ -58,7 +58,6 @@ export function Login() {
       try {
         await login(email, password);
         toast.success('Welcome back!');
-        navigate('/dashboard', { replace: true });
       } catch (error: any) {
         const message = error?.response?.data?.message || 'Login failed. Please check your credentials.';
         toast.error(message);
@@ -66,7 +65,7 @@ export function Login() {
         setIsLoading(false);
       }
     },
-    [email, password, login, navigate],
+    [email, password, login],
   );
 
   const handleForgot = async () => {
