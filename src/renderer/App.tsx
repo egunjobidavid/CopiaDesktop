@@ -81,11 +81,11 @@ function PageLoader() {
 
 function LazyPage({ children }: { children: React.ReactNode }) {
   return (
-    <ErrorBoundary>
-      <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<PageLoader />}>
+      <ErrorBoundary>
         {children}
-      </Suspense>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </Suspense>
   );
 }
 
@@ -236,6 +236,7 @@ export function App() {
         }}
       />
       <RouteTracker />
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/login" element={<LazyPage><Login /></LazyPage>} />
         <Route path="/register" element={<LazyPage><Login /></LazyPage>} />
@@ -339,6 +340,7 @@ export function App() {
           </div>
         } />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
