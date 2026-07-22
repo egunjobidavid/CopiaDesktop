@@ -135,8 +135,8 @@ export function App() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      startSync(300000);
-      return () => stopSync();
+      const timer = setTimeout(() => startSync(300000), 2000);
+      return () => { clearTimeout(timer); stopSync(); };
     }
   }, [isAuthenticated]);
 

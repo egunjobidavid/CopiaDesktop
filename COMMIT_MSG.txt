@@ -1,1 +1,1 @@
-fix: prevent 401 interceptor from undoing login by skipping auth for post-login calls
+fix: delay startSync to prevent 401 logout during login transition
