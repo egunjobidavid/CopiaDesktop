@@ -1,1 +1,1 @@
-fix: delay startSync to prevent 401 logout during login transition
+fix: add x-skip-auth to all system/fire-and-forget API calls to prevent 401 logout cascade

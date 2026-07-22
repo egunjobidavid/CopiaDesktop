@@ -98,7 +98,7 @@ function RouteTracker() {
       platform: 'desktop',
       eventType: 'screen_view',
       eventData: { path: location.pathname },
-    }).catch(() => {});
+    }, { headers: { 'x-skip-auth': '1' } }).catch(() => {});
   }, [location.pathname]);
   return null;
 }
@@ -144,9 +144,11 @@ export function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    const skipAuth = { headers: { 'x-skip-auth': '1' } };
+
     const check = async () => {
       try {
-        const m = await api.get('/system/maintenance') as any;
+        const m = await api.get('/system/maintenance', skipAuth) as any;
         if (m?.enabled && m?.affectedPlatforms?.includes('desktop')) {
           setMaintenance({ enabled: true, message: m.message });
           return;
@@ -155,7 +157,7 @@ export function App() {
       } catch {}
 
       try {
-        const v = await api.get('/system/version/desktop') as any;
+        const v = await api.get('/system/version/desktop', skipAuth) as any;
         if (v?.forceUpdate) {
           setForceUpdate({
             required: true,
@@ -170,7 +172,7 @@ export function App() {
       } catch {}
 
       // Report active session (fire-and-forget), save sessionId
-      api.post('/system/session', { platform: 'desktop', deviceInfo: navigator.userAgent })
+      api.post('/system/session', { platform: 'desktop', deviceInfo: navigator.userAgent }, skipAuth)
         .then((res: any) => {
           if (res?.id) useAuthStore.getState().setSessionId(res.id);
         })
@@ -179,7 +181,7 @@ export function App() {
       // Validate session is not revoked
       const sid = useAuthStore.getState().sessionId;
       if (sid) {
-        api.post('/system/session/validate', { sessionId: sid, platform: 'desktop' })
+        api.post('/system/session/validate', { sessionId: sid, platform: 'desktop' }, skipAuth)
           .then((res: any) => {
             if (res?.valid === false) {
               useAuthStore.getState().logout();
@@ -190,7 +192,7 @@ export function App() {
       }
 
       // Fetch remote config (fire-and-forget)
-      api.get('/system/config').catch(() => {});
+      api.get('/system/config', skipAuth).catch(() => {});
     };
 
     check();

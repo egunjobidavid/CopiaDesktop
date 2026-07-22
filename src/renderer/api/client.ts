@@ -90,9 +90,9 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        useAuthStore.getState().logout();
-        // Don't use window.location — causes hard page reload (blinking)
-        // Just logout; React Router will redirect to /login via ProtectedRoute
+        // Defer logout to avoid mid-render state changes that trigger ErrorBoundary.
+        // ProtectedRoute will redirect to /login once isAuthenticated flips to false.
+        setTimeout(() => useAuthStore.getState().logout(), 0);
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
