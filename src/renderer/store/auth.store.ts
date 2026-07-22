@@ -70,7 +70,7 @@ export const useAuthStore = create<AuthState>()(
         });
         // Load permissions from /auth/me (skip 401 interceptor to avoid undoing login)
         try {
-          const { data } = await api.get('/auth/me', { headers: { 'x-skip-auth': '1' } });
+          const { data } = await api.get('/auth/me', { _skipAuth: true } as any);
           if (data?.tenants) {
             const current = data.tenants.find((t: any) => t.id === tenantId);
             if (current?.permissions) {
@@ -83,7 +83,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) { console.error('[AuthStore]', error); }
         // Auto-select default location (skip 401 interceptor)
         try {
-          const { data } = await api.get('/locations', { headers: { 'x-skip-auth': '1' } });
+          const { data } = await api.get('/locations', { _skipAuth: true } as any);
           const locs = Array.isArray(data) ? data : [];
           const savedLocId = get().locationId;
           const savedLoc = locs.find((l: any) => l.id === savedLocId);

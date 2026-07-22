@@ -70,7 +70,7 @@ api.interceptors.response.use(
 
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.headers?.['x-skip-auth']) {
+    if (error.response?.status === 401 && !originalRequest._retry && !originalRequest._skipAuth) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });

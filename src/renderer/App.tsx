@@ -98,7 +98,7 @@ function RouteTracker() {
       platform: 'desktop',
       eventType: 'screen_view',
       eventData: { path: location.pathname },
-    }, { headers: { 'x-skip-auth': '1' } }).catch(() => {});
+    }, { _skipAuth: true } as any).catch(() => {});
   }, [location.pathname]);
   return null;
 }
@@ -144,7 +144,7 @@ export function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    const skipAuth = { headers: { 'x-skip-auth': '1' } };
+    const skipAuth = { _skipAuth: true } as any;
 
     const check = async () => {
       try {
