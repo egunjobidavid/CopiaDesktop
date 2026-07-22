@@ -22,11 +22,18 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
+  private retryCount = 0;
+
   componentDidCatch(error: Error, errorInfo: any) {
     console.error('[ErrorBoundary]', error, errorInfo);
+    if (this.retryCount < 2) {
+      this.retryCount++;
+      setTimeout(() => this.setState({ hasError: false, error: null }), 50);
+    }
   }
 
   handleRetry = () => {
+    this.retryCount = 0;
     this.setState({ hasError: false, error: null });
   };
 
