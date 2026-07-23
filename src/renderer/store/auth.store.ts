@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { login as apiLogin, refreshAccessToken } from '../api/auth';
-import api from '../api/client';
 
 interface User {
   id: string;
@@ -50,6 +48,7 @@ export const useAuthStore = create<AuthState>()(
       isInitialized: true,
 
       login: async (email: string, password: string) => {
+        const { login: apiLogin } = await import('../api/auth');
         const response = await apiLogin({ email, password });
         const rawRole = response.user.role || 'Staff';
         const roleMap: Record<string, string> = { admin: 'MD', member: 'Staff' };
@@ -74,6 +73,7 @@ export const useAuthStore = create<AuthState>()(
         // causes React reconciliation to encounter an undefined element type (#300).
         // Use double-rAF to ensure we are well past any React render cycle.
         requestAnimationFrame(() => requestAnimationFrame(async () => {
+          const { default: api } = await import('../api/client');
           // Load permissions from /auth/me (skip 401 interceptor to avoid undoing login)
           try {
             const { data } = await api.get('/auth/me', { _skipAuth: true } as any);
@@ -127,6 +127,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       refreshAccessToken: async () => {
+        const { refreshAccessToken } = await import('../api/auth');
         const state = get();
         if (!state.refreshToken) {
           throw new Error('No refresh token available');

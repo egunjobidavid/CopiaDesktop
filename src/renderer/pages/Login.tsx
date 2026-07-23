@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useCallback } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { RegisterForm } from './RegisterForm';
 import api from '../api/client';
@@ -7,7 +7,6 @@ import toast from 'react-hot-toast';
 import logo from '../assets/logo.svg';
 
 export function Login() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const login = useAuthStore((s) => s.login);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -26,18 +25,8 @@ export function Login() {
   const [resetSent, setResetSent] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
-  useEffect(() => {
-    if (isAuthenticated && mode === 'login') {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [isAuthenticated, mode, navigate]);
-
   if (isAuthenticated && mode === 'login') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-      </div>
-    );
+    return <Navigate to="/dashboard" replace />;
   }
 
   const validateFields = () => {
