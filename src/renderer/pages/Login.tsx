@@ -46,6 +46,11 @@ export function Login() {
       setIsLoading(true);
       try {
         await login(email, password);
+        // Eagerly preload the Dashboard chunk so it's cached before
+        // <Navigate> triggers the route transition. Without this,
+        // the lazy chunk load races with the Layout mount, causing
+        // a brief React error #300 (undefined component type).
+        import('./Dashboard');
         toast.success('Welcome back!');
       } catch (error: any) {
         const message = error?.response?.data?.message || 'Login failed. Please check your credentials.';
