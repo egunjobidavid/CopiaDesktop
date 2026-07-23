@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { useAuthStore } from '../store/auth.store';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://copiaos-backend.onrender.com/api/v1';
 
@@ -11,18 +10,41 @@ const api = axios.create({
   },
 });
 
+// ---- Auth state managed on the axios instance (no circular dependency) ----
+// Previously, this module imported useAuthStore from auth.store, creating
+// auth.store → api/auth → api/client → auth.store. That circular chain caused
+// React error #300 during synchronous render flushes because the bundler could
+// resolve the circular reference to an incomplete module binding.
+
+let _accessToken: string | null = null;
+let _tenantId: string | null = null;
+let _refreshToken: string | null = null;
+let _refreshAccessToken: (() => Promise<string>) | null = null;
+let _logout: (() => void) | null = null;
+
+export function setAuthState(opts: {
+  accessToken?: string | null;
+  tenantId?: string | null;
+  refreshToken?: string | null;
+  refreshAccessToken?: () => Promise<string>;
+  logout?: () => void;
+}) {
+  if (opts.accessToken !== undefined) _accessToken = opts.accessToken;
+  if (opts.tenantId !== undefined) _tenantId = opts.tenantId;
+  if (opts.refreshToken !== undefined) _refreshToken = opts.refreshToken;
+  if (opts.refreshAccessToken) _refreshAccessToken = opts.refreshAccessToken;
+  if (opts.logout) _logout = opts.logout;
+}
+
 // Request interceptor — attach JWT + tenant-id
 api.interceptors.request.use(
   (config) => {
-    const { accessToken, tenantId } = useAuthStore.getState();
-
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    if (_accessToken) {
+      config.headers.Authorization = `Bearer ${_accessToken}`;
     }
-    if (tenantId) {
-      config.headers['x-tenant-id'] = tenantId;
+    if (_tenantId) {
+      config.headers['x-tenant-id'] = _tenantId;
     }
-
     return config;
   },
   (error) => Promise.reject(error),
@@ -84,15 +106,15 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const newToken = await useAuthStore.getState().refreshAccessToken();
+        if (!_refreshAccessToken) throw new Error('No refresh handler');
+        const newToken = await _refreshAccessToken();
         processQueue(null, newToken);
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
         // Defer logout to avoid mid-render state changes that trigger ErrorBoundary.
-        // ProtectedRoute will redirect to /login once isAuthenticated flips to false.
-        setTimeout(() => useAuthStore.getState().logout(), 0);
+        setTimeout(() => _logout?.(), 0);
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

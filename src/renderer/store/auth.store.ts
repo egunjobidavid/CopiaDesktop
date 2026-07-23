@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { setAuthState } from '../api/client';
 
 interface User {
   id: string;
@@ -67,6 +68,15 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           isInitialized: true,
         });
+        // Sync auth state to api/client so interceptors can use it
+        // without importing useAuthStore (which would create a circular dep).
+        setAuthState({
+          accessToken: response.accessToken,
+          tenantId,
+          refreshToken: response.refreshToken,
+          refreshAccessToken: get().refreshAccessToken,
+          logout: get().logout,
+        });
         // Defer post-login API calls until after the route transition completes.
         // Setting isAuthenticated triggers navigation to /dashboard which mounts
         // the entire Layout tree. Running additional set() calls during that mount
@@ -124,6 +134,11 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false,
           isInitialized: true,
         });
+        setAuthState({
+          accessToken: null,
+          refreshToken: null,
+          tenantId: null,
+        });
       },
 
       refreshAccessToken: async () => {
@@ -136,6 +151,7 @@ export const useAuthStore = create<AuthState>()(
           state.refreshToken,
         );
         set({ accessToken: newAccessToken });
+        setAuthState({ accessToken: newAccessToken });
         return newAccessToken;
       },
 
@@ -159,6 +175,17 @@ export const useAuthStore = create<AuthState>()(
         sessionId: state.sessionId,
         isAuthenticated: state.isAuthenticated,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          setAuthState({
+            accessToken: state.accessToken,
+            tenantId: state.tenantId,
+            refreshToken: state.refreshToken,
+            refreshAccessToken: state.refreshAccessToken,
+            logout: state.logout,
+          });
+        }
+      },
     },
   ),
 );

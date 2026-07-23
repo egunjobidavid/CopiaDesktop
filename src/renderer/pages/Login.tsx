@@ -56,15 +56,12 @@ export function Login() {
       setIsLoading(true);
       try {
         await login(email, password);
-        // Eagerly preload the Dashboard chunk so it's cached before
-        // the route transition fires. Without this, the lazy chunk
-        // load races with the Layout mount, causing a transient
-        // React error #300 (undefined component type).
-        import('./Dashboard');
         toast.success('Welcome back!');
-        // Navigate immediately after login succeeds (matches admin panel pattern).
-        // The useEffect above also handles this as a fallback.
-        navigate('/dashboard', { replace: true });
+        // Navigation is handled by the useEffect watching isAuthenticated.
+        // Do NOT call navigate() here — it causes a double navigation race
+        // condition where React Router mounts the Layout tree twice, and the
+        // deferred set() calls in auth.store.ts fire during the second mount,
+        // triggering React error #300 (undefined component type).
       } catch (error: any) {
         const message = error?.response?.data?.message || 'Login failed. Please check your credentials.';
         toast.error(message);
@@ -72,7 +69,7 @@ export function Login() {
         setIsLoading(false);
       }
     },
-    [email, password, login, navigate],
+    [email, password, login],
   );
 
   const handleForgot = async () => {
