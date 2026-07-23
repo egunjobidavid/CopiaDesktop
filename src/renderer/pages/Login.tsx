@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { RegisterForm } from './RegisterForm';
 import api from '../api/client';
@@ -8,6 +8,7 @@ import logo from '../assets/logo.svg';
 
 export function Login() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
@@ -25,8 +26,17 @@ export function Login() {
   const [resetSent, setResetSent] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
+  // Navigate AFTER the render cycle completes (not during it).
+  // Using <Navigate> inside the render body triggers route transition synchronously,
+  // which races with lazy chunk loading and causes transient React error #300.
+  useEffect(() => {
+    if (isAuthenticated && mode === 'login') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, mode, navigate]);
+
   if (isAuthenticated && mode === 'login') {
-    return <Navigate to="/dashboard" replace />;
+    return null;
   }
 
   const validateFields = () => {
@@ -47,11 +57,14 @@ export function Login() {
       try {
         await login(email, password);
         // Eagerly preload the Dashboard chunk so it's cached before
-        // <Navigate> triggers the route transition. Without this,
-        // the lazy chunk load races with the Layout mount, causing
-        // a brief React error #300 (undefined component type).
+        // the route transition fires. Without this, the lazy chunk
+        // load races with the Layout mount, causing a transient
+        // React error #300 (undefined component type).
         import('./Dashboard');
         toast.success('Welcome back!');
+        // Navigate immediately after login succeeds (matches admin panel pattern).
+        // The useEffect above also handles this as a fallback.
+        navigate('/dashboard', { replace: true });
       } catch (error: any) {
         const message = error?.response?.data?.message || 'Login failed. Please check your credentials.';
         toast.error(message);
@@ -59,7 +72,7 @@ export function Login() {
         setIsLoading(false);
       }
     },
-    [email, password, login],
+    [email, password, login, navigate],
   );
 
   const handleForgot = async () => {
