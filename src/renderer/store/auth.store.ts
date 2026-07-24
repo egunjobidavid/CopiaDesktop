@@ -55,6 +55,13 @@ export const useAuthStore = create<AuthState>()(
         const roleMap: Record<string, string> = { admin: 'MD', member: 'Staff' };
         const role = roleMap[rawRole] || rawRole;
         const tenantId = response.tenantId;
+        // Preload the Dashboard chunk before triggering the auth state change.
+        // set({isAuthenticated:true}) fires a synchronous React render that immediately
+        // navigates to /dashboard.  If the Dashboard chunk hasn't loaded yet React
+        // encounters an undefined component type during the passive-effect commit
+        // phase (Error #300).  Preloading ensures the chunk is in the module cache
+        // before React begins rendering the Layout tree.
+        await import('../pages/Dashboard');
         set({
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,

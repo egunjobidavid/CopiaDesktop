@@ -236,7 +236,6 @@ export function App() {
         }}
       />
       <RouteTracker />
-      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/login" element={<LazyPage><Login /></LazyPage>} />
         <Route path="/register" element={<LazyPage><Login /></LazyPage>} />
@@ -340,7 +339,6 @@ export function App() {
           </div>
         } />
       </Routes>
-      </Suspense>
     </BrowserRouter>
   );
 }
