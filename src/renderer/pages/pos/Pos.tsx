@@ -123,47 +123,68 @@ export function Pos() {
       try {
         const api = (await import('../../api/client')).default;
 
-        const orderRes = await api.post('/sales/orders', {
-          customerId,
-          items: items.map((i) => ({
-            productId: i.productId,
-            quantity: i.quantity,
-            unitPrice: i.unitPrice,
-          })),
-        });
+        let orderRes;
+        try {
+          orderRes = await api.post('/sales/orders', {
+            customerId,
+            items: items.map((i) => ({
+              productId: i.productId,
+              quantity: i.quantity,
+              unitPrice: i.unitPrice,
+            })),
+          });
+        } catch (err: any) {
+          console.error('[POS] /sales/orders failed:', err?.response?.status, err?.response?.data);
+          throw new Error(err?.response?.data?.message || `Failed to create order (HTTP ${err?.response?.status || 'network'})`);
+        }
 
-        const invoiceRes = await api.post('/sales/invoices', {
-          customerId,
-          salesOrderId: orderRes.data.id,
-          items: items.map((i) => ({
-            productId: i.productId,
-            quantity: i.quantity,
-            unitPrice: i.unitPrice,
-          })),
-          tax: 0,
-        });
+        const orderData = orderRes.data?.data || orderRes.data;
+        const orderId = orderData?.id;
+
+        let invoiceRes;
+        try {
+          invoiceRes = await api.post('/sales/invoices', {
+            customerId,
+            salesOrderId: orderId,
+            items: items.map((i) => ({
+              productId: i.productId,
+              quantity: i.quantity,
+              unitPrice: i.unitPrice,
+            })),
+            tax: 0,
+          });
+        } catch (err: any) {
+          console.error('[POS] /sales/invoices failed:', err?.response?.status, err?.response?.data);
+          throw new Error(err?.response?.data?.message || `Failed to create invoice (HTTP ${err?.response?.status || 'network'})`);
+        }
+
+        const invoiceData = invoiceRes.data?.data || invoiceRes.data;
 
         if (method === 'cash') {
           const change = amountTendered - total;
-          await api.post('/payments', {
-            customerId,
-            invoiceId: invoiceRes.data.id,
-            amount: total,
-            method: 'cash',
-            amountTendered,
-            change: Math.max(0, change),
-          });
+          try {
+            await api.post('/payments', {
+              customerId,
+              invoiceId: invoiceData?.id,
+              amount: total,
+              method: 'cash',
+              amountTendered,
+              change: Math.max(0, change),
+            });
+          } catch (err: any) {
+            console.error('[POS] /payments failed:', err?.response?.status, err?.response?.data);
+            throw new Error(err?.response?.data?.message || `Failed to record payment (HTTP ${err?.response?.status || 'network'})`);
+          }
         }
 
-        toast.success(`Sale complete! Invoice #${invoiceRes.data.invoiceNumber || ''}`);
+        toast.success(`Sale complete! Invoice #${invoiceData?.invoiceNumber || ''}`);
         clearCart();
         setCustomerId(null);
         setCustomerName('Walk-in Customer');
         setShowCheckout(false);
         fetchSession();
       } catch (err: any) {
-        const msg = err?.response?.data?.message || 'Checkout failed';
-        toast.error(msg);
+        toast.error(err?.message || 'Checkout failed');
       } finally {
         setIsSubmitting(false);
       }
