@@ -8,10 +8,9 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MaintenanceScreen } from './components/MaintenanceScreen';
 import { ForceUpdateDialog } from './components/ForceUpdateDialog';
+import { Login } from './pages/Login';
+import { Dashboard } from './pages/Dashboard';
 import api from './api/client';
-
-const Login = lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
-const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const Pos = lazy(() => import('./pages/pos/Pos').then((m) => ({ default: m.Pos })));
 const Invoices = lazy(() => import('./pages/sales/Invoices').then((m) => ({ default: m.Invoices })));
 const ProductList = lazy(() => import('./pages/products/ProductList').then((m) => ({ default: m.ProductList })));
@@ -242,11 +241,11 @@ export function App() {
         </div>
       }>
       <Routes>
-        <Route path="/login" element={<LazyPage><Login /></LazyPage>} />
-        <Route path="/register" element={<LazyPage><Login /></LazyPage>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Login />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<LazyPage><Dashboard /></LazyPage>} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<LazyPage><ProductList /></LazyPage>} />
             <Route path="/products/:id" element={<LazyPage><ProductDetail /></LazyPage>} />
             <Route path="/inventory" element={<LazyPage><StockView /></LazyPage>} />
