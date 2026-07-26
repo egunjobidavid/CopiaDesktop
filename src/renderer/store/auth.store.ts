@@ -63,10 +63,8 @@ export const useAuthStore = create<AuthState>()(
           refreshAccessToken: get().refreshAccessToken,
           logout: get().logout,
         });
-        // Defer Zustand set() to next macrotask. Calling set() from inside an
-        // async function (after await) triggers React's useSyncExternalStore to
-        // flush sync, which flushes useEffect callbacks (including navigate()),
-        // causing a nested render cycle inside flushSync → Error #300.
+        // Defer Zustand set() to next macrotask so useSyncExternalStore can
+        // batch the update normally instead of calling flushSync.
         await new Promise<void>((r) => setTimeout(r, 0));
         set({
           accessToken: response.accessToken,
