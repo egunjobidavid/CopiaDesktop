@@ -26,6 +26,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: any) {
     console.error('[ErrorBoundary]', error, errorInfo);
+
+    // Don't auto-retry Suspense errors (thrown as Promise by React)
+    const isSuspenseError = error instanceof Promise || typeof (error as any)?.then === 'function';
+    if (isSuspenseError) return;
+
     if (this.retryCount < 2) {
       this.retryCount++;
       setTimeout(() => this.setState({ hasError: false, error: null }), 50);

@@ -236,6 +236,11 @@ export function App() {
         }}
       />
       <RouteTracker />
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary-600 border-t-transparent" />
+        </div>
+      }>
       <Routes>
         <Route path="/login" element={<LazyPage><Login /></LazyPage>} />
         <Route path="/register" element={<LazyPage><Login /></LazyPage>} />
@@ -339,6 +344,7 @@ export function App() {
           </div>
         } />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
