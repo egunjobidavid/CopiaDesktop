@@ -1,5 +1,5 @@
 import { useEffect, Suspense, lazy, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { startSync, stopSync } from './workers/sync.manager';
 import { useAuthStore } from './store/auth.store';
@@ -226,7 +226,7 @@ export function App() {
   }
 
   return (
-    <BrowserRouter>
+    <>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -344,6 +344,6 @@ export function App() {
         } />
       </Routes>
       </Suspense>
-    </BrowserRouter>
+    </>
   );
 }
