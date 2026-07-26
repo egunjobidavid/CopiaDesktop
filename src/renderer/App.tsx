@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy, useState } from 'react';
+import { useEffect, Suspense, lazy, useState, useRef } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { startSync, stopSync } from './workers/sync.manager';
@@ -102,20 +102,106 @@ function RouteTracker() {
   return null;
 }
 
-export function App() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+function AuthGuard({ children }: { children: React.ReactNode }) {
   const [maintenance, setMaintenance] = useState<{ enabled: boolean; message: string } | null>(null);
   const [forceUpdate, setForceUpdate] = useState<{ required: boolean; version: string; minVersion: string; changelog: string; downloadUrl: string } | null>(null);
+  const hasStartedSync = useRef(false);
+  const hasRunInitialChecks = useRef(false);
+
+  useEffect(() => {
+    const unsub = useAuthStore.subscribe((state) => {
+      if (state.isAuthenticated && !hasStartedSync.current) {
+        hasStartedSync.current = true;
+        const timer = setTimeout(() => startSync(300000), 2000);
+        return () => { clearTimeout(timer); stopSync(); };
+      }
+    });
+    if (useAuthStore.getState().isAuthenticated && !hasStartedSync.current) {
+      hasStartedSync.current = true;
+      const timer = setTimeout(() => startSync(300000), 2000);
+      return () => { unsub(); clearTimeout(timer); stopSync(); };
+    }
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    const unsub = useAuthStore.subscribe((state) => {
+      if (state.isAuthenticated && !hasRunInitialChecks.current) {
+        hasRunInitialChecks.current = true;
+        runChecks();
+      }
+    });
+    if (useAuthStore.getState().isAuthenticated && !hasRunInitialChecks.current) {
+      hasRunInitialChecks.current = true;
+      runChecks();
+    }
+    return unsub;
+  }, []);
+
+  async function runChecks() {
+    const skipAuth = { _skipAuth: true } as any;
+    try {
+      const m = await api.get('/system/maintenance', skipAuth) as any;
+      if (m?.enabled && m?.affectedPlatforms?.includes('desktop')) {
+        setMaintenance({ enabled: true, message: m.message });
+        return;
+      }
+      setMaintenance(null);
+    } catch {}
+
+    try {
+      const v = await api.get('/system/version/desktop', skipAuth) as any;
+      if (v?.forceUpdate) {
+        setForceUpdate({
+          required: true, version: v.version, minVersion: v.minVersion,
+          changelog: v.changelog || '', downloadUrl: v.downloadUrl || '',
+        });
+      } else {
+        setForceUpdate(null);
+      }
+    } catch {}
+
+    api.post('/system/session', { platform: 'desktop', deviceInfo: navigator.userAgent }, skipAuth)
+      .then((res: any) => { if (res?.id) useAuthStore.getState().setSessionId(res.id); })
+      .catch(() => {});
+
+    const sid = useAuthStore.getState().sessionId;
+    if (sid) {
+      api.post('/system/session/validate', { sessionId: sid, platform: 'desktop' }, skipAuth)
+        .then((res: any) => { if (res?.valid === false) useAuthStore.getState().logout(); })
+        .catch(() => {});
+    }
+
+    api.get('/system/config', skipAuth).catch(() => {});
+  }
+
+  if (maintenance?.enabled) {
+    return <MaintenanceScreen message={maintenance.message} onRetry={() => setMaintenance(null)} />;
+  }
+
+  if (forceUpdate?.required) {
+    return (
+      <ForceUpdateDialog
+        currentVersion="1.0.0"
+        latestVersion={forceUpdate.version}
+        changelog={forceUpdate.changelog}
+        downloadUrl={forceUpdate.downloadUrl}
+      />
+    );
+  }
+
+  return <>{children}</>;
+}
+
+export function App() {
   const [authValidated, setAuthValidated] = useState(false);
 
-  // After mount, validate token before rendering routes
   useEffect(() => {
     const state = useAuthStore.getState();
     if (!state.isAuthenticated || !state.accessToken) {
       setAuthValidated(true);
       return;
     }
-    // Use raw fetch to avoid the 401 interceptor causing a hard reload
     const baseApi = import.meta.env.VITE_API_URL || 'https://copiaos-backend.onrender.com/api/v1';
     fetch(`${baseApi}/auth/me`, {
       headers: { Authorization: `Bearer ${state.accessToken}`, 'x-tenant-id': state.tenantId || '' },
@@ -132,91 +218,6 @@ export function App() {
     });
   }, []);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      const timer = setTimeout(() => startSync(300000), 2000);
-      return () => { clearTimeout(timer); stopSync(); };
-    }
-  }, [isAuthenticated]);
-
-  // Check maintenance mode, version, report session, and fetch config
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const skipAuth = { _skipAuth: true } as any;
-
-    const check = async () => {
-      try {
-        const m = await api.get('/system/maintenance', skipAuth) as any;
-        if (m?.enabled && m?.affectedPlatforms?.includes('desktop')) {
-          setMaintenance({ enabled: true, message: m.message });
-          return;
-        }
-        setMaintenance(null);
-      } catch {}
-
-      try {
-        const v = await api.get('/system/version/desktop', skipAuth) as any;
-        if (v?.forceUpdate) {
-          setForceUpdate({
-            required: true,
-            version: v.version,
-            minVersion: v.minVersion,
-            changelog: v.changelog || '',
-            downloadUrl: v.downloadUrl || '',
-          });
-        } else {
-          setForceUpdate(null);
-        }
-      } catch {}
-
-      // Report active session (fire-and-forget), save sessionId
-      api.post('/system/session', { platform: 'desktop', deviceInfo: navigator.userAgent }, skipAuth)
-        .then((res: any) => {
-          if (res?.id) useAuthStore.getState().setSessionId(res.id);
-        })
-        .catch(() => {});
-
-      // Validate session is not revoked
-      const sid = useAuthStore.getState().sessionId;
-      if (sid) {
-        api.post('/system/session/validate', { sessionId: sid, platform: 'desktop' }, skipAuth)
-          .then((res: any) => {
-            if (res?.valid === false) {
-              useAuthStore.getState().logout();
-              // Let React Router handle redirect naturally
-            }
-          })
-          .catch(() => {});
-      }
-
-      // Fetch remote config (fire-and-forget)
-      api.get('/system/config', skipAuth).catch(() => {});
-    };
-
-    check();
-    const interval = setInterval(check, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated]);
-
-  // Show maintenance screen
-  if (maintenance?.enabled) {
-    return <MaintenanceScreen message={maintenance.message} onRetry={() => setMaintenance(null)} />;
-  }
-
-  // Show force update dialog
-  if (forceUpdate?.required) {
-    return (
-      <ForceUpdateDialog
-        currentVersion="1.0.0"
-        latestVersion={forceUpdate.version}
-        changelog={forceUpdate.changelog}
-        downloadUrl={forceUpdate.downloadUrl}
-      />
-    );
-  }
-
-  // Wait for auth validation before rendering routes
   if (!authValidated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
@@ -235,115 +236,117 @@ export function App() {
         }}
       />
       <RouteTracker />
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary-600 border-t-transparent" />
-        </div>
-      }>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Login />} />
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/products" element={<LazyPage><ProductList /></LazyPage>} />
-            <Route path="/products/:id" element={<LazyPage><ProductDetail /></LazyPage>} />
-            <Route path="/inventory" element={<LazyPage><StockView /></LazyPage>} />
-            <Route path="/inventory/movements" element={<LazyPage><StockMovement /></LazyPage>} />
-            <Route element={<ProtectedRoute minRole="Sales Rep" />}>
-              <Route path="/pos" element={<LazyPage><Pos /></LazyPage>} />
-              <Route path="/customers" element={<LazyPage><CustomerList /></LazyPage>} />
-              <Route path="/sales" element={<LazyPage><SalesOrders /></LazyPage>} />
-              <Route path="/quotes" element={<LazyPage><Quotes /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Accountant" feature="accounting" />}>
-              <Route path="/invoices" element={<LazyPage><Invoices /></LazyPage>} />
-              <Route path="/vendors" element={<LazyPage><VendorList /></LazyPage>} />
-              <Route path="/expenses" element={<LazyPage><Expenses /></LazyPage>} />
-              <Route path="/reports" element={<LazyPage><Reports /></LazyPage>} />
-              <Route path="/reports/sales" element={<LazyPage><SalesReport /></LazyPage>} />
-              <Route path="/reports/inventory" element={<LazyPage><InventoryReport /></LazyPage>} />
-              <Route path="/reports/financial" element={<LazyPage><FinancialReport /></LazyPage>} />
-              <Route path="/accounting/chart-of-accounts" element={<LazyPage><ChartOfAccounts /></LazyPage>} />
-              <Route path="/accounting/general-ledger" element={<LazyPage><GeneralLedger /></LazyPage>} />
-              <Route path="/accounting/trial-balance" element={<LazyPage><TrialBalance /></LazyPage>} />
-              <Route path="/accounting/tax-config" element={<LazyPage><TaxConfig /></LazyPage>} />
-              <Route path="/accounting/bank-reconciliation" element={<LazyPage><BankReconciliation /></LazyPage>} />
-              <Route path="/accounting/fiscal-periods" element={<LazyPage><FiscalPeriods /></LazyPage>} />
-              <Route path="/accounting/profit-and-loss" element={<LazyPage><ProfitAndLoss /></LazyPage>} />
-              <Route path="/accounting/balance-sheet" element={<LazyPage><BalanceSheet /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Manager" feature="procurement" />}>
-              <Route path="/procurement" element={<LazyPage><POList /></LazyPage>} />
-              <Route path="/procurement/new" element={<LazyPage><POForm /></LazyPage>} />
-              <Route path="/procurement/:id" element={<LazyPage><PODetail /></LazyPage>} />
-              <Route path="/procurement/payments" element={<LazyPage><VendorBillPayment /></LazyPage>} />
-              <Route path="/procurement/reports" element={<LazyPage><SpendReports /></LazyPage>} />
-              <Route path="/procurement/approvals" element={<LazyPage><ApprovalQueue /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Staff" feature="projects" />}>
-              <Route path="/projects" element={<LazyPage><Projects /></LazyPage>} />
-              <Route path="/projects/:id" element={<LazyPage><ProjectDetail /></LazyPage>} />
-              <Route path="/projects/reports/overview" element={<LazyPage><ProjectReports /></LazyPage>} />
-              <Route path="/projects/gantt" element={<LazyPage><GanttView /></LazyPage>} />
-              <Route path="/projects/recurring" element={<LazyPage><RecurringTasks /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
-              <Route path="/production" element={<LazyPage><Production /></LazyPage>} />
-              <Route path="/production/costing" element={<LazyPage><ProductionCosting /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Manager" feature="crm" />}>
-              <Route path="/crm" element={<LazyPage><CRM /></LazyPage>} />
-              <Route path="/crm/reports" element={<LazyPage><PipelineReports /></LazyPage>} />
-              <Route path="/crm/email-templates" element={<LazyPage><EmailTemplates /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Manager" feature="hr" />}>
-              <Route path="/hr/employees" element={<LazyPage><Employees /></LazyPage>} />
-              <Route path="/hr/attendance" element={<LazyPage><Attendance /></LazyPage>} />
-              <Route path="/hr/payroll" element={<LazyPage><Payroll /></LazyPage>} />
-              <Route path="/hr/leave" element={<LazyPage><Leave /></LazyPage>} />
-              <Route path="/hr/deductions" element={<LazyPage><Deductions /></LazyPage>} />
-              <Route path="/hr/onboarding" element={<LazyPage><Onboarding /></LazyPage>} />
-              <Route path="/hr/expenses" element={<LazyPage><ExpenseClaims /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Manager" />}>
-              <Route path="/settings" element={<LazyPage><Settings /></LazyPage>} />
-              <Route path="/settings/billing" element={<LazyPage><Billing /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Staff" module="hr" />}>
-              <Route path="/settings/roles" element={<LazyPage><Roles /></LazyPage>} />
-              <Route path="/settings/roles/:id" element={<LazyPage><RoleDetail /></LazyPage>} />
-              <Route path="/settings/departments" element={<LazyPage><Departments /></LazyPage>} />
-              <Route path="/settings/staff" element={<LazyPage><Staff /></LazyPage>} />
-              <Route path="/settings/locations" element={<LazyPage><Locations /></LazyPage>} />
-              <Route path="/settings/audit" element={<LazyPage><StaffAudit /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Staff" />}>
-              <Route path="/settings/support" element={<LazyPage><Support /></LazyPage>} />
-              <Route path="/help" element={<LazyPage><Help /></LazyPage>} />
-              <Route path="/onboarding" element={<LazyPage><OnboardingWizard /></LazyPage>} />
-            </Route>
-            <Route element={<ProtectedRoute minRole="Accountant" />}>
-              <Route path="/approvals" element={<LazyPage><Approvals /></LazyPage>} />
-            </Route>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </Route>
-        </Route>
-        <Route path="*" element={
-          <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <h1 className="text-6xl font-bold text-gray-300">404</h1>
-              <p className="text-lg text-gray-600 mt-2">Page not found</p>
-              <p className="text-sm text-gray-400 mt-1">The page you're looking for doesn't exist or has been moved.</p>
-              <button onClick={() => window.location.href = '/dashboard'}
-                className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium">
-                Go to Dashboard
-              </button>
-            </div>
+      <AuthGuard>
+        <Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-primary-50">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary-600 border-t-transparent" />
           </div>
-        } />
-      </Routes>
-      </Suspense>
+        }>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Login />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/products" element={<LazyPage><ProductList /></LazyPage>} />
+              <Route path="/products/:id" element={<LazyPage><ProductDetail /></LazyPage>} />
+              <Route path="/inventory" element={<LazyPage><StockView /></LazyPage>} />
+              <Route path="/inventory/movements" element={<LazyPage><StockMovement /></LazyPage>} />
+              <Route element={<ProtectedRoute minRole="Sales Rep" />}>
+                <Route path="/pos" element={<LazyPage><Pos /></LazyPage>} />
+                <Route path="/customers" element={<LazyPage><CustomerList /></LazyPage>} />
+                <Route path="/sales" element={<LazyPage><SalesOrders /></LazyPage>} />
+                <Route path="/quotes" element={<LazyPage><Quotes /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Accountant" feature="accounting" />}>
+                <Route path="/invoices" element={<LazyPage><Invoices /></LazyPage>} />
+                <Route path="/vendors" element={<LazyPage><VendorList /></LazyPage>} />
+                <Route path="/expenses" element={<LazyPage><Expenses /></LazyPage>} />
+                <Route path="/reports" element={<LazyPage><Reports /></LazyPage>} />
+                <Route path="/reports/sales" element={<LazyPage><SalesReport /></LazyPage>} />
+                <Route path="/reports/inventory" element={<LazyPage><InventoryReport /></LazyPage>} />
+                <Route path="/reports/financial" element={<LazyPage><FinancialReport /></LazyPage>} />
+                <Route path="/accounting/chart-of-accounts" element={<LazyPage><ChartOfAccounts /></LazyPage>} />
+                <Route path="/accounting/general-ledger" element={<LazyPage><GeneralLedger /></LazyPage>} />
+                <Route path="/accounting/trial-balance" element={<LazyPage><TrialBalance /></LazyPage>} />
+                <Route path="/accounting/tax-config" element={<LazyPage><TaxConfig /></LazyPage>} />
+                <Route path="/accounting/bank-reconciliation" element={<LazyPage><BankReconciliation /></LazyPage>} />
+                <Route path="/accounting/fiscal-periods" element={<LazyPage><FiscalPeriods /></LazyPage>} />
+                <Route path="/accounting/profit-and-loss" element={<LazyPage><ProfitAndLoss /></LazyPage>} />
+                <Route path="/accounting/balance-sheet" element={<LazyPage><BalanceSheet /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Manager" feature="procurement" />}>
+                <Route path="/procurement" element={<LazyPage><POList /></LazyPage>} />
+                <Route path="/procurement/new" element={<LazyPage><POForm /></LazyPage>} />
+                <Route path="/procurement/:id" element={<LazyPage><PODetail /></LazyPage>} />
+                <Route path="/procurement/payments" element={<LazyPage><VendorBillPayment /></LazyPage>} />
+                <Route path="/procurement/reports" element={<LazyPage><SpendReports /></LazyPage>} />
+                <Route path="/procurement/approvals" element={<LazyPage><ApprovalQueue /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Staff" feature="projects" />}>
+                <Route path="/projects" element={<LazyPage><Projects /></LazyPage>} />
+                <Route path="/projects/:id" element={<LazyPage><ProjectDetail /></LazyPage>} />
+                <Route path="/projects/reports/overview" element={<LazyPage><ProjectReports /></LazyPage>} />
+                <Route path="/projects/gantt" element={<LazyPage><GanttView /></LazyPage>} />
+                <Route path="/projects/recurring" element={<LazyPage><RecurringTasks /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Manager" feature="production" />}>
+                <Route path="/production" element={<LazyPage><Production /></LazyPage>} />
+                <Route path="/production/costing" element={<LazyPage><ProductionCosting /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Manager" feature="crm" />}>
+                <Route path="/crm" element={<LazyPage><CRM /></LazyPage>} />
+                <Route path="/crm/reports" element={<LazyPage><PipelineReports /></LazyPage>} />
+                <Route path="/crm/email-templates" element={<LazyPage><EmailTemplates /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Manager" feature="hr" />}>
+                <Route path="/hr/employees" element={<LazyPage><Employees /></LazyPage>} />
+                <Route path="/hr/attendance" element={<LazyPage><Attendance /></LazyPage>} />
+                <Route path="/hr/payroll" element={<LazyPage><Payroll /></LazyPage>} />
+                <Route path="/hr/leave" element={<LazyPage><Leave /></LazyPage>} />
+                <Route path="/hr/deductions" element={<LazyPage><Deductions /></LazyPage>} />
+                <Route path="/hr/onboarding" element={<LazyPage><Onboarding /></LazyPage>} />
+                <Route path="/hr/expenses" element={<LazyPage><ExpenseClaims /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Manager" />}>
+                <Route path="/settings" element={<LazyPage><Settings /></LazyPage>} />
+                <Route path="/settings/billing" element={<LazyPage><Billing /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Staff" module="hr" />}>
+                <Route path="/settings/roles" element={<LazyPage><Roles /></LazyPage>} />
+                <Route path="/settings/roles/:id" element={<LazyPage><RoleDetail /></LazyPage>} />
+                <Route path="/settings/departments" element={<LazyPage><Departments /></LazyPage>} />
+                <Route path="/settings/staff" element={<LazyPage><Staff /></LazyPage>} />
+                <Route path="/settings/locations" element={<LazyPage><Locations /></LazyPage>} />
+                <Route path="/settings/audit" element={<LazyPage><StaffAudit /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Staff" />}>
+                <Route path="/settings/support" element={<LazyPage><Support /></LazyPage>} />
+                <Route path="/help" element={<LazyPage><Help /></LazyPage>} />
+                <Route path="/onboarding" element={<LazyPage><OnboardingWizard /></LazyPage>} />
+              </Route>
+              <Route element={<ProtectedRoute minRole="Accountant" />}>
+                <Route path="/approvals" element={<LazyPage><Approvals /></LazyPage>} />
+              </Route>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            </Route>
+          </Route>
+          <Route path="*" element={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <h1 className="text-6xl font-bold text-gray-300">404</h1>
+                <p className="text-lg text-gray-600 mt-2">Page not found</p>
+                <p className="text-sm text-gray-400 mt-1">The page you're looking for doesn't exist or has been moved.</p>
+                <button onClick={() => window.location.href = '/dashboard'}
+                  className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium">
+                  Go to Dashboard
+                </button>
+              </div>
+            </div>
+          } />
+        </Routes>
+        </Suspense>
+      </AuthGuard>
     </>
   );
 }
