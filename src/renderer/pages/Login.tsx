@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/auth.store';
 import { RegisterForm } from './RegisterForm';
@@ -10,7 +10,6 @@ export function Login() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(() => {
     if (searchParams.get('token')) return 'register';
@@ -25,19 +24,6 @@ export function Login() {
   const [newPassword, setNewPassword] = useState('');
   const [resetSent, setResetSent] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-
-  // Navigate AFTER the render cycle completes (not during it).
-  // Using <Navigate> inside the render body triggers route transition synchronously,
-  // which races with lazy chunk loading and causes transient React error #300.
-  useEffect(() => {
-    if (isAuthenticated && mode === 'login') {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [isAuthenticated, mode, navigate]);
-
-  if (isAuthenticated && mode === 'login') {
-    return null;
-  }
 
   const validateFields = () => {
     const errs: { email?: string; password?: string } = {};
@@ -57,8 +43,7 @@ export function Login() {
       try {
         await login(email, password);
         toast.success('Welcome back!');
-        // Don't reset isLoading — the useEffect navigate() will unmount
-        // this component when isAuthenticated becomes true.
+        navigate('/dashboard', { replace: true });
       } catch (error: any) {
         const message = error?.response?.data?.message || 'Login failed. Please check your credentials.';
         toast.error(message);

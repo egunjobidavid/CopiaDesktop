@@ -55,7 +55,6 @@ export const useAuthStore = create<AuthState>()(
         const roleMap: Record<string, string> = { admin: 'MD', member: 'Staff' };
         const role = roleMap[rawRole] || rawRole;
         const tenantId = response.tenantId;
-        // Sync auth state to api/client immediately so interceptors can work.
         setAuthState({
           accessToken: response.accessToken,
           tenantId,
@@ -63,9 +62,6 @@ export const useAuthStore = create<AuthState>()(
           refreshAccessToken: get().refreshAccessToken,
           logout: get().logout,
         });
-        // Defer Zustand set() to next macrotask so useSyncExternalStore can
-        // batch the update normally instead of calling flushSync.
-        await new Promise<void>((r) => setTimeout(r, 0));
         set({
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
