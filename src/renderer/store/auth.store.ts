@@ -55,6 +55,19 @@ export const useAuthStore = create<AuthState>()(
         const roleMap: Record<string, string> = { admin: 'MD', member: 'Staff' };
         const role = roleMap[rawRole] || rawRole;
         const tenantId = response.tenantId;
+        // Sync auth state to api/client immediately so interceptors can work.
+        setAuthState({
+          accessToken: response.accessToken,
+          tenantId,
+          refreshToken: response.refreshToken,
+          refreshAccessToken: get().refreshAccessToken,
+          logout: get().logout,
+        });
+        // Defer Zustand set() to next macrotask. Calling set() from inside an
+        // async function (after await) triggers React's useSyncExternalStore to
+        // flush sync, which flushes useEffect callbacks (including navigate()),
+        // causing a nested render cycle inside flushSync → Error #300.
+        await new Promise<void>((r) => setTimeout(r, 0));
         set({
           accessToken: response.accessToken,
           refreshToken: response.refreshToken,
@@ -68,18 +81,6 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: true,
           isInitialized: true,
         });
-        // Sync auth state to api/client so interceptors can use it
-        // without importing useAuthStore (which would create a circular dep).
-        setAuthState({
-          accessToken: response.accessToken,
-          tenantId,
-          refreshToken: response.refreshToken,
-          refreshAccessToken: get().refreshAccessToken,
-          logout: get().logout,
-        });
-        // Post-login API calls (permissions, locations) are handled by
-        // AuthGuard.runChecks() to avoid calling set() from outside React's
-        // render lifecycle, which causes Error #300 during route transition.
       },
 
       setPermissions: (perms: string[]) => { set({ permissions: perms }); },

@@ -270,6 +270,7 @@ export function App() {
             <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary-600 border-t-transparent" />
           </div>
         }>
+        <ErrorBoundary>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Login />} />
@@ -373,6 +374,7 @@ export function App() {
             </div>
           } />
         </Routes>
+        </ErrorBoundary>
         </Suspense>
       </AuthGuard>
     </>

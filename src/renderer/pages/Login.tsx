@@ -57,15 +57,11 @@ export function Login() {
       try {
         await login(email, password);
         toast.success('Welcome back!');
-        // Navigation is handled by the useEffect watching isAuthenticated.
-        // Do NOT call navigate() here — it causes a double navigation race
-        // condition where React Router mounts the Layout tree twice, and the
-        // deferred set() calls in auth.store.ts fire during the second mount,
-        // triggering React error #300 (undefined component type).
+        // Don't reset isLoading — the useEffect navigate() will unmount
+        // this component when isAuthenticated becomes true.
       } catch (error: any) {
         const message = error?.response?.data?.message || 'Login failed. Please check your credentials.';
         toast.error(message);
-      } finally {
         setIsLoading(false);
       }
     },
