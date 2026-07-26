@@ -140,6 +140,34 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   async function runChecks() {
     const skipAuth = { _skipAuth: true } as any;
+    const tenantId = useAuthStore.getState().tenantId;
+
+    try {
+      const { data } = await api.get('/auth/me', skipAuth);
+      if (data?.tenants) {
+        const current = data.tenants.find((t: any) => t.id === tenantId);
+        if (current?.permissions) {
+          useAuthStore.getState().setPermissions(current.permissions);
+        }
+        if (current?.plan) {
+          useAuthStore.getState().setPlan(current.plan);
+        }
+      }
+    } catch {}
+
+    try {
+      const { data } = await api.get('/locations', skipAuth) as any;
+      const locs = Array.isArray(data) ? data : [];
+      const savedLocId = useAuthStore.getState().locationId;
+      const savedLoc = locs.find((l: any) => l.id === savedLocId);
+      if (savedLoc) {
+        useAuthStore.getState().setLocation(savedLocId, savedLoc.name);
+      } else if (locs.length > 0) {
+        const def = locs.find((l: any) => l.isDefault) || locs[0];
+        useAuthStore.getState().setLocation(def.id, def.name);
+      }
+    } catch {}
+
     try {
       const m = await api.get('/system/maintenance', skipAuth) as any;
       if (m?.enabled && m?.affectedPlatforms?.includes('desktop')) {

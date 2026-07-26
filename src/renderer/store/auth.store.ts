@@ -77,40 +77,9 @@ export const useAuthStore = create<AuthState>()(
           refreshAccessToken: get().refreshAccessToken,
           logout: get().logout,
         });
-        // Defer post-login API calls until after the route transition completes.
-        // Setting isAuthenticated triggers navigation to /dashboard which mounts
-        // the entire Layout tree. Running additional set() calls during that mount
-        // causes React reconciliation to encounter an undefined element type (#300).
-        // Use double-rAF to ensure we are well past any React render cycle.
-        requestAnimationFrame(() => requestAnimationFrame(async () => {
-          const { default: api } = await import('../api/client');
-          // Load permissions from /auth/me (skip 401 interceptor to avoid undoing login)
-          try {
-            const { data } = await api.get('/auth/me', { _skipAuth: true } as any);
-            if (data?.tenants) {
-              const current = data.tenants.find((t: any) => t.id === tenantId);
-              if (current?.permissions) {
-                set({ permissions: current.permissions });
-              }
-              if (current?.plan) {
-                set({ plan: current.plan });
-              }
-            }
-          } catch (error) { console.error('[AuthStore]', error); }
-          // Auto-select default location (skip 401 interceptor)
-          try {
-            const { data } = await api.get('/locations', { _skipAuth: true } as any);
-            const locs = Array.isArray(data) ? data : [];
-            const savedLocId = get().locationId;
-            const savedLoc = locs.find((l: any) => l.id === savedLocId);
-            if (savedLoc) {
-              set({ locationName: savedLoc.name });
-            } else if (locs.length > 0) {
-              const def = locs.find((l: any) => l.isDefault) || locs[0];
-              set({ locationId: def.id, locationName: def.name });
-            }
-          } catch (error) { console.error('[AuthStore]', error); }
-        }));
+        // Post-login API calls (permissions, locations) are handled by
+        // AuthGuard.runChecks() to avoid calling set() from outside React's
+        // render lifecycle, which causes Error #300 during route transition.
       },
 
       setPermissions: (perms: string[]) => { set({ permissions: perms }); },
