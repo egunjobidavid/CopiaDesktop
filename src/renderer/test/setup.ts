@@ -1,25 +1,33 @@
 import '@testing-library/jest-dom';
 
 // Mock zustand stores
-jest.mock('../store/auth.store', () => ({
-  useAuthStore: jest.fn(() => ({
+vi.mock('../store/auth.store', () => ({
+  useAuthStore: vi.fn(() => ({
     user: { id: 'test-user', email: 'test@test.com', role: 'MD' },
     isAuthenticated: true,
     tenantId: 'test-tenant',
-    logout: jest.fn(),
+    logout: vi.fn(),
   })),
   __esModule: true,
 }));
 
 // Mock react-router-dom
-jest.mock('react-router-dom', () => {
-  const actual = jest.requireActual('react-router-dom');
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: () => jest.fn(),
+    useNavigate: () => vi.fn(),
     useParams: () => ({}),
   };
 });
 
 // Mock scrollTo
-window.scrollTo = jest.fn();
+window.scrollTo = vi.fn();
+
+// Polyfill ResizeObserver (used by recharts)
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+window.ResizeObserver = ResizeObserverMock as any;

@@ -1,18 +1,38 @@
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, Outlet } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 
-const renderProtectedRoute = (minRole?: string, feature?: string, initialEntries = ['/']) => {
-  const mockStore = {
-    user: { id: 'u1', email: 'test@test.com', role: 'MD' },
-    isAuthenticated: true,
-    tenantId: 't1',
-    logout: jest.fn(),
-  };
+const { mockUseAuthStore } = vi.hoisted(() => ({
+  mockUseAuthStore: vi.fn((selector?: any) => {
+    const state = {
+      user: { id: 'u1', email: 'test@test.com', role: 'MD' },
+      isAuthenticated: true,
+      isInitialized: true,
+      tenantId: 't1',
+      permissions: [],
+      logout: vi.fn(),
+    };
+    return selector ? selector(state) : state;
+  }),
+}));
 
-  jest.spyOn(require('../store/auth.store'), 'useAuthStore').mockImplementation((sel?: any) =>
-    sel ? sel(mockStore) : mockStore,
-  );
+vi.mock('../store/auth.store', () => ({
+  useAuthStore: mockUseAuthStore,
+}));
+
+const renderProtectedRoute = (minRole?: string, feature?: string, initialEntries = ['/']) => {
+  mockUseAuthStore.mockImplementation((selector?: any) => {
+    const state = {
+      user: { id: 'u1', email: 'test@test.com', role: 'MD' },
+      isAuthenticated: true,
+      isInitialized: true,
+      tenantId: 't1',
+      permissions: [],
+      logout: vi.fn(),
+    };
+    return selector ? selector(state) : state;
+  });
 
   return render(
     <MemoryRouter initialEntries={initialEntries}>
@@ -27,7 +47,7 @@ const renderProtectedRoute = (minRole?: string, feature?: string, initialEntries
 
 describe('ProtectedRoute', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('renders children when no minRole specified', () => {

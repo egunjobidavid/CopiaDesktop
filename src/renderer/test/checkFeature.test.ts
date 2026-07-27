@@ -4,7 +4,7 @@ describe('checkFeature', () => {
   it('returns true for free plan features', () => {
     expect(checkFeature('inventory')).toBe(true);
     expect(checkFeature('sales')).toBe(true);
-    expect(checkFeature('crm')).toBe(true);
+    expect(checkFeature('customers')).toBe(true);
   });
 
   it('returns false for paid-only features before cache is set', () => {
